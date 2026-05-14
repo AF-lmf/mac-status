@@ -47,7 +47,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Network monitoring vertical slice: NetworkReader + StatusBarManager network item + AppDelegate wiring
 - [x] 02-02-PLAN.md — Memory monitoring vertical slice: MemoryReader + StatusBarManager memory item + AppDelegate wiring
-- [ ] 02-03-PLAN.md — Gap closure: show memory in the visible combined status item
+- [x] 02-03-PLAN.md — Gap closure: show memory in the visible combined status item
 
 ### Phase 3: GPU Monitoring
 **Goal**: User can see GPU usage (and pressure indicator on Apple Silicon) in the menu bar
