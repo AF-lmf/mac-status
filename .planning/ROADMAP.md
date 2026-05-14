@@ -59,7 +59,11 @@ Plans:
   2. On Apple Silicon, GPU pressure indicator (green/yellow/red) is visible in the status bar
   3. On Intel Macs, GPU either shows utilization % or gracefully displays "--" without crashing
   4. CPU, network, and memory metrics continue functioning regardless of GPU data availability
-**Plans**: TBD
+**Plans:** 0/2 plans executed
+
+Plans:
+- [ ] 03-01-PLAN.md — GPU reader vertical slice: IOKit IOAccelerator utilization + pressure model + Xcode project registration
+- [ ] 03-02-PLAN.md — Visible menu bar integration: `C | G | M | network` format + GPU pressure color + graceful fallback
 
 ### Phase 4: Combined Display + Formatting
 **Goal**: All four metrics display as one compact, stable menu bar text — the core UX differentiator
@@ -95,6 +99,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
-| 3. GPU Monitoring | 0/TBD | Not started | - |
+| 3. GPU Monitoring | 0/2 | Planned | - |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |
