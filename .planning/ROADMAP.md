@@ -92,7 +92,10 @@ Plans:
   2. Right-clicking the status bar item shows a menu with at minimum a Quit option
   3. CPU, network, memory, and GPU readings resume correctly after Mac wakes from sleep
   4. App maintains under 1% CPU overhead during extended operation (30+ minutes of continuous monitoring)
-**Plans**: TBD
+**Plans:** 0/1 plans executed
+
+Plans:
+- [ ] 05-01-PLAN.md — Launch-at-login, right-click quit menu, sleep/wake recovery, build and smoke verification
 
 ## Progress
 
@@ -105,4 +108,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
 | 3. GPU Monitoring | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | 1/1 | Complete   | 2026-05-14 |
-| 5. Launch at Login + QoL | 0/TBD | Not started | - |
+| 5. Launch at Login + QoL | 0/1 | Planned    |  |
