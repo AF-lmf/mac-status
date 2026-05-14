@@ -82,6 +82,11 @@ final class MemoryReader: TimerReader<MemoryStats> {
     /// - Important: All page counts are multiplied by the runtime `vm_page_size`
     ///   global variable — never hardcoded to 16384 or 4096.
     override func read() {
+        guard totalSize > 0 else {
+            onUpdate?(nil)
+            return
+        }
+
         var stats = vm_statistics64()
         var count = UInt32(MemoryLayout<vm_statistics64_data_t>.size
                           / MemoryLayout<integer_t>.size)
