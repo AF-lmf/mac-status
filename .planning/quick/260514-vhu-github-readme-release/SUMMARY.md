@@ -1,16 +1,16 @@
 ---
 quick_id: 260514-vhu
 slug: github-readme-release
-status: remote_publish_blocked
+status: complete
 completed: 2026-05-14
-commit: 9ba8720
+commit: 149763f
 ---
 
 # Quick Task Summary: GitHub README and Release Prep
 
 ## Result
 
-Prepared the project for public GitHub publishing.
+Prepared and published the project as a public GitHub repository.
 
 ## Files Changed
 
@@ -34,8 +34,8 @@ Prepared the project for public GitHub publishing.
 
 ## GitHub Publishing Status
 
-- GitHub connector authenticated as `AF-lmf`.
-- `AF-lmf/mac-status` does not currently exist.
-- The available GitHub connector tools can read/write existing repositories, but do not expose repository creation or Release creation/upload.
-- Local machine has no `gh` CLI, no `GITHUB_TOKEN`/`GH_TOKEN`, no HTTPS git credential, and no working SSH credential for GitHub.
-- Remote repository creation, push, and Release upload are therefore blocked until GitHub CLI/token/SSH/browser creation is available.
+- Public repository: <https://github.com/AF-lmf/mac-status>
+- Default branch: `main`
+- Release tag: `v1.0`
+- Release URL: <https://github.com/AF-lmf/mac-status/releases/tag/v1.0>
+- Release asset: `MacStatus-1.0.zip`
