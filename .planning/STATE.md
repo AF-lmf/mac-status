@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 02 (network-memory-monitoring) — EXECUTING
 Plan: 2 of 2
 Status: Phase complete — ready for verification
-Last activity: 2026-05-14
+Last activity: 2026-05-14 - Completed quick task 260514-r6z: 修复 CPU 状态不显示和网络速度换行溢出
 
 Progress: [██████████] 100%
 
@@ -93,6 +93,12 @@ None yet.
 - [Phase 3] GPU pressure metric (IOReport) is sparsely documented — may need a spike before planning
 - [Phase 3] Sandbox compatibility with IOKit GPU readings unverified — test during Phase 1 or 2
 - [Phase 5] macOS 26 menu bar privacy control — may need onboarding alert for users to allow in System Settings
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260514-r6z | 修复 CPU 状态不显示和网络速度换行溢出 | 2026-05-14 | ddf9307 | [260514-r6z-cpu](./quick/260514-r6z-cpu/) |
 
 ## Deferred Items
 
