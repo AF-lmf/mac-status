@@ -140,7 +140,7 @@ final class StatusBarManager {
         updateCombinedStatus()
     }
 
-    /// Update the menu bar memory usage display.
+    /// Update the menu bar memory pressure display.
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {

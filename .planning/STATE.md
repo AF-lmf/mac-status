@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: human_verification
-stopped_at: Phase 2 automated verification passed; waiting for menu bar MEM confirmation
-last_updated: "2026-05-14T12:15:00Z"
-last_activity: 2026-05-14 - Phase 2 automated verification passed; human menu bar confirmation needed
+status: ready_to_plan
+stopped_at: Phase 2 complete; ready to plan Phase 3
+last_updated: "2026-05-14T12:20:00Z"
+last_activity: 2026-05-14 - Phase 2 completed and quick task 260514-s6f changed MEM to memory pressure
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
   completed_plans: 5
-  percent: 100
+  percent: 40
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 02 — network-memory-monitoring
+**Current focus:** Phase 03 — gpu-monitoring
 
 ## Current Position
 
-Phase: 02 (network-memory-monitoring) — HUMAN VERIFICATION
-Plan: 3 of 3
-Status: Automated checks passed; confirm MEM is visible in the menu bar
-Last activity: 2026-05-14 - Phase 2 automated verification passed; human menu bar confirmation needed
+Phase: 3
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-14 - Phase 2 completed; memory display now shows pressure
 
-Progress: [██████████] 100%
+Progress: [████------] 40%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 3
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -44,7 +44,7 @@ Progress: [██████████] 100%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 02 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -85,10 +85,11 @@ Recent decisions affecting current work:
 - [Phase ?]: Uses host_basic_info.max_mem for total RAM (NOT memory_size — 2 GB cap)
 - [Phase ?]: getpagesize() instead of vm_page_size C global for Swift 6 conformance
 - [Phase 2 UAT]: Independent CPU/memory NSStatusItems are not reliably visible in the user's menu bar; visible display should use the combined networkStatusItem.
+- [Phase 2 Quick]: Memory display should show pressure via kern.memorystatus_vm_pressure_level, not used/total GB.
 
 ### Pending Todos
 
-- [Phase 2] Confirm the visible menu bar item includes MEM in the combined CPU/network/memory text.
+- None.
 
 ### Blockers/Concerns
 
@@ -103,6 +104,7 @@ Recent decisions affecting current work:
 | 260514-r6z | 修复 CPU 状态不显示和网络速度换行溢出 | 2026-05-14 | ddf9307 | [260514-r6z-cpu](./quick/260514-r6z-cpu/) |
 | 260514-rfa | 继续修复 CPU 状态不显示 | 2026-05-14 | c9f03bd | [260514-rfa-cpu](./quick/260514-rfa-cpu/) |
 | 260514-rj1 | 把 CPU 并入可见网络菜单栏项显示 | 2026-05-14 | c9bbf1d | [260514-rj1-cpu](./quick/260514-rj1-cpu/) |
+| 260514-s6f | 调整菜单栏顺序并以内存压力替代内存用量 | 2026-05-14 | 438d31c | [260514-s6f-cpu](./quick/260514-s6f-cpu/) |
 
 ## Deferred Items
 
@@ -114,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T12:15:00Z
-Stopped at: Phase 2 automated verification passed; waiting for menu bar MEM confirmation
+Last session: 2026-05-14T12:20:00Z
+Stopped at: Phase 2 complete; ready to plan Phase 3
 Resume file: None

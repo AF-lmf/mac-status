@@ -7,7 +7,7 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
 ## Phases
 
 - [ ] **Phase 1: Foundation + CPU Monitoring** - Project scaffold, menu bar lifecycle, CPU % display
-- [ ] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory usage display (human verification pending)
+- [x] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory pressure display (completed 2026-05-14)
 - [ ] **Phase 3: GPU Monitoring** - GPU utilization and Apple Silicon pressure indicator
 - [ ] **Phase 4: Combined Display + Formatting** - Single compact status bar text with all metrics
 - [ ] **Phase 5: Launch at Login + Quality of Life** - Auto-start, sleep/wake recovery, right-click menu
@@ -33,16 +33,16 @@ Plans:
 **UI hint**: yes
 
 ### Phase 2: Network + Memory Monitoring
-**Goal**: User can see real-time network speed and memory usage alongside CPU in the menu bar
+**Goal**: User can see real-time network speed and memory pressure alongside CPU in the menu bar
 **Mode:** mvp
 **Depends on**: Phase 1
 **Requirements**: NETW-01, NETW-02, NETW-03, MEM-01
 **Success Criteria** (what must be TRUE):
   1. User can see network download and upload rates updating in real time with appropriate units (KB/s or MB/s)
-  2. User can see memory usage displayed as used/total (e.g., "8.2G/16G")
+  2. User can see memory pressure displayed as OK/WARN/CRIT
   3. App correctly detects and monitors the active network interface (Wi-Fi, Ethernet, Thunderbolt) without manual configuration
   4. CPU, network, and memory metrics all display concurrently in the menu bar
-**Plans:** 3/3 plans complete (human verification pending)
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 02-01-PLAN.md — Network monitoring vertical slice: NetworkReader + StatusBarManager network item + AppDelegate wiring
@@ -67,7 +67,7 @@ Plans:
 **Depends on**: Phase 3
 **Requirements**: DISP-01, DISP-02, DISP-03, DISP-04
 **Success Criteria** (what must be TRUE):
-  1. All metrics appear in a single compact menu bar item (e.g., "CPU 12% · MEM 8.2G · ↓2.1M ↑512K · GPU 34%")
+  1. All metrics appear in a single compact menu bar item (e.g., "CPU 12% · MEM OK · ↓2.1M ↑512K · GPU 34%")
   2. Menu bar text width stays fixed even when values change — no layout jitter or adjacent macOS icon shifting
   3. Text remains readable and properly colored in both light and dark system appearance modes
   4. When any metric is unavailable, it shows "--" instead of crashing or leaving blank space
@@ -94,7 +94,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
-| 2. Network + Memory Monitoring | 3/3 | Human verification pending |  |
+| 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
 | 3. GPU Monitoring | 0/TBD | Not started | - |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |

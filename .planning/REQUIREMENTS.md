@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 内存监控 (MEM)
 
-- [x] **MEM-01**: 状态栏实时展示内存使用量（已用/总量，如 8.2G/16G）
+- [x] **MEM-01**: 状态栏实时展示内存压力状态（如 MEM OK / MEM WARN / MEM CRIT）
 
 ### GPU 监控 (GPU)
 
@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 展示 (DISP)
 
-- [ ] **DISP-01**: 所有指标合并为一个紧凑的状态栏文本（如 `CPU 12% · 内存 8.2G · ↓2.1M ↑512K · GPU 34%`）
+- [ ] **DISP-01**: 所有指标合并为一个紧凑的状态栏文本（如 `CPU 12% · MEM OK · ↓2.1M ↑512K · GPU 34%`）
 - [ ] **DISP-02**: 状态栏使用固定宽度布局，避免数值变化时抖动
 - [ ] **DISP-03**: 深色/浅色模式自动适配文字颜色
 - [ ] **DISP-04**: 部分指标不可用时优雅降级，显示 `--` 而非崩溃
