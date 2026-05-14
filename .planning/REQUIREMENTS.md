@@ -24,9 +24,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### GPU 监控 (GPU)
 
-- [ ] **GPU-01**: 状态栏实时展示 GPU 占用率百分比
-- [ ] **GPU-02**: Apple Silicon 设备展示 GPU 压力指标（绿色/黄色/红色）
-- [ ] **GPU-03**: Intel Mac 上优雅降级，仅显示 GPU 占用率或不显示 GPU
+- [x] **GPU-01**: 状态栏实时展示 GPU 占用率百分比
+- [x] **GPU-02**: Apple Silicon 设备展示 GPU 压力指标（绿色/黄色/红色）
+- [x] **GPU-03**: Intel Mac 上优雅降级，仅显示 GPU 占用率或不显示 GPU
 
 ### 展示 (DISP)
 
@@ -87,9 +87,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CPU-01 | Phase 1 | Complete |
 | CPU-02 | Phase 1 | Complete |
 | MEM-01 | Phase 2 | Complete |
-| GPU-01 | Phase 3 | Pending |
-| GPU-02 | Phase 3 | Pending |
-| GPU-03 | Phase 3 | Pending |
+| GPU-01 | Phase 3 | Complete |
+| GPU-02 | Phase 3 | Complete |
+| GPU-03 | Phase 3 | Complete |
 | DISP-01 | Phase 4 | Pending |
 | DISP-02 | Phase 4 | Pending |
 | DISP-03 | Phase 4 | Pending |
@@ -108,4 +108,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-14*
-*Last updated: 2026-05-14 after initial definition*
+*Last updated: 2026-05-14 after Phase 3 completion*

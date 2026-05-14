@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-05-14T13:13:45.972Z"
+status: ready_to_plan
+stopped_at: Phase 03 complete, ready to plan Phase 4
+last_updated: "2026-05-14T13:26:46.000Z"
 last_activity: 2026-05-14
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
   completed_plans: 6
-  percent: 86
+  percent: 60
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 03 — gpu-monitoring
+**Current focus:** Phase 4 — combined-display-formatting
 
 ## Current Position
 
-Phase: 03 (gpu-monitoring) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 4
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-14
 
-Progress: [█████████░] 86%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 5
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -45,6 +45,7 @@ Progress: [█████████░] 86%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 02 | 3 | - | - |
+| 03 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase ?]: getpagesize() instead of vm_page_size C global for Swift 6 conformance
 - [Phase 2 UAT]: Independent CPU/memory NSStatusItems are not reliably visible in the user's menu bar; visible display should use the combined networkStatusItem.
 - [Phase 2 Quick]: Memory display should show pressure via kern.memorystatus_vm_pressure_level, not used/total GB.
+- [Phase 3]: GPUReader uses IOKit IOAccelerator PerformanceStatistics with nil fallback for unavailable data.
+- [Phase 3]: GPU pressure is represented as a v1 utilization-threshold color on the `G ...%` segment only.
+- [Phase 3]: CPU/MEM coloring remains deferred to Phase 4 combined display formatting.
 
 ### Pending Todos
 
@@ -95,8 +99,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- [Phase 3] GPU pressure metric (IOReport) is sparsely documented — may need a spike before planning
-- [Phase 3] Sandbox compatibility with IOKit GPU readings unverified — test during Phase 1 or 2
+- [Phase 4] CPU and MEM color rules need final combined-display treatment.
 - [Phase 5] macOS 26 menu bar privacy control — may need onboarding alert for users to allow in System Settings
 
 ### Quick Tasks Completed
@@ -118,6 +121,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T13:13:45.967Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-05-14T13:26:46Z
+Stopped at: Phase 03 complete, ready to plan Phase 4
 Resume file: None

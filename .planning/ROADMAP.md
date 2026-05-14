@@ -8,7 +8,7 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
 
 - [ ] **Phase 1: Foundation + CPU Monitoring** - Project scaffold, menu bar lifecycle, CPU % display
 - [x] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory pressure display (completed 2026-05-14)
-- [ ] **Phase 3: GPU Monitoring** - GPU utilization and Apple Silicon pressure indicator
+- [x] **Phase 3: GPU Monitoring** - GPU utilization and Apple Silicon pressure indicator (completed 2026-05-14)
 - [ ] **Phase 4: Combined Display + Formatting** - Single compact status bar text with all metrics
 - [ ] **Phase 5: Launch at Login + Quality of Life** - Auto-start, sleep/wake recovery, right-click menu
 
@@ -99,6 +99,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
-| 3. GPU Monitoring | 2/2 | In Progress | - |
+| 3. GPU Monitoring | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |

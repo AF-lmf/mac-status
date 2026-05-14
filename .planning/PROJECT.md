@@ -12,14 +12,13 @@
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ 状态栏展示 GPU 占用/压力情况 — Phase 3
 
 ### Active
 
 - [ ] 状态栏展示实时网络上下行速率
 - [ ] 状态栏展示 CPU 占用率
 - [ ] 状态栏展示内存占用情况
-- [ ] 状态栏展示 GPU 占用/压力情况
 - [ ] 应用开机自启动
 - [ ] 数据实时刷新（秒级更新）
 
@@ -51,10 +50,13 @@
 |----------|-----------|---------|
 | Swift + AppKit/SwiftUI | macOS 原生开发最优选，系统 API 直接获取资源数据 | — Pending |
 | 菜单栏应用（无 Dock 图标） | 用户明确要状态栏展示，不需要独立窗口 | — Pending |
+| IOKit IOAccelerator GPU reader | 零外部依赖读取 GPU 利用率，缺失服务/字段时返回 nil 走 `G --` 降级 | Phase 3 完成 |
+| GPU 压力先用利用率阈值表达 | IOReport 压力字段不稳定，v1 先用 Apple Silicon 上的 GPU 利用率映射 normal/warning/critical | Phase 3 完成 |
+| Phase 3 只给 GPU 段上色 | 避免扩大展示规则范围，CPU/MEM 上色留到 Phase 4 统一处理 | Phase 3 完成 |
 
 ---
 
-*Last updated: 2026-05-14 after initialization*
+*Last updated: 2026-05-14 after Phase 3*
 
 ## Evolution
 
