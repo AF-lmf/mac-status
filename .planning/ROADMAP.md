@@ -75,7 +75,10 @@ Plans:
   2. Menu bar text width stays fixed even when values change — no layout jitter or adjacent macOS icon shifting
   3. Text remains readable and properly colored in both light and dark system appearance modes
   4. When any metric is unavailable, it shows "--" instead of crashing or leaving blank space
-**Plans**: TBD
+**Plans:** 0/1 plans planned
+
+Plans:
+- [ ] 04-01-PLAN.md — Value-level combined formatting: CPU/GPU/MEM colors, fixed width, and fallback checks
 **UI hint**: yes
 
 ### Phase 5: Launch at Login + Quality of Life
@@ -100,5 +103,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
 | 3. GPU Monitoring | 2/2 | Complete | 2026-05-14 |
-| 4. Combined Display + Formatting | 0/TBD | Not started | - |
+| 4. Combined Display + Formatting | 0/1 | Planned    |  |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |
