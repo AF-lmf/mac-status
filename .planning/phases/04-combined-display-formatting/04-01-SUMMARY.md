@@ -24,6 +24,7 @@ key-decisions:
   - "CPU/GPU threshold colors are computed from raw usage values: default under 60%, yellow from 60 to 84%, red at 85% and above."
   - "Memory color is computed from `MemoryPressureLevel`, with OK/default uncolored, WARN yellow, and CRIT red."
   - "GPU normal/default no longer uses green; only warning and critical states add color."
+  - "CPU redraw skipping now also checks rounded text and color severity so threshold crossings refresh inside the 0.5% tolerance."
 patterns-established:
   - "Value-level status bar coloring: append label with base attributes, then append value/status with optional foreground override."
 requirements-completed: [DISP-01, DISP-02, DISP-03, DISP-04]
@@ -53,6 +54,7 @@ completed: 2026-05-14
 ## Task Commits
 
 1. **Tasks 1-3: Raw state, value-level attributed text, and verification** - `94c88f7` (feat)
+2. **Code review fix: CPU threshold redraw edge case** - `abb35c2` (fix)
 
 **Plan metadata:** committed with this summary.
 
@@ -68,7 +70,20 @@ completed: 2026-05-14
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] CPU color could stay stale across threshold boundaries**
+- **Found during:** Code review after Task 3 verification
+- **Issue:** The existing CPU redraw tolerance skipped updates below `0.5%`. If CPU crossed `60%` or `85%` inside that tolerance, the displayed text could remain unchanged while the color band should change.
+- **Fix:** Added `usageSeverity(for:)` and changed the CPU skip condition to redraw when rounded CPU text or severity changes.
+- **Files modified:** `MacStatus/MacStatus/UI/StatusBarManager.swift`
+- **Verification:** Debug build passed after the fix.
+- **Committed in:** `abb35c2`
+
+---
+
+**Total deviations:** 1 auto-fixed (1 bug)
+**Impact on plan:** The fix tightens the planned color contract without adding scope.
 
 ## Issues Encountered
 
