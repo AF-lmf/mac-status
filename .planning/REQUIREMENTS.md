@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 网络监控 (NETW)
 
-- [ ] **NETW-01**: 状态栏实时展示网络下行速率（KB/s 或 MB/s，自动选择合适单位）
-- [ ] **NETW-02**: 状态栏实时展示网络上行速率（KB/s 或 MB/s，自动选择合适单位）
-- [ ] **NETW-03**: 自动检测当前活跃网络接口（Wi-Fi / 以太网 / 雷电），不硬编码接口名
+- [x] **NETW-01**: 状态栏实时展示网络下行速率（KB/s 或 MB/s，自动选择合适单位）
+- [x] **NETW-02**: 状态栏实时展示网络上行速率（KB/s 或 MB/s，自动选择合适单位）
+- [x] **NETW-03**: 自动检测当前活跃网络接口（Wi-Fi / 以太网 / 雷电），不硬编码接口名
 
 ### CPU 监控 (CPU)
 
@@ -81,9 +81,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NETW-01 | Phase 2 | Pending |
-| NETW-02 | Phase 2 | Pending |
-| NETW-03 | Phase 2 | Pending |
+| NETW-01 | Phase 2 | Complete |
+| NETW-02 | Phase 2 | Complete |
+| NETW-03 | Phase 2 | Complete |
 | CPU-01 | Phase 1 | Complete |
 | CPU-02 | Phase 1 | Complete |
 | MEM-01 | Phase 2 | Pending |

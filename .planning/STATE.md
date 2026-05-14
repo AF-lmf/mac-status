@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 2 context gathered
-last_updated: "2026-05-14T07:20:42.638Z"
-last_activity: 2026-05-14 -- Phase 02 planning complete
+last_updated: "2026-05-14T08:22:20.077Z"
+last_activity: 2026-05-14
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 01 — foundation-cpu-monitoring
+**Current focus:** Phase 02 — network-memory-monitoring
 
 ## Current Position
 
-Phase: 01 (foundation-cpu-monitoring) — EXECUTING
+Phase: 02 (network-memory-monitoring) — EXECUTING
 Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-05-14 -- Phase 02 planning complete
+Last activity: 2026-05-14
 
-Progress: [██████████] 100%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 *Updated after each plan completion*
 | Phase 01-foundation-cpu-monitoring P01-01 | 14m | 2 tasks | 4 files |
 | Phase 01-foundation-cpu-monitoring P01-02 | 9min | 2 tasks | 5 files |
+| Phase 02-network-memory-monitoring P01 | 8min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,10 @@ Recent decisions affecting current work:
 - [Phase ?]: SettingsManager uses @unchecked Sendable — UserDefaults is documented thread-safe
 - [Phase ?]: AppDelegate delegates Timer management to TimerReader.start/stop — no inline Timer code
 - [Phase ?]: macOS 26 visibility gate uses DispatchQueue.main.asyncAfter with NSAlert — non-blocking, user-friendly
+- [Phase ?]: Network delta uses max(current - previous, 0) with Int64 conversion to handle 32-bit u_int32_t counter wraparound (PITFALL P2)
+- [Phase ?]: Network tolerance threshold: 1 KB/s (1024 bytes/s) absolute — not the 0.5% relative threshold from CPU
+- [Phase ?]: Primary interface resolved every read cycle via SCDynamicStoreCopyValue — handles Wi-Fi/Ethernet/VPN transitions instantly
+- [Phase ?]: freeifaddrs() in defer block immediately after getifaddrs() — prevents ~86 MB/day memory leak at 1 Hz polling (PITFALL P3)
 
 ### Pending Todos
 
@@ -95,6 +100,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T06:44:42.318Z
+Last session: 2026-05-14T07:30:03.922Z
 Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-network-memory-monitoring/02-CONTEXT.md
+Resume file: None

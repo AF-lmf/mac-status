@@ -42,10 +42,10 @@ Plans:
   2. User can see memory usage displayed as used/total (e.g., "8.2G/16G")
   3. App correctly detects and monitors the active network interface (Wi-Fi, Ethernet, Thunderbolt) without manual configuration
   4. CPU, network, and memory metrics all display concurrently in the menu bar
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md — Network monitoring vertical slice: NetworkReader + StatusBarManager network item + AppDelegate wiring
+- [x] 02-01-PLAN.md — Network monitoring vertical slice: NetworkReader + StatusBarManager network item + AppDelegate wiring
 - [ ] 02-02-PLAN.md — Memory monitoring vertical slice: MemoryReader + StatusBarManager memory item + AppDelegate wiring
 
 ### Phase 3: GPU Monitoring
@@ -93,7 +93,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
-| 2. Network + Memory Monitoring | 0/2 | Not started | - |
+| 2. Network + Memory Monitoring | 1/2 | In Progress|  |
 | 3. GPU Monitoring | 0/TBD | Not started | - |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |
