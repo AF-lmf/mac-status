@@ -12,6 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var cpuReader: CPUReader?
     private var networkReader: NetworkReader?
     private var memoryReader: MemoryReader?
+    private var gpuReader: GPUReader?
 
     // MARK: - Application Entry Point
 
@@ -65,6 +66,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         memoryReader?.start()
+
+        // Phase 3: GPU reader (2s interval per GPUReader)
+        gpuReader = GPUReader()
+        gpuReader?.onUpdate = { [weak self] stats in
+            DispatchQueue.main.async {
+                self?.statusBarManager?.updateGPU(stats)
+            }
+        }
+        gpuReader?.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -72,10 +82,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         cpuReader?.stop()
         networkReader?.stop()
         memoryReader?.stop()
+        gpuReader?.stop()
         // Setting to nil triggers deinit → StatusBarManager.deinit → removeStatusItem (D-10)
         cpuReader = nil
         networkReader = nil
         memoryReader = nil
+        gpuReader = nil
         statusBarManager = nil
     }
 
