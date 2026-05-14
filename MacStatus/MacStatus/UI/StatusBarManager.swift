@@ -26,8 +26,9 @@ final class StatusBarManager {
     // MARK: - Initialization
 
     init() {
-        statusItem = NSStatusBar.system.statusItem(withLength: 70)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.autosaveName = "com.macstatus.cpu"
+        configureStatusButton(statusItem?.button)
         // D-04: zero-config startup shows "CPU --%" until first read completes
         statusItem?.button?.attributedTitle = attributedString("CPU --%")
 
@@ -107,6 +108,7 @@ final class StatusBarManager {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
         networkStatusItem = NSStatusBar.system.statusItem(withLength: 90)
         networkStatusItem?.autosaveName = "com.macstatus.network"
+        configureStatusButton(networkStatusItem?.button)
         networkStatusItem?.button?.attributedTitle = attributedString("↓-- ↑--")
     }
 
@@ -143,6 +145,7 @@ final class StatusBarManager {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
         memoryStatusItem = NSStatusBar.system.statusItem(withLength: 100)
         memoryStatusItem?.autosaveName = "com.macstatus.memory"
+        configureStatusButton(memoryStatusItem?.button)
         memoryStatusItem?.button?.attributedTitle = attributedString("MEM --/--")
     }
 
@@ -170,6 +173,12 @@ final class StatusBarManager {
 
     // MARK: - Text Formatting
 
+    private func configureStatusButton(_ button: NSStatusBarButton?) {
+        button?.cell?.lineBreakMode = .byClipping
+        button?.cell?.usesSingleLineMode = true
+        button?.cell?.wraps = false
+    }
+
     /// Create an NSAttributedString with monospaced digits and label color.
     /// - D-07: monospacedDigitSystemFont prevents menu bar width jitter.
     /// - labelColor auto-adapts to light/dark mode.
@@ -179,12 +188,15 @@ final class StatusBarManager {
             weight: .regular
         )
         let color = NSColor.labelColor
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakMode = .byClipping
 
         return NSAttributedString(
             string: text,
             attributes: [
                 .font: font,
                 .foregroundColor: color,
+                .paragraphStyle: paragraph,
             ]
         )
     }
