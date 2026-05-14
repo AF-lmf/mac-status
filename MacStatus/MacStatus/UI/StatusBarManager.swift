@@ -144,7 +144,7 @@ final class StatusBarManager: NSObject {
 
     /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width accommodates `"C 12% | G 34% | M OK | ↓2.1M ↑512K"` plus macOS padding.
+    /// - Fixed width accommodates `"C 12% | G 34% | M OK 68% | ↓2.1M ↑512K"` plus macOS padding.
     /// - `autosaveName` persists position across launches.
     /// - Initial placeholder follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
@@ -203,12 +203,19 @@ final class StatusBarManager: NSObject {
             return
         }
 
-        if let last = lastMemoryStats, stats == last {
+        let nextMemoryText = formatMemoryPressure(
+            stats.pressureLevel,
+            usedPercent: stats.usedPercent
+        )
+
+        if latestMemoryPressure == stats.pressureLevel,
+           nextMemoryText == latestMemoryText {
+            lastMemoryStats = stats
             return
         }
 
         lastMemoryStats = stats
-        latestMemoryText = formatMemoryPressure(stats.pressureLevel)
+        latestMemoryText = nextMemoryText
         latestMemoryPressure = stats.pressureLevel
         updateCombinedStatus()
     }

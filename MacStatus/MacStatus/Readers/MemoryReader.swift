@@ -30,10 +30,13 @@ enum MemoryPressureLevel: Sendable, Equatable {
 struct MemoryStats: Sendable, Equatable {
     /// Current system memory pressure level.
     let pressureLevel: MemoryPressureLevel
+    /// Estimated physical memory used percentage, excluding file cache where possible.
+    let usedPercent: Double?
 }
 
 // MARK: - Memory Reader
-/// Reads memory pressure via `sysctlbyname("kern.memorystatus_vm_pressure_level")`.
+/// Reads memory pressure via `sysctlbyname("kern.memorystatus_vm_pressure_level")`
+/// and estimates physical memory usage via `host_statistics64`.
 ///
 /// Extends `TimerReader<MemoryStats>` — polling runs on `.utility` background queue.
 ///
@@ -70,6 +73,34 @@ final class MemoryReader: TimerReader<MemoryStats> {
             return
         }
 
-        onUpdate?(MemoryStats(pressureLevel: MemoryPressureLevel(rawValue: level)))
+        onUpdate?(
+            MemoryStats(
+                pressureLevel: MemoryPressureLevel(rawValue: level),
+                usedPercent: readUsedMemoryPercent()
+            )
+        )
+    }
+
+    private func readUsedMemoryPercent() -> Double? {
+        let count = MemoryLayout<vm_statistics64_data_t>.stride / MemoryLayout<integer_t>.stride
+        var vmStats = vm_statistics64()
+        var size = mach_msg_type_number_t(count)
+
+        let result = withUnsafeMutablePointer(to: &vmStats) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: count) {
+                host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &size)
+            }
+        }
+
+        guard result == KERN_SUCCESS else { return nil }
+
+        let usedPages = UInt64(vmStats.active_count)
+            + UInt64(vmStats.wire_count)
+            + UInt64(vmStats.compressor_page_count)
+        let usedBytes = Double(usedPages) * Double(getpagesize())
+        let totalBytes = Double(ProcessInfo.processInfo.physicalMemory)
+
+        guard totalBytes > 0 else { return nil }
+        return min(max((usedBytes / totalBytes) * 100.0, 0), 100)
     }
 }

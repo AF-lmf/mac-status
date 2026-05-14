@@ -23,15 +23,23 @@ func formatNetworkCompact(download: Double, upload: Double) -> String {
     "↓\(compactBytes(download)) ↑\(compactBytes(upload))"
 }
 
-func formatMemoryPressure(_ level: MemoryPressureLevel) -> String {
+func formatMemoryPressure(_ level: MemoryPressureLevel, usedPercent: Double?) -> String {
+    let usageText = formatMemoryUsagePercent(usedPercent)
+
     switch level {
     case .normal:
-        return "M OK"
+        return "M OK \(usageText)"
     case .warning:
-        return "M WARN"
+        return "M WARN \(usageText)"
     case .critical:
-        return "M CRIT"
+        return "M CRIT \(usageText)"
     case .unknown:
-        return "M --"
+        guard usedPercent != nil else { return "M --" }
+        return "M -- \(usageText)"
     }
+}
+
+private func formatMemoryUsagePercent(_ usedPercent: Double?) -> String {
+    guard let usedPercent else { return "--%" }
+    return String(format: "%.0f%%", usedPercent)
 }
