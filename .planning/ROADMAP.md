@@ -7,7 +7,7 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
 ## Phases
 
 - [ ] **Phase 1: Foundation + CPU Monitoring** - Project scaffold, menu bar lifecycle, CPU % display
-- [ ] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory usage display (UAT gap closure in progress)
+- [ ] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory usage display (human verification pending)
 - [ ] **Phase 3: GPU Monitoring** - GPU utilization and Apple Silicon pressure indicator
 - [ ] **Phase 4: Combined Display + Formatting** - Single compact status bar text with all metrics
 - [ ] **Phase 5: Launch at Login + Quality of Life** - Auto-start, sleep/wake recovery, right-click menu
@@ -42,7 +42,7 @@ Plans:
   2. User can see memory usage displayed as used/total (e.g., "8.2G/16G")
   3. App correctly detects and monitors the active network interface (Wi-Fi, Ethernet, Thunderbolt) without manual configuration
   4. CPU, network, and memory metrics all display concurrently in the menu bar
-**Plans:** 2/3 plans complete
+**Plans:** 3/3 plans complete (human verification pending)
 
 Plans:
 - [x] 02-01-PLAN.md — Network monitoring vertical slice: NetworkReader + StatusBarManager network item + AppDelegate wiring
@@ -94,7 +94,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
-| 2. Network + Memory Monitoring | 2/3 | In Progress|  |
+| 2. Network + Memory Monitoring | 3/3 | Human verification pending |  |
 | 3. GPU Monitoring | 0/TBD | Not started | - |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |
 | 5. Launch at Login + QoL | 0/TBD | Not started | - |
