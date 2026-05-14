@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusBarManager: StatusBarManager?
     private var cpuReader: CPUReader?
+    private var networkReader: NetworkReader?
 
     // MARK: - Application Entry Point
 
@@ -41,13 +42,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Start polling — TimerReader fires first read immediately (LIFE-03)
         // and schedules a repeating timer at the configured interval (D-05)
         cpuReader?.start()
+
+        // Phase 2: Network reader (1s interval per D-06)
+        statusBarManager?.setupNetworkItem()
+
+        networkReader = NetworkReader()
+        networkReader?.onUpdate = { [weak self] stats in
+            DispatchQueue.main.async {
+                self?.statusBarManager?.updateNetwork(stats)
+            }
+        }
+        networkReader?.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         // Stop polling and invalidate timer
         cpuReader?.stop()
+        networkReader?.stop()
         // Setting to nil triggers deinit → StatusBarManager.deinit → removeStatusItem (D-10)
         cpuReader = nil
+        networkReader = nil
         statusBarManager = nil
     }
 

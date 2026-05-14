@@ -13,6 +13,11 @@ final class StatusBarManager {
     /// Last displayed value for D-06 tolerance-based redraw (0.5% threshold).
     private var lastDisplayedValue: Double?
 
+    // Network monitoring (D-14: separate NSStatusItem with fixed width)
+    private var networkStatusItem: NSStatusItem?
+    /// Last displayed network stats for tolerance-based redraw (1 KB/s threshold).
+    private var lastNetworkStats: NetworkStats?
+
     // MARK: - Initialization
 
     init() {
@@ -52,7 +57,10 @@ final class StatusBarManager {
             if let item = statusItem {
                 NSStatusBar.system.removeStatusItem(item)
             }
-            print("StatusBarManager deinit — status item removed")
+            if let item = networkStatusItem {
+                NSStatusBar.system.removeStatusItem(item)
+            }
+            print("StatusBarManager deinit — status items removed")
         }
     }
 
@@ -78,6 +86,42 @@ final class StatusBarManager {
         statusItem?.button?.attributedTitle = attributedString(
             String(format: "CPU %.0f%%", value)
         )
+    }
+
+    // MARK: - Network Display
+
+    /// Create the network `NSStatusItem` (D-14: fixed width, separate from CPU).
+    ///
+    /// - Fixed width of 90pt accommodates `"↓2.1M ↑512K"` plus macOS padding.
+    /// - `autosaveName` persists position across launches.
+    /// - Initial placeholder `"↓-- ↑--"` follows LIFE-03 zero-config pattern.
+    func setupNetworkItem() {
+        // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 90)
+        networkStatusItem?.autosaveName = "com.macstatus.network"
+        networkStatusItem?.button?.attributedTitle = attributedString("↓-- ↑--")
+    }
+
+    /// Update the menu bar network rate display.
+    /// - Parameter stats: Current network throughput rates, or `nil` for error state.
+    func updateNetwork(_ stats: NetworkStats?) {
+        guard let stats else {
+            networkStatusItem?.button?.attributedTitle = attributedString("↓-- ↑--")
+            lastNetworkStats = nil
+            return
+        }
+
+        // Tolerance check: skip redraw if both rates changed less than 1 KB/s
+        if let last = lastNetworkStats,
+           abs(stats.downloadBytesPerSec - last.downloadBytesPerSec) < 1024,
+           abs(stats.uploadBytesPerSec - last.uploadBytesPerSec) < 1024 {
+            return
+        }
+
+        lastNetworkStats = stats
+        let text = formatNetworkCompact(download: stats.downloadBytesPerSec,
+                                         upload: stats.uploadBytesPerSec)
+        networkStatusItem?.button?.attributedTitle = attributedString(text)
     }
 
     // MARK: - Text Formatting

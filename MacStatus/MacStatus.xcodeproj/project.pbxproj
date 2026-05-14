@@ -14,6 +14,9 @@
 		A00000000000000000000006 /* ReaderProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* ReaderProtocol.swift */; };
 		A00000000000000000000008 /* TimerReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* TimerReader.swift */; };
 		A0000000000000000000000A /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* SettingsManager.swift */; };
+		2791956B-B428-43E5-A15E-53915BFFA9D6 /* NetworkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */; };
+		4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */; };
+		070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		A00000000000000000000005 /* ReaderProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderProtocol.swift; sourceTree = "<group>"; };
 		A00000000000000000000007 /* TimerReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerReader.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReader.swift; sourceTree = "<group>"; };
+		5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatting.swift; sourceTree = "<group>"; };
+		BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +81,7 @@
 				A00000000000000000000005 /* ReaderProtocol.swift */,
 				A00000000000000000000007 /* TimerReader.swift */,
 				A00000000000000000000001 /* CPUReader.swift */,
+				DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */,
 			);
 			path = Readers;
 			sourceTree = "<group>";
@@ -90,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				A00000000000000000000009 /* SettingsManager.swift */,
+				5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -186,6 +195,8 @@
 				A00000000000000000000002 /* CPUReader.swift in Sources */,
 				A00000000000000000000004 /* StatusBarManager.swift in Sources */,
 				A0000000000000000000000A /* SettingsManager.swift in Sources */,
+				2791956B-B428-43E5-A15E-53915BFFA9D6 /* NetworkReader.swift in Sources */,
+				4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
