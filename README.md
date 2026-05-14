@@ -52,25 +52,39 @@ open MacStatus/MacStatus.xcodeproj
 3. 右键点击菜单栏项目可以退出应用。
 4. 应用会尝试注册为登录项，之后登录 macOS 时自动启动。
 
-如果使用未签名或未公证的 Release 包，macOS 可能会阻止首次打开。可以在 Finder 中右键点击应用并选择“打开”，或自行用 Apple Developer ID 签名和公证后分发。
+如果使用本机源码构建出来的未公证包，传到其他 Mac 后可能会被 Gatekeeper 拦截并提示“Apple 无法验证 MacStatus.app”。公开分发请使用下面的 Developer ID 签名和公证流程。
 
 ## Release 包
 
-本项目可以打包成 zip 放到 GitHub Releases。构建并打包命令：
+直接把 `build/Build/Products/Release/MacStatus.app` 压成 zip 只适合本机调试。要让其他 Mac 正常打开，需要 Apple Developer Program 的 `Developer ID Application` 证书，并完成 notarization 和 staple。
+
+首次发布前，先把 Apple 公证凭据保存到钥匙串：
 
 ```bash
-xcodebuild -project MacStatus/MacStatus.xcodeproj \
-  -scheme MacStatus \
-  -configuration Release \
-  -derivedDataPath build \
-  build
-mkdir -p dist
-COPYFILE_DISABLE=1 ditto --norsrc -c -k --keepParent \
-  build/Build/Products/Release/MacStatus.app \
-  dist/MacStatus-1.0.zip
+xcrun notarytool store-credentials MacStatusNotaryProfile \
+  --apple-id "you@example.com" \
+  --team-id "YOURTEAMID" \
+  --password "app-specific-password"
 ```
 
-Release 用户下载 `MacStatus-1.0.zip` 后，解压并把 `MacStatus.app` 拖到 `/Applications` 即可。
+之后用发布脚本构建、签名、公证、staple 并生成最终 zip：
+
+```bash
+TEAM_ID=YOURTEAMID \
+SIGNING_IDENTITY="Developer ID Application: Your Name (YOURTEAMID)" \
+NOTARY_PROFILE=MacStatusNotaryProfile \
+VERSION=1.0 \
+scripts/package-release.sh
+```
+
+发布到 GitHub Releases 的文件应使用脚本输出的 `dist/MacStatus-1.0.zip`。Release 用户下载后，解压并把 `MacStatus.app` 拖到 `/Applications` 即可。
+
+如果只是把自己构建的包临时放到自己的另一台 Mac 上测试，并且确认来源可信，可以在那台 Mac 上移除隔离标记后打开：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/MacStatus.app
+open /Applications/MacStatus.app
+```
 
 ## 数据来源
 
