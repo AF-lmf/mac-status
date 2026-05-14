@@ -16,7 +16,9 @@ final class StatusBarManager {
     private var latestGPUText = "G --"
     private var latestNetworkText = "↓-- ↑--"
     private var latestMemoryText = "M --"
-    private var latestGPUPressure: GPUPressureLevel?
+    private var latestCPUUsage: Double?
+    private var latestGPUUsage: Double?
+    private var latestMemoryPressure: MemoryPressureLevel?
 
     // Visible combined status item: CPU + GPU + memory + network.
     private var networkStatusItem: NSStatusItem?
@@ -78,6 +80,7 @@ final class StatusBarManager {
         guard let value else {
             // Error state: Mach API failed, always update to "--"
             latestCPUText = "C --%"
+            latestCPUUsage = nil
             updateCombinedStatus()
             lastDisplayedValue = nil
             return
@@ -90,6 +93,7 @@ final class StatusBarManager {
 
         lastDisplayedValue = value
         latestCPUText = String(format: "C %.0f%%", value)
+        latestCPUUsage = value
         updateCombinedStatus()
     }
 
@@ -100,7 +104,7 @@ final class StatusBarManager {
     func updateGPU(_ stats: GPUStats?) {
         guard let stats else {
             latestGPUText = "G --"
-            latestGPUPressure = nil
+            latestGPUUsage = nil
             lastGPUStats = nil
             updateCombinedStatus()
             return
@@ -112,7 +116,7 @@ final class StatusBarManager {
 
         lastGPUStats = stats
         latestGPUText = String(format: "G %.0f%%", stats.utilizationPercent)
-        latestGPUPressure = stats.pressureLevel
+        latestGPUUsage = stats.utilizationPercent
         updateCombinedStatus()
     }
 
@@ -164,6 +168,7 @@ final class StatusBarManager {
     /// now the combined `networkStatusItem`.
     func setupMemoryItem() {
         latestMemoryText = "M --"
+        latestMemoryPressure = nil
         updateCombinedStatus()
     }
 
@@ -172,6 +177,7 @@ final class StatusBarManager {
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
             latestMemoryText = "M --"
+            latestMemoryPressure = nil
             updateCombinedStatus()
             lastMemoryStats = nil
             return
@@ -183,6 +189,7 @@ final class StatusBarManager {
 
         lastMemoryStats = stats
         latestMemoryText = formatMemoryPressure(stats.pressureLevel)
+        latestMemoryPressure = stats.pressureLevel
         updateCombinedStatus()
     }
 
@@ -204,34 +211,76 @@ final class StatusBarManager {
         let result = NSMutableAttributedString()
         let separator = NSAttributedString(string: " | ", attributes: baseAttributes())
 
-        result.append(NSAttributedString(string: latestCPUText, attributes: baseAttributes()))
+        appendMetric(
+            label: "C",
+            value: valueText(from: latestCPUText, label: "C"),
+            valueColor: usageColor(for: latestCPUUsage),
+            to: result
+        )
         result.append(separator)
-        result.append(NSAttributedString(string: latestGPUText, attributes: gpuAttributes()))
+        appendMetric(
+            label: "G",
+            value: valueText(from: latestGPUText, label: "G"),
+            valueColor: usageColor(for: latestGPUUsage),
+            to: result
+        )
         result.append(separator)
-        result.append(NSAttributedString(string: latestMemoryText, attributes: baseAttributes()))
+        appendMetric(
+            label: "M",
+            value: valueText(from: latestMemoryText, label: "M"),
+            valueColor: memoryColor(for: latestMemoryPressure),
+            to: result
+        )
         result.append(separator)
         result.append(NSAttributedString(string: latestNetworkText, attributes: baseAttributes()))
 
         return result
     }
 
-    private func gpuAttributes() -> [NSAttributedString.Key: Any] {
+    private func appendMetric(
+        label: String,
+        value: String,
+        valueColor: NSColor?,
+        to result: NSMutableAttributedString
+    ) {
+        result.append(NSAttributedString(string: "\(label) ", attributes: baseAttributes()))
+        result.append(NSAttributedString(string: value, attributes: metricAttributes(valueColor: valueColor)))
+    }
+
+    private func valueText(from text: String, label: String) -> String {
+        let prefix = "\(label) "
+        guard text.hasPrefix(prefix) else { return text }
+        return String(text.dropFirst(prefix.count))
+    }
+
+    private func metricAttributes(valueColor: NSColor?) -> [NSAttributedString.Key: Any] {
         var attributes = baseAttributes()
-        if let color = gpuPressureColor() {
-            attributes[.foregroundColor] = color
+        if let valueColor {
+            attributes[.foregroundColor] = valueColor
         }
         return attributes
     }
 
-    private func gpuPressureColor() -> NSColor? {
-        switch latestGPUPressure {
-        case .normal:
-            return .systemGreen
+    private func usageColor(for value: Double?) -> NSColor? {
+        guard let value else { return nil }
+
+        switch value {
+        case ..<60:
+            return nil
+        case ..<85:
+            return .systemYellow
+        default:
+            return .systemRed
+        }
+    }
+
+    private func memoryColor(for level: MemoryPressureLevel?) -> NSColor? {
+        switch level {
         case .warning:
             return .systemYellow
         case .critical:
             return .systemRed
-        case nil:
+        case .normal, .unknown, nil:
             return nil
         }
     }
