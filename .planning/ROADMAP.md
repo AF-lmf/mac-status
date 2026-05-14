@@ -28,7 +28,7 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
 
 Plans:
 - [x] 01-01-PLAN.md — Walking skeleton: Xcode project + inline NSStatusBar + CPU reader → "CPU XX%" in menu bar
-- [ ] 01-02-PLAN.md — Architecture extraction: CPUReader, StatusBarManager, ReaderProtocol, TimerReader, SettingsManager → production-quality structure
+- [x] 01-02-PLAN.md — Architecture extraction: CPUReader, StatusBarManager, ReaderProtocol, TimerReader, SettingsManager → production-quality structure
 
 **UI hint**: yes
 

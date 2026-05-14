@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
+status: verifying
 stopped_at: Phase 1 context gathered
-last_updated: "2026-05-14T06:00:49.899Z"
+last_updated: "2026-05-14T06:17:44.637Z"
 last_activity: 2026-05-14
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 
 Phase: 01 (foundation-cpu-monitoring) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-14
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [█████░░░░░] 50%
 
 *Updated after each plan completion*
 | Phase 01-foundation-cpu-monitoring P01-01 | 14m | 2 tasks | 4 files |
+| Phase 01-foundation-cpu-monitoring P01-02 | 9min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,11 @@ Recent decisions affecting current work:
 - [Phase ?]: host_statistics(HOST_CPU_LOAD_INFO) for aggregate CPU% instead of host_processor_info() — simpler API, no vm_deallocate, identical output
 - [Phase ?]: NSAttributedString on NSStatusBarButton.attributedTitle instead of custom NSView — simpler for Phase 1 single-text display
 - [Phase ?]: Swift 6 concurrency: @MainActor class + nonisolated readCPU() + Task { @MainActor } for main-thread dispatch from background queue
+- [Phase ?]: CPUReader extends TimerReader<Double> — Timer lifecycle inherited, only read() override needed
+- [Phase ?]: StatusBarManager is @MainActor — all NSStatusItem operations must be on main thread per AppKit requirement
+- [Phase ?]: SettingsManager uses @unchecked Sendable — UserDefaults is documented thread-safe
+- [Phase ?]: AppDelegate delegates Timer management to TimerReader.start/stop — no inline Timer code
+- [Phase ?]: macOS 26 visibility gate uses DispatchQueue.main.asyncAfter with NSAlert — non-blocking, user-friendly
 
 ### Pending Todos
 
@@ -89,6 +95,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T06:00:24.954Z
+Last session: 2026-05-14T06:17:44.632Z
 Stopped at: Phase 1 context gathered
 Resume file: None

@@ -16,7 +16,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### CPU 监控 (CPU)
 
 - [x] **CPU-01**: 状态栏实时展示 CPU 总占用率百分比
-- [ ] **CPU-02**: CPU 数据刷新间隔 1-3 秒，CPU 占用 < 1%
+- [x] **CPU-02**: CPU 数据刷新间隔 1-3 秒，CPU 占用 < 1%
 
 ### 内存监控 (MEM)
 
@@ -85,7 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NETW-02 | Phase 2 | Pending |
 | NETW-03 | Phase 2 | Pending |
 | CPU-01 | Phase 1 | Complete |
-| CPU-02 | Phase 1 | Pending |
+| CPU-02 | Phase 1 | Complete |
 | MEM-01 | Phase 2 | Pending |
 | GPU-01 | Phase 3 | Pending |
 | GPU-02 | Phase 3 | Pending |
