@@ -5,7 +5,7 @@ milestone_name: milestone
 status: completed
 stopped_at: Completed 05-01-PLAN.md
 last_updated: "2026-05-14T14:12:33.739Z"
-last_activity: 2026-05-14 - Completed quick task 260514-uxx: 生成 MacStatus app 图标并接入 AppIcon
+last_activity: 2026-05-14 - Completed quick task 260514-vax: 将内存菜单栏显示改为 M OK 68% 格式
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 5
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-14 - Completed quick task 260514-uxx: 生成 MacStatus app 图标并接入 AppIcon
+Last activity: 2026-05-14 - Completed quick task 260514-vax: 将内存菜单栏显示改为 M OK 68% 格式
 
 Progress: [██████████] 100%
 
@@ -115,6 +115,7 @@ Recent decisions affecting current work:
 | 260514-rj1 | 把 CPU 并入可见网络菜单栏项显示 | 2026-05-14 | c9bbf1d | [260514-rj1-cpu](./quick/260514-rj1-cpu/) |
 | 260514-s6f | 调整菜单栏顺序并以内存压力替代内存用量 | 2026-05-14 | 438d31c | [260514-s6f-cpu](./quick/260514-s6f-cpu/) |
 | 260514-uxx | 生成 MacStatus app 图标并接入 AppIcon | 2026-05-14 | ef57696 | [260514-uxx-macstatus-app-appicon](./quick/260514-uxx-macstatus-app-appicon/) |
+| 260514-vax | 将内存菜单栏显示改为 M OK 68% 格式 | 2026-05-14 | 0b4b1fa | [260514-vax-m-ok-68](./quick/260514-vax-m-ok-68/) |
 
 ## Deferred Items
 
