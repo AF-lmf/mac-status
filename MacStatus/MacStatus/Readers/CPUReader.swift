@@ -18,24 +18,28 @@ struct CPULoad: Sendable {
 
 // MARK: - CPU Reader
 /// Reads aggregate CPU usage via host_statistics(HOST_CPU_LOAD_INFO).
-/// Pure data collection — no Timer, no main-thread dispatch.
-/// The caller is responsible for polling frequency and UI dispatch.
-final class CPUReader {
+/// Extends TimerReader<Double> for Timer-based polling on a background queue.
+/// Pure data collection — UI dispatch is the caller's responsibility.
+final class CPUReader: TimerReader<Double> {
 
     // MARK: - Properties
 
     private var previousInfo = host_cpu_load_info()
     private var hasPrevious = false
 
-    /// Callback delivering CPU usage percentage (0-100) or nil on error.
-    var onUpdate: ((Double?) -> Void)?
+    // MARK: - Initialization
 
-    // MARK: - Data Collection
+    init() {
+        super.init(interval: SettingsManager.shared.refreshInterval)
+    }
 
-    /// Perform one CPU data collection cycle.
-    /// Calls onUpdate with the computed CPU usage percentage, or nil if
-    /// host_statistics fails.
-    func read() {
+    // MARK: - ReaderProtocol Lifecycle
+
+    override func setup() {
+        previousInfo = host_cpu_load_info()
+    }
+
+    override func read() {
         let count = MemoryLayout<host_cpu_load_info>.stride / MemoryLayout<integer_t>.stride
         var size = mach_msg_type_number_t(count)
         var cpuLoadInfo = host_cpu_load_info()

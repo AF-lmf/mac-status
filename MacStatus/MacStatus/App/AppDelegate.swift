@@ -1,7 +1,7 @@
 import Cocoa
 
 /// MacStatus — macOS menu bar system monitor
-/// AppDelegate: @main entry point and wiring hub between StatusBarManager and CPUReader.
+/// AppDelegate: @main entry point and thin wiring hub between StatusBarManager and CPUReader.
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -10,7 +10,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusBarManager: StatusBarManager?
     private var cpuReader: CPUReader?
-    private var timer: Timer?
 
     // MARK: - Application Entry Point
 
@@ -29,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Create status bar item via StatusBarManager (D-08)
         statusBarManager = StatusBarManager()
 
-        // Create CPU reader — pure data collection on background queue
+        // Create CPU reader — Timer-based polling on background queue via TimerReader
         cpuReader = CPUReader()
 
         // Wire callback: CPUReader.onUpdate → StatusBarManager.updateCPU
@@ -39,26 +38,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // LIFE-03: fire first read immediately for zero-config startup
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            self?.cpuReader?.read()
-        }
-
-        // D-05: schedule repeating timer at 2-second intervals
-        // Anti-Pattern 1: always poll on background queue, never on main thread
-        let newTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            DispatchQueue.global(qos: .utility).async {
-                self?.cpuReader?.read()
-            }
-        }
-        // Use .common mode so timer fires during menu tracking and modal states
-        RunLoop.main.add(newTimer, forMode: .common)
-        timer = newTimer
+        // Start polling — TimerReader fires first read immediately (LIFE-03)
+        // and schedules a repeating timer at the configured interval (D-05)
+        cpuReader?.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        timer?.invalidate()
-        timer = nil
+        // Stop polling and invalidate timer
+        cpuReader?.stop()
         // Setting to nil triggers deinit → StatusBarManager.deinit → removeStatusItem (D-10)
         cpuReader = nil
         statusBarManager = nil
