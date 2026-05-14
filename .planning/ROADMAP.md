@@ -24,10 +24,10 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
   2. CPU reading updates every 1-3 seconds while keeping app CPU overhead under 1%
   3. App runs purely as a menu bar item with no Dock icon visible (LSUIElement behavior)
   4. Menu bar text color automatically adapts to current system appearance (light/dark mode)
-**Plans:** 2 plans (2 waves)
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 01-01-PLAN.md — Walking skeleton: Xcode project + inline NSStatusBar + CPU reader → "CPU XX%" in menu bar
+- [x] 01-01-PLAN.md — Walking skeleton: Xcode project + inline NSStatusBar + CPU reader → "CPU XX%" in menu bar
 - [ ] 01-02-PLAN.md — Architecture extraction: CPUReader, StatusBarManager, ReaderProtocol, TimerReader, SettingsManager → production-quality structure
 
 **UI hint**: yes
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + CPU Monitoring | 0/2 | Not started | - |
+| 1. Foundation + CPU Monitoring | 1/2 | In Progress|  |
 | 2. Network + Memory Monitoring | 0/TBD | Not started | - |
 | 3. GPU Monitoring | 0/TBD | Not started | - |
 | 4. Combined Display + Formatting | 0/TBD | Not started | - |

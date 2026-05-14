@@ -15,7 +15,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### CPU 监控 (CPU)
 
-- [ ] **CPU-01**: 状态栏实时展示 CPU 总占用率百分比
+- [x] **CPU-01**: 状态栏实时展示 CPU 总占用率百分比
 - [ ] **CPU-02**: CPU 数据刷新间隔 1-3 秒，CPU 占用 < 1%
 
 ### 内存监控 (MEM)
@@ -37,9 +37,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 应用生命周期 (LIFE)
 
-- [ ] **LIFE-01**: 应用以纯菜单栏方式运行，无 Dock 图标（LSUIElement = YES）
+- [x] **LIFE-01**: 应用以纯菜单栏方式运行，无 Dock 图标（LSUIElement = YES）
 - [ ] **LIFE-02**: 支持开机自启动（SMAppService）
-- [ ] **LIFE-03**: 零配置启动，首次打开即显示数据
+- [x] **LIFE-03**: 零配置启动，首次打开即显示数据
 - [ ] **LIFE-04**: 右击状态栏显示退出菜单
 
 ## v2 Requirements
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NETW-01 | Phase 2 | Pending |
 | NETW-02 | Phase 2 | Pending |
 | NETW-03 | Phase 2 | Pending |
-| CPU-01 | Phase 1 | Pending |
+| CPU-01 | Phase 1 | Complete |
 | CPU-02 | Phase 1 | Pending |
 | MEM-01 | Phase 2 | Pending |
 | GPU-01 | Phase 3 | Pending |
@@ -94,9 +94,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISP-02 | Phase 4 | Pending |
 | DISP-03 | Phase 4 | Pending |
 | DISP-04 | Phase 4 | Pending |
-| LIFE-01 | Phase 1 | Pending |
+| LIFE-01 | Phase 1 | Complete |
 | LIFE-02 | Phase 5 | Pending |
-| LIFE-03 | Phase 1 | Pending |
+| LIFE-03 | Phase 1 | Complete |
 | LIFE-04 | Phase 5 | Pending |
 
 **Coverage:**

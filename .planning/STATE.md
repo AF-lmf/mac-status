@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 context gathered
-last_updated: "2026-05-14T05:25:56.641Z"
-last_activity: 2026-05-14 -- Phase 01 planning complete
+last_updated: "2026-05-14T06:00:49.899Z"
+last_activity: 2026-05-14
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 1 - Foundation + CPU Monitoring
+**Current focus:** Phase 01 — foundation-cpu-monitoring
 
 ## Current Position
 
-Phase: 1 of 5 (Foundation + CPU Monitoring)
-Plan: TBD (roadmap just created — no plans yet)
+Phase: 01 (foundation-cpu-monitoring) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-05-14 -- Phase 01 planning complete
+Last activity: 2026-05-14
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 - No plans executed yet.
 
 *Updated after each plan completion*
+| Phase 01-foundation-cpu-monitoring P01-01 | 14m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - [Init]: Risk-ascending build order — CPU first (lowest risk), GPU last (riskiest, isolated)
 - [Init]: Three-layer architecture — Reader → Module/Wiring → Presentation (Stats-proven pattern)
 - [Init]: Single Xcode target — folder grouping for modularity without SPM complexity
+- [Phase ?]: host_statistics(HOST_CPU_LOAD_INFO) for aggregate CPU% instead of host_processor_info() — simpler API, no vm_deallocate, identical output
+- [Phase ?]: NSAttributedString on NSStatusBarButton.attributedTitle instead of custom NSView — simpler for Phase 1 single-text display
+- [Phase ?]: Swift 6 concurrency: @MainActor class + nonisolated readCPU() + Task { @MainActor } for main-thread dispatch from background queue
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T04:52:10.125Z
+Last session: 2026-05-14T06:00:24.954Z
 Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation-cpu-monitoring/01-CONTEXT.md
+Resume file: None
