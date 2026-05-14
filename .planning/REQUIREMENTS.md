@@ -30,10 +30,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 展示 (DISP)
 
-- [ ] **DISP-01**: 所有指标合并为一个紧凑的状态栏文本（如 `CPU 12% · MEM OK · ↓2.1M ↑512K · GPU 34%`）
-- [ ] **DISP-02**: 状态栏使用固定宽度布局，避免数值变化时抖动
-- [ ] **DISP-03**: 深色/浅色模式自动适配文字颜色
-- [ ] **DISP-04**: 部分指标不可用时优雅降级，显示 `--` 而非崩溃
+- [x] **DISP-01**: 所有指标合并为一个紧凑的状态栏文本（如 `CPU 12% · MEM OK · ↓2.1M ↑512K · GPU 34%`）
+- [x] **DISP-02**: 状态栏使用固定宽度布局，避免数值变化时抖动
+- [x] **DISP-03**: 深色/浅色模式自动适配文字颜色
+- [x] **DISP-04**: 部分指标不可用时优雅降级，显示 `--` 而非崩溃
 
 ### 应用生命周期 (LIFE)
 
@@ -90,10 +90,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GPU-01 | Phase 3 | Complete |
 | GPU-02 | Phase 3 | Complete |
 | GPU-03 | Phase 3 | Complete |
-| DISP-01 | Phase 4 | Pending |
-| DISP-02 | Phase 4 | Pending |
-| DISP-03 | Phase 4 | Pending |
-| DISP-04 | Phase 4 | Pending |
+| DISP-01 | Phase 4 | Complete |
+| DISP-02 | Phase 4 | Complete |
+| DISP-03 | Phase 4 | Complete |
+| DISP-04 | Phase 4 | Complete |
 | LIFE-01 | Phase 1 | Complete |
 | LIFE-02 | Phase 5 | Pending |
 | LIFE-03 | Phase 1 | Complete |

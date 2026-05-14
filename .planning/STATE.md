@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-05-14T13:47:39.073Z"
+status: verifying
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-05-14T13:50:40.021Z"
 last_activity: 2026-05-14
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 4 — combined-display-formatting
+**Current focus:** Phase 04 — combined-display-formatting
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Ready to execute
+Phase: 04 (combined-display-formatting) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
 Last activity: 2026-05-14
 
-Progress: [█████████░] 88%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█████████░] 88%
 | Phase 02-network-memory-monitoring P03 | 2 min | 1 tasks | 1 files |
 | Phase 03 P01 | 4 min | 2 tasks | 2 files |
 | Phase 03 P02 | 5 min | 3 tasks | 3 files |
+| Phase 04 P01 | 2 min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Recent decisions affecting current work:
 - [Phase 3]: GPUReader uses IOKit IOAccelerator PerformanceStatistics with nil fallback for unavailable data.
 - [Phase 3]: GPU pressure is represented as a v1 utilization-threshold color on the `G ...%` segment only.
 - [Phase 3]: CPU/MEM coloring remains deferred to Phase 4 combined display formatting.
+- [Phase 04]: Value-level menu bar colors are derived from raw metric state, not parsed display strings — This prevents stale warning/critical colors after fallback and keeps labels default-colored.
 
 ### Pending Todos
 
@@ -121,6 +123,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-14T13:42:45.268Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-combined-display-formatting/04-CONTEXT.md
+Last session: 2026-05-14T13:50:40.016Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
