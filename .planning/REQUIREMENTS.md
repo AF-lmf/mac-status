@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 内存监控 (MEM)
 
-- [ ] **MEM-01**: 状态栏实时展示内存使用量（已用/总量，如 8.2G/16G）
+- [x] **MEM-01**: 状态栏实时展示内存使用量（已用/总量，如 8.2G/16G）
 
 ### GPU 监控 (GPU)
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NETW-03 | Phase 2 | Complete |
 | CPU-01 | Phase 1 | Complete |
 | CPU-02 | Phase 1 | Complete |
-| MEM-01 | Phase 2 | Pending |
+| MEM-01 | Phase 2 | Complete |
 | GPU-01 | Phase 3 | Pending |
 | GPU-02 | Phase 3 | Pending |
 | GPU-03 | Phase 3 | Pending |
