@@ -10,7 +10,7 @@ MacStatus delivers a macOS menu bar system monitor in five risk-ascending phases
 - [x] **Phase 2: Network + Memory Monitoring** - Network up/down rates and memory pressure display (completed 2026-05-14)
 - [x] **Phase 3: GPU Monitoring** - GPU utilization and Apple Silicon pressure indicator (completed 2026-05-14)
 - [x] **Phase 4: Combined Display + Formatting** - Single compact status bar text with all metrics (completed 2026-05-14)
-- [ ] **Phase 5: Launch at Login + Quality of Life** - Auto-start, sleep/wake recovery, right-click menu
+- [x] **Phase 5: Launch at Login + Quality of Life** - Auto-start, sleep/wake recovery, right-click menu (completed 2026-05-14)
 
 ## Phase Details
 
@@ -92,10 +92,10 @@ Plans:
   2. Right-clicking the status bar item shows a menu with at minimum a Quit option
   3. CPU, network, memory, and GPU readings resume correctly after Mac wakes from sleep
   4. App maintains under 1% CPU overhead during extended operation (30+ minutes of continuous monitoring)
-**Plans:** 0/1 plans executed
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 05-01-PLAN.md — Launch-at-login, right-click quit menu, sleep/wake recovery, build and smoke verification
+- [x] 05-01-PLAN.md — Launch-at-login, right-click quit menu, sleep/wake recovery, build and smoke verification
 
 ## Progress
 
@@ -108,4 +108,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
 | 3. GPU Monitoring | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | 1/1 | Complete   | 2026-05-14 |
-| 5. Launch at Login + QoL | 0/1 | Planned    |  |
+| 5. Launch at Login + QoL | 1/1 | Complete   | 2026-05-14 |

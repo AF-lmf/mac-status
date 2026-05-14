@@ -38,9 +38,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### 应用生命周期 (LIFE)
 
 - [x] **LIFE-01**: 应用以纯菜单栏方式运行，无 Dock 图标（LSUIElement = YES）
-- [ ] **LIFE-02**: 支持开机自启动（SMAppService）
+- [x] **LIFE-02**: 支持开机自启动（SMAppService）
 - [x] **LIFE-03**: 零配置启动，首次打开即显示数据
-- [ ] **LIFE-04**: 右击状态栏显示退出菜单
+- [x] **LIFE-04**: 右击状态栏显示退出菜单
 
 ## v2 Requirements
 
@@ -95,9 +95,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISP-03 | Phase 4 | Complete |
 | DISP-04 | Phase 4 | Complete |
 | LIFE-01 | Phase 1 | Complete |
-| LIFE-02 | Phase 5 | Pending |
+| LIFE-02 | Phase 5 | Complete |
 | LIFE-03 | Phase 1 | Complete |
-| LIFE-04 | Phase 5 | Pending |
+| LIFE-04 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 17 total
