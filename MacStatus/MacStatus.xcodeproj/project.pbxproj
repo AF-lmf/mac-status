@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		08FB7793FE84155DC02AAC14 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7793FE84155DC02AAC10 /* AppDelegate.swift */; };
 		08FB7793FE84155DC02AAC16 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08FB7793FE84155DC02AAC12 /* Assets.xcassets */; };
+		A00000000000000000000002 /* CPUReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* CPUReader.swift */; };
+		A00000000000000000000004 /* StatusBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* StatusBarManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -16,6 +18,8 @@
 		08FB7793FE84155DC02AAC11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		08FB7793FE84155DC02AAC12 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		08FB7793FE84155DC02AAC13 /* MacStatus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacStatus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000001 /* CPUReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUReader.swift; sourceTree = "<group>"; };
+		A00000000000000000000003 /* StatusBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +65,7 @@
 		08FB7793FE84155DC02AAC0B /* Readers */ = {
 			isa = PBXGroup;
 			children = (
+				A00000000000000000000001 /* CPUReader.swift */,
 			);
 			path = Readers;
 			sourceTree = "<group>";
@@ -68,6 +73,7 @@
 		08FB7793FE84155DC02AAC0C /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				A00000000000000000000003 /* StatusBarManager.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -166,6 +172,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				08FB7793FE84155DC02AAC14 /* AppDelegate.swift in Sources */,
+				A00000000000000000000002 /* CPUReader.swift in Sources */,
+				A00000000000000000000004 /* StatusBarManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
