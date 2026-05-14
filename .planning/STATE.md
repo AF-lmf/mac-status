@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: active
 stopped_at: Phase 2 context gathered
 last_updated: "2026-05-14T08:35:35.096Z"
-last_activity: 2026-05-14
+last_activity: 2026-05-14 - Phase 2 UAT diagnosed memory display gap; gap closure plan 02-03 ready
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 4
+  completed_phases: 1
+  total_plans: 5
   completed_plans: 4
-  percent: 100
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 ## Current Position
 
 Phase: 02 (network-memory-monitoring) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-05-14 - Completed quick task 260514-rj1: 把 CPU 并入可见网络菜单栏项显示
+Plan: 3 of 3
+Status: UAT diagnosed — gap closure plan ready for execution
+Last activity: 2026-05-14 - Phase 2 UAT diagnosed memory display gap; gap closure plan 02-03 ready
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -83,10 +83,11 @@ Recent decisions affecting current work:
 - [Phase ?]: MemoryReader extends TimerReader<MemoryStats> with 2-second polling interval (D-10)
 - [Phase ?]: Uses host_basic_info.max_mem for total RAM (NOT memory_size — 2 GB cap)
 - [Phase ?]: getpagesize() instead of vm_page_size C global for Swift 6 conformance
+- [Phase 2 UAT]: Independent CPU/memory NSStatusItems are not reliably visible in the user's menu bar; visible display should use the combined networkStatusItem.
 
 ### Pending Todos
 
-None yet.
+- [Phase 2] Execute 02-03-PLAN.md to include MEM in the visible combined status item.
 
 ### Blockers/Concerns
 
