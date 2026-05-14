@@ -5,7 +5,7 @@ milestone_name: milestone
 status: completed
 stopped_at: Completed 05-01-PLAN.md
 last_updated: "2026-05-14T14:12:33.739Z"
-last_activity: 2026-05-14
+last_activity: 2026-05-14 - Completed quick task 260514-uxx: 生成 MacStatus app 图标并接入 AppIcon
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 5
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-14
+Last activity: 2026-05-14 - Completed quick task 260514-uxx: 生成 MacStatus app 图标并接入 AppIcon
 
 Progress: [██████████] 100%
 
@@ -114,6 +114,7 @@ Recent decisions affecting current work:
 | 260514-rfa | 继续修复 CPU 状态不显示 | 2026-05-14 | c9f03bd | [260514-rfa-cpu](./quick/260514-rfa-cpu/) |
 | 260514-rj1 | 把 CPU 并入可见网络菜单栏项显示 | 2026-05-14 | c9bbf1d | [260514-rj1-cpu](./quick/260514-rj1-cpu/) |
 | 260514-s6f | 调整菜单栏顺序并以内存压力替代内存用量 | 2026-05-14 | 438d31c | [260514-s6f-cpu](./quick/260514-s6f-cpu/) |
+| 260514-uxx | 生成 MacStatus app 图标并接入 AppIcon | 2026-05-14 | ef57696 | [260514-uxx-macstatus-app-appicon](./quick/260514-uxx-macstatus-app-appicon/) |
 
 ## Deferred Items
 
