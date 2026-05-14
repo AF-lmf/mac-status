@@ -12,6 +12,8 @@ final class StatusBarManager {
     private var statusItem: NSStatusItem?
     /// Last displayed value for D-06 tolerance-based redraw (0.5% threshold).
     private var lastDisplayedValue: Double?
+    private var latestCPUText = "CPU --%"
+    private var latestNetworkText = "↓-- ↑--"
 
     // Network monitoring (D-14: separate NSStatusItem with fixed width)
     private var networkStatusItem: NSStatusItem?
@@ -26,19 +28,12 @@ final class StatusBarManager {
     // MARK: - Initialization
 
     init() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem?.autosaveName = "com.macstatus.cpu"
-        statusItem?.isVisible = true
-        configureStatusButton(statusItem?.button)
-        // D-04: zero-config startup shows "CPU --%" until first read completes
-        setTitle("CPU --%", on: statusItem)
-
         // macOS 26 (Tahoe) privacy gate detection.
         // On macOS 26+, the user must explicitly allow menu bar items
         // in System Settings. This check fires after 2 seconds to give
         // the system time to register the status item.
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            guard let self, let item = self.statusItem else { return }
+            guard let self, let item = self.networkStatusItem else { return }
             if item.isVisible == false {
                 let alert = NSAlert()
                 alert.messageText = "Menu Bar Permission Needed"
@@ -81,7 +76,8 @@ final class StatusBarManager {
     func updateCPU(_ value: Double?) {
         guard let value else {
             // Error state: Mach API failed, always update to "--"
-            setTitle("CPU --%", on: statusItem)
+            latestCPUText = "CPU --%"
+            updateCombinedStatus()
             lastDisplayedValue = nil
             return
         }
@@ -93,7 +89,8 @@ final class StatusBarManager {
 
         lastDisplayedValue = value
         // D-04: "CPU XX%" format
-        setTitle(String(format: "CPU %.0f%%", value), on: statusItem)
+        latestCPUText = String(format: "CPU %.0f%%", value)
+        updateCombinedStatus()
     }
 
     // MARK: - Network Display
@@ -105,18 +102,19 @@ final class StatusBarManager {
     /// - Initial placeholder `"↓-- ↑--"` follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 90)
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 160)
         networkStatusItem?.autosaveName = "com.macstatus.network"
         networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
-        setTitle("↓-- ↑--", on: networkStatusItem)
+        updateCombinedStatus()
     }
 
     /// Update the menu bar network rate display.
     /// - Parameter stats: Current network throughput rates, or `nil` for error state.
     func updateNetwork(_ stats: NetworkStats?) {
         guard let stats else {
-            setTitle("↓-- ↑--", on: networkStatusItem)
+            latestNetworkText = "↓-- ↑--"
+            updateCombinedStatus()
             lastNetworkStats = nil
             return
         }
@@ -129,9 +127,9 @@ final class StatusBarManager {
         }
 
         lastNetworkStats = stats
-        let text = formatNetworkCompact(download: stats.downloadBytesPerSec,
-                                         upload: stats.uploadBytesPerSec)
-        setTitle(text, on: networkStatusItem)
+        latestNetworkText = formatNetworkCompact(download: stats.downloadBytesPerSec,
+                                                  upload: stats.uploadBytesPerSec)
+        updateCombinedStatus()
     }
 
     // MARK: - Memory Display
@@ -183,6 +181,10 @@ final class StatusBarManager {
     private func setTitle(_ text: String, on item: NSStatusItem?) {
         item?.button?.title = text
         item?.button?.attributedTitle = attributedString(text)
+    }
+
+    private func updateCombinedStatus() {
+        setTitle("\(latestCPUText) \(latestNetworkText)", on: networkStatusItem)
     }
 
     /// Create an NSAttributedString with monospaced digits and label color.
