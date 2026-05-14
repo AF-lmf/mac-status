@@ -699,22 +699,16 @@ func applicationDidFinishLaunching(_ notification: Notification) {
 | A4 | `NetworkReader(interval: 1.0)` passes interval directly to `TimerReader` constructor rather than using `SettingsManager.shared.refreshInterval` | Architecture | The `TimerReader` init takes `interval: TimeInterval` — passing a literal value is valid. If SettingsManager needs per-reader intervals later, refactor is trivial (add `networkRefreshInterval` key). |
 | A5 | Virtual interface filter list (awdl, llw, utun, bridge, gif, stf, lo, anpi, ap) is complete for macOS 14+ | Network interface detection | Missing a prefix means a virtual interface could be selected as primary if SystemConfiguration returns it. However, SystemConfiguration's `PrimaryInterface` already filters to the default-route interface — virtual interfaces don't carry default routes. The filter list is a defense-in-depth measure. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should NetworkReader re-detect primary interface on every read cycle?**
-   - What we know: `SCDynamicStoreCopyValue` is a lightweight call (reads from a local cache). Stats re-reads it on every cycle via the `interfaceID` computed property.
-   - What's unclear: For MacStatus v1, is every-cycle detection necessary, or is 10-second periodic re-check sufficient?
-   - Recommendation: Re-read every cycle (1s) — it's a dictionary lookup from an in-memory cache, nearly zero overhead. This provides immediate response to interface changes without additional notification infrastructure. The planner can include NSWorkspace notifications as optional Wave 2 enhancement.
+   - RESOLVED: Re-read every cycle (1s) — it's a dictionary lookup from an in-memory cache, nearly zero overhead. This provides immediate response to interface changes without additional notification infrastructure.
 
 2. **Should NetworkReader handle sleep/wake in Phase 2?**
-   - What we know: PITFALLS.md Pitfall 2 documents sleep/wake data freeze. The existing CPUReader does not handle sleep/wake — a gap in Phase 1 as well.
-   - What's unclear: Whether to scope this fix into Phase 2 or defer to a dedicated phase.
-   - Recommendation: Include in Phase 2 as a low-effort fix. Add `NSWorkspace.didWakeNotification` observer to BOTH NetworkReader and MemoryReader. On wake: reset stored baseline to nil. This is ~5 lines per Reader. CPUReader can be retrofitted in a follow-up.
+   - RESOLVED: Include in Phase 2 as a low-effort fix. Add `NSWorkspace.didWakeNotification` observer to BOTH NetworkReader and MemoryReader. On wake: reset stored baseline to nil. This is ~5 lines per Reader.
 
 3. **NetworkStats tolerance threshold for UI redraw?**
-   - What we know: Phase 1 uses 0.5% for CPU. Network rates are inherently jittery (bursty traffic). A 0.5% threshold on bytes/sec would be meaningless at low rates.
-   - What's unclear: What absolute threshold avoids unnecessary redraws while still feeling responsive?
-   - Recommendation: Use 1 KB/s (1024 bytes/s) absolute threshold. At typical rates (100 KB/s - 100 MB/s), this prevents redraws for sub-KB changes while updating for any meaningful traffic change. This is in the agent's discretion per CONTEXT.
+   - RESOLVED: Use 1 KB/s (1024 bytes/s) absolute threshold. At typical rates (100 KB/s - 100 MB/s), this prevents redraws for sub-KB changes while updating for any meaningful traffic change.
 
 ## Environment Availability
 
