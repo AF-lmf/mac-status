@@ -1,4 +1,5 @@
 import Cocoa
+import ServiceManagement
 
 /// MacStatus — macOS menu bar system monitor
 /// AppDelegate: @main entry point and thin wiring hub between StatusBarManager and CPUReader.
@@ -30,7 +31,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create status bar item via StatusBarManager (D-08)
         statusBarManager = StatusBarManager()
+        configureLaunchAtLogin()
+        configureReaders()
+        registerSleepWakeObservers()
+        startReaders()
+    }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        unregisterSleepWakeObservers()
+        stopReaders()
+        // Setting to nil triggers deinit -> StatusBarManager.deinit -> removeStatusItem (D-10)
+        cpuReader = nil
+        networkReader = nil
+        memoryReader = nil
+        gpuReader = nil
+        statusBarManager = nil
+    }
+
+    // MARK: - Launch at Login
+
+    private func configureLaunchAtLogin() {
+        let service = SMAppService.mainApp
+        guard service.status != .enabled else { return }
+
+        do {
+            try service.register()
+        } catch {
+            print("Launch at login registration failed: \(error)")
+        }
+    }
+
+    // MARK: - Reader Lifecycle
+
+    @MainActor
+    private func configureReaders() {
         // Create CPU reader — Timer-based polling on background queue via TimerReader
         cpuReader = CPUReader()
 
@@ -41,10 +75,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // Start polling — TimerReader fires first read immediately (LIFE-03)
-        // and schedules a repeating timer at the configured interval (D-05)
-        cpuReader?.start()
-
         // Phase 2: Network reader (1s interval per D-06)
         statusBarManager?.setupNetworkItem()
 
@@ -54,7 +84,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.statusBarManager?.updateNetwork(stats)
             }
         }
-        networkReader?.start()
 
         // Phase 2: Memory reader (2s interval per D-10)
         statusBarManager?.setupMemoryItem()
@@ -65,7 +94,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.statusBarManager?.updateMemory(stats)
             }
         }
-        memoryReader?.start()
 
         // Phase 3: GPU reader (2s interval per GPUReader)
         gpuReader = GPUReader()
@@ -74,21 +102,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.statusBarManager?.updateGPU(stats)
             }
         }
+    }
+
+    private func startReaders() {
+        // TimerReader fires first read immediately (LIFE-03) and replaces
+        // any existing timer, so wake recovery can safely reuse this path.
+        cpuReader?.start()
+        networkReader?.start()
+        memoryReader?.start()
         gpuReader?.start()
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
-        // Stop polling and invalidate timer
+    private func stopReaders() {
         cpuReader?.stop()
         networkReader?.stop()
         memoryReader?.stop()
         gpuReader?.stop()
-        // Setting to nil triggers deinit → StatusBarManager.deinit → removeStatusItem (D-10)
-        cpuReader = nil
-        networkReader = nil
-        memoryReader = nil
-        gpuReader = nil
-        statusBarManager = nil
+    }
+
+    // MARK: - Sleep/Wake Recovery
+
+    private func registerSleepWakeObservers() {
+        let center = NSWorkspace.shared.notificationCenter
+        center.addObserver(
+            self,
+            selector: #selector(applicationWillSleep(_:)),
+            name: NSWorkspace.willSleepNotification,
+            object: nil
+        )
+        center.addObserver(
+            self,
+            selector: #selector(applicationDidWake(_:)),
+            name: NSWorkspace.didWakeNotification,
+            object: nil
+        )
+    }
+
+    private func unregisterSleepWakeObservers() {
+        let center = NSWorkspace.shared.notificationCenter
+        center.removeObserver(self, name: NSWorkspace.willSleepNotification, object: nil)
+        center.removeObserver(self, name: NSWorkspace.didWakeNotification, object: nil)
+    }
+
+    @objc private func applicationWillSleep(_ notification: Notification) {
+        stopReaders()
+    }
+
+    @objc private func applicationDidWake(_ notification: Notification) {
+        startReaders()
     }
 
     deinit {

@@ -5,7 +5,7 @@ import Cocoa
 /// All NSStatusItem operations must occur on the main actor — marking the
 /// class @MainActor satisfies Swift 6 strict concurrency checking.
 @MainActor
-final class StatusBarManager {
+final class StatusBarManager: NSObject {
 
     // MARK: - Properties
 
@@ -31,9 +31,23 @@ final class StatusBarManager {
     /// Last displayed GPU stats for redraw skipping.
     private var lastGPUStats: GPUStats?
 
+    private lazy var statusMenu: NSMenu = {
+        let menu = NSMenu()
+        let quitItem = NSMenuItem(
+            title: "Quit MacStatus",
+            action: #selector(quitMacStatus(_:)),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu.addItem(quitItem)
+        return menu
+    }()
+
     // MARK: - Initialization
 
-    init() {
+    override init() {
+        super.init()
+
         // macOS 26 (Tahoe) privacy gate detection.
         // On macOS 26+, the user must explicitly allow menu bar items
         // in System Settings. This check fires after 2 seconds to give
@@ -205,6 +219,21 @@ final class StatusBarManager {
         button?.cell?.lineBreakMode = .byClipping
         button?.cell?.usesSingleLineMode = true
         button?.cell?.wraps = false
+        button?.target = self
+        button?.action = #selector(showStatusMenu(_:))
+        _ = button?.sendAction(on: [.rightMouseUp])
+    }
+
+    @objc private func showStatusMenu(_ sender: NSStatusBarButton) {
+        statusMenu.popUp(
+            positioning: nil,
+            at: NSPoint(x: 0, y: sender.bounds.height + 2),
+            in: sender
+        )
+    }
+
+    @objc private func quitMacStatus(_ sender: NSMenuItem) {
+        NSApp.terminate(nil)
     }
 
     private func updateCombinedStatus() {

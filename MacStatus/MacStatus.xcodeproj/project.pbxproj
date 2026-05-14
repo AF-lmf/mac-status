@@ -20,6 +20,7 @@
 		A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */; };
 		C30000000000000000000002 /* GPUReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000001 /* GPUReader.swift */; };
 		C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
+		D50000000000000000000002 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D50000000000000000000001 /* ServiceManagement.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryReader.swift; sourceTree = "<group>"; };
 		C30000000000000000000001 /* GPUReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUReader.swift; sourceTree = "<group>"; };
 		C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		D50000000000000000000001 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +49,7 @@
 			files = (
 				070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */,
 				C30000000000000000000004 /* IOKit.framework in Frameworks */,
+				D50000000000000000000002 /* ServiceManagement.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
