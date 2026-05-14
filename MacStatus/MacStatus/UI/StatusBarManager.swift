@@ -14,7 +14,7 @@ final class StatusBarManager {
     private var lastDisplayedValue: Double?
     private var latestCPUText = "CPU --%"
     private var latestNetworkText = "↓-- ↑--"
-    private var latestMemoryText = "MEM --/--"
+    private var latestMemoryText = "MEM --"
 
     // Phase 2 visible combined status item: CPU + network + memory.
     private var networkStatusItem: NSStatusItem?
@@ -93,12 +93,12 @@ final class StatusBarManager {
 
     /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width accommodates `"CPU 12% ↓2.1M ↑512K MEM 8.2G/16G"` plus macOS padding.
+    /// - Fixed width accommodates `"CPU 12% | MEM OK | ↓2.1M ↑512K"` plus macOS padding.
     /// - `autosaveName` persists position across launches.
     /// - Initial placeholder follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 280)
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 240)
         networkStatusItem?.autosaveName = "com.macstatus.network"
         networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
@@ -136,7 +136,7 @@ final class StatusBarManager {
     /// item is not reliably visible for the user. The visible source of truth is
     /// now the combined `networkStatusItem`.
     func setupMemoryItem() {
-        latestMemoryText = "MEM --/--"
+        latestMemoryText = "MEM --"
         updateCombinedStatus()
     }
 
@@ -144,22 +144,18 @@ final class StatusBarManager {
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
-            latestMemoryText = "MEM --/--"
+            latestMemoryText = "MEM --"
             updateCombinedStatus()
             lastMemoryStats = nil
             return
         }
 
-        // Tolerance check: skip redraw if used bytes changed < 0.5% of total
-        // (same threshold pattern as CPU — memory changes slowly)
-        if let last = lastMemoryStats {
-            let change = abs(stats.usedBytes - last.usedBytes) / stats.totalBytes
-            if change < 0.005 { return }
+        if let last = lastMemoryStats, stats == last {
+            return
         }
 
         lastMemoryStats = stats
-        latestMemoryText = formatMemoryCompact(used: stats.usedBytes,
-                                                total: stats.totalBytes)
+        latestMemoryText = formatMemoryPressure(stats.pressureLevel)
         updateCombinedStatus()
     }
 
@@ -178,7 +174,7 @@ final class StatusBarManager {
 
     private func updateCombinedStatus() {
         setTitle(
-            "\(latestCPUText) \(latestNetworkText) \(latestMemoryText)",
+            "\(latestCPUText) | \(latestMemoryText) | \(latestNetworkText)",
             on: networkStatusItem
         )
     }

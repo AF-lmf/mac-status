@@ -23,6 +23,15 @@ func formatNetworkCompact(download: Double, upload: Double) -> String {
     "↓\(compactBytes(download)) ↑\(compactBytes(upload))"
 }
 
-func formatMemoryCompact(used: Double, total: Double) -> String {
-    "MEM \(compactBytes(used))/\(compactBytes(total))"
+func formatMemoryPressure(_ level: MemoryPressureLevel) -> String {
+    switch level {
+    case .normal:
+        return "MEM OK"
+    case .warning:
+        return "MEM WARN"
+    case .critical:
+        return "MEM CRIT"
+    case .unknown:
+        return "MEM --"
+    }
 }
