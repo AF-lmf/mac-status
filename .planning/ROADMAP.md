@@ -62,7 +62,7 @@ Plans:
 **Plans:** 0/2 plans executed
 
 Plans:
-- [ ] 03-01-PLAN.md — GPU reader vertical slice: IOKit IOAccelerator utilization + pressure model + Xcode project registration
+- [x] 03-01-PLAN.md — GPU reader vertical slice: IOKit IOAccelerator utilization + pressure model + Xcode project registration
 - [ ] 03-02-PLAN.md — Visible menu bar integration: `C | G | M | network` format + GPU pressure color + graceful fallback
 
 ### Phase 4: Combined Display + Formatting
