@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 02 (network-memory-monitoring) — EXECUTING
 Plan: 2 of 2
 Status: Phase complete — ready for verification
-Last activity: 2026-05-14 - Completed quick task 260514-rfa: 继续修复 CPU 状态不显示
+Last activity: 2026-05-14 - Completed quick task 260514-rj1: 把 CPU 并入可见网络菜单栏项显示
 
 Progress: [██████████] 100%
 
@@ -100,6 +100,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260514-r6z | 修复 CPU 状态不显示和网络速度换行溢出 | 2026-05-14 | ddf9307 | [260514-r6z-cpu](./quick/260514-r6z-cpu/) |
 | 260514-rfa | 继续修复 CPU 状态不显示 | 2026-05-14 | c9f03bd | [260514-rfa-cpu](./quick/260514-rfa-cpu/) |
+| 260514-rj1 | 把 CPU 并入可见网络菜单栏项显示 | 2026-05-14 | c9bbf1d | [260514-rj1-cpu](./quick/260514-rj1-cpu/) |
 
 ## Deferred Items
 
