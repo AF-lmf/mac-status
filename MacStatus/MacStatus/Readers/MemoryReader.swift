@@ -13,6 +13,12 @@ struct MemoryStats: Sendable {
     let freeBytes: Double
 }
 
+/// Cached page size — read via `getpagesize()` (a POSIX function) rather than
+/// directly accessing the C `extern vm_page_size` global, which Swift 6 strict
+/// concurrency flags as shared mutable state. Page size never changes during
+/// process lifetime, so reading once at module load is safe and efficient.
+private let cachedPageSize = Double(getpagesize())
+
 // MARK: - Memory Reader
 /// Reads memory utilization via `host_statistics64(HOST_VM_INFO64)` page statistics
 /// and `host_info(HOST_BASIC_INFO).max_mem` for total physical RAM.
@@ -93,9 +99,9 @@ final class MemoryReader: TimerReader<MemoryStats> {
             return
         }
 
-        let pageSize = Double(vm_page_size)
+        let pageSize = cachedPageSize
 
-        // Convert page counts to bytes using runtime page size
+        // Convert page counts to bytes using cached runtime page size
         let active      = Double(stats.active_count) * pageSize
         let wired       = Double(stats.wire_count) * pageSize
         let compressed  = Double(stats.compressor_page_count) * pageSize

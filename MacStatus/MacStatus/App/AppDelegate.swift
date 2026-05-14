@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarManager: StatusBarManager?
     private var cpuReader: CPUReader?
     private var networkReader: NetworkReader?
+    private var memoryReader: MemoryReader?
 
     // MARK: - Application Entry Point
 
@@ -53,15 +54,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         networkReader?.start()
+
+        // Phase 2: Memory reader (2s interval per D-10)
+        statusBarManager?.setupMemoryItem()
+
+        memoryReader = MemoryReader()
+        memoryReader?.onUpdate = { [weak self] stats in
+            DispatchQueue.main.async {
+                self?.statusBarManager?.updateMemory(stats)
+            }
+        }
+        memoryReader?.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         // Stop polling and invalidate timer
         cpuReader?.stop()
         networkReader?.stop()
+        memoryReader?.stop()
         // Setting to nil triggers deinit → StatusBarManager.deinit → removeStatusItem (D-10)
         cpuReader = nil
         networkReader = nil
+        memoryReader = nil
         statusBarManager = nil
     }
 

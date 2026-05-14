@@ -18,6 +18,11 @@ final class StatusBarManager {
     /// Last displayed network stats for tolerance-based redraw (1 KB/s threshold).
     private var lastNetworkStats: NetworkStats?
 
+    // Memory monitoring (D-14: separate NSStatusItem with fixed width)
+    private var memoryStatusItem: NSStatusItem?
+    /// Last displayed memory stats for tolerance-based redraw (0.5% threshold).
+    private var lastMemoryStats: MemoryStats?
+
     // MARK: - Initialization
 
     init() {
@@ -58,6 +63,9 @@ final class StatusBarManager {
                 NSStatusBar.system.removeStatusItem(item)
             }
             if let item = networkStatusItem {
+                NSStatusBar.system.removeStatusItem(item)
+            }
+            if let item = memoryStatusItem {
                 NSStatusBar.system.removeStatusItem(item)
             }
             print("StatusBarManager deinit — status items removed")
@@ -122,6 +130,42 @@ final class StatusBarManager {
         let text = formatNetworkCompact(download: stats.downloadBytesPerSec,
                                          upload: stats.uploadBytesPerSec)
         networkStatusItem?.button?.attributedTitle = attributedString(text)
+    }
+
+    // MARK: - Memory Display
+
+    /// Create the memory `NSStatusItem` (D-14: fixed width, separate from CPU/network).
+    ///
+    /// - Fixed width of 100pt accommodates `"MEM 8.2G/16G"` (longest variant on 16+ GB Macs).
+    /// - `autosaveName` persists position across launches.
+    /// - Initial placeholder `"MEM --/--"` follows LIFE-03 zero-config pattern.
+    func setupMemoryItem() {
+        // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
+        memoryStatusItem = NSStatusBar.system.statusItem(withLength: 100)
+        memoryStatusItem?.autosaveName = "com.macstatus.memory"
+        memoryStatusItem?.button?.attributedTitle = attributedString("MEM --/--")
+    }
+
+    /// Update the menu bar memory usage display.
+    /// - Parameter stats: Current memory statistics, or `nil` for error state.
+    func updateMemory(_ stats: MemoryStats?) {
+        guard let stats else {
+            memoryStatusItem?.button?.attributedTitle = attributedString("MEM --/--")
+            lastMemoryStats = nil
+            return
+        }
+
+        // Tolerance check: skip redraw if used bytes changed < 0.5% of total
+        // (same threshold pattern as CPU — memory changes slowly)
+        if let last = lastMemoryStats {
+            let change = abs(stats.usedBytes - last.usedBytes) / stats.totalBytes
+            if change < 0.005 { return }
+        }
+
+        lastMemoryStats = stats
+        let text = formatMemoryCompact(used: stats.usedBytes,
+                                        total: stats.totalBytes)
+        memoryStatusItem?.button?.attributedTitle = attributedString(text)
     }
 
     // MARK: - Text Formatting
