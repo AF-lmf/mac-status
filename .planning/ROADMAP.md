@@ -108,4 +108,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Network + Memory Monitoring | 3/3 | Complete | 2026-05-14 |
 | 3. GPU Monitoring | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | 1/1 | Complete   | 2026-05-14 |
-| 5. Launch at Login + QoL | 1/1 | Complete   | 2026-05-14 |
+| 5. Launch at Login + QoL | 1/1 | Complete    | 2026-05-14 |
