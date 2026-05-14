@@ -18,6 +18,8 @@
 		4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */; };
  		070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */; };
 		A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */; };
+		C30000000000000000000002 /* GPUReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000001 /* GPUReader.swift */; };
+		C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +36,8 @@
 		5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatting.swift; sourceTree = "<group>"; };
 		BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryReader.swift; sourceTree = "<group>"; };
+		C30000000000000000000001 /* GPUReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUReader.swift; sourceTree = "<group>"; };
+		C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +46,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */,
+				C30000000000000000000004 /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +90,7 @@
 				A00000000000000000000001 /* CPUReader.swift */,
 				DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */,
 				BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */,
+				C30000000000000000000001 /* GPUReader.swift */,
 			);
 			path = Readers;
 			sourceTree = "<group>";
@@ -201,6 +207,7 @@
 				2791956B-B428-43E5-A15E-53915BFFA9D6 /* NetworkReader.swift in Sources */,
 				4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */,
 				A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */,
+				C30000000000000000000002 /* GPUReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
