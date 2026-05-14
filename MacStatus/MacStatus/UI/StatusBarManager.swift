@@ -14,14 +14,13 @@ final class StatusBarManager {
     private var lastDisplayedValue: Double?
     private var latestCPUText = "CPU --%"
     private var latestNetworkText = "↓-- ↑--"
+    private var latestMemoryText = "MEM --/--"
 
-    // Network monitoring (D-14: separate NSStatusItem with fixed width)
+    // Phase 2 visible combined status item: CPU + network + memory.
     private var networkStatusItem: NSStatusItem?
     /// Last displayed network stats for tolerance-based redraw (1 KB/s threshold).
     private var lastNetworkStats: NetworkStats?
 
-    // Memory monitoring (D-14: separate NSStatusItem with fixed width)
-    private var memoryStatusItem: NSStatusItem?
     /// Last displayed memory stats for tolerance-based redraw (0.5% threshold).
     private var lastMemoryStats: MemoryStats?
 
@@ -62,9 +61,6 @@ final class StatusBarManager {
             if let item = networkStatusItem {
                 NSStatusBar.system.removeStatusItem(item)
             }
-            if let item = memoryStatusItem {
-                NSStatusBar.system.removeStatusItem(item)
-            }
             print("StatusBarManager deinit — status items removed")
         }
     }
@@ -95,14 +91,14 @@ final class StatusBarManager {
 
     // MARK: - Network Display
 
-    /// Create the network `NSStatusItem` (D-14: fixed width, separate from CPU).
+    /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width of 90pt accommodates `"↓2.1M ↑512K"` plus macOS padding.
+    /// - Fixed width accommodates `"CPU 12% ↓2.1M ↑512K MEM 8.2G/16G"` plus macOS padding.
     /// - `autosaveName` persists position across launches.
-    /// - Initial placeholder `"↓-- ↑--"` follows LIFE-03 zero-config pattern.
+    /// - Initial placeholder follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 160)
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 280)
         networkStatusItem?.autosaveName = "com.macstatus.network"
         networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
@@ -134,25 +130,22 @@ final class StatusBarManager {
 
     // MARK: - Memory Display
 
-    /// Create the memory `NSStatusItem` (D-14: fixed width, separate from CPU/network).
+    /// Initialize memory text for the visible combined status item.
     ///
-    /// - Fixed width of 100pt accommodates `"MEM 8.2G/16G"` (longest variant on 16+ GB Macs).
-    /// - `autosaveName` persists position across launches.
-    /// - Initial placeholder `"MEM --/--"` follows LIFE-03 zero-config pattern.
+    /// Memory used to render into a separate `NSStatusItem`, but UAT showed that
+    /// item is not reliably visible for the user. The visible source of truth is
+    /// now the combined `networkStatusItem`.
     func setupMemoryItem() {
-        // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        memoryStatusItem = NSStatusBar.system.statusItem(withLength: 100)
-        memoryStatusItem?.autosaveName = "com.macstatus.memory"
-        memoryStatusItem?.isVisible = true
-        configureStatusButton(memoryStatusItem?.button)
-        setTitle("MEM --/--", on: memoryStatusItem)
+        latestMemoryText = "MEM --/--"
+        updateCombinedStatus()
     }
 
     /// Update the menu bar memory usage display.
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
-            setTitle("MEM --/--", on: memoryStatusItem)
+            latestMemoryText = "MEM --/--"
+            updateCombinedStatus()
             lastMemoryStats = nil
             return
         }
@@ -165,9 +158,9 @@ final class StatusBarManager {
         }
 
         lastMemoryStats = stats
-        let text = formatMemoryCompact(used: stats.usedBytes,
-                                        total: stats.totalBytes)
-        setTitle(text, on: memoryStatusItem)
+        latestMemoryText = formatMemoryCompact(used: stats.usedBytes,
+                                                total: stats.totalBytes)
+        updateCombinedStatus()
     }
 
     // MARK: - Text Formatting
@@ -184,7 +177,10 @@ final class StatusBarManager {
     }
 
     private func updateCombinedStatus() {
-        setTitle("\(latestCPUText) \(latestNetworkText)", on: networkStatusItem)
+        setTitle(
+            "\(latestCPUText) \(latestNetworkText) \(latestMemoryText)",
+            on: networkStatusItem
+        )
     }
 
     /// Create an NSAttributedString with monospaced digits and label color.
