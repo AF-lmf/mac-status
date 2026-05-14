@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-05-14T14:12:33.739Z"
-last_activity: 2026-05-14 - Completed quick task 260514-vax: 将内存菜单栏显示改为 M OK 68% 格式
+last_updated: "2026-05-14T14:46:40Z"
+last_activity: 2026-05-14 - Prepared GitHub publishing materials; remote creation blocked by missing create-repo/release auth
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 5
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-14 - Completed quick task 260514-vax: 将内存菜单栏显示改为 M OK 68% 格式
+Last activity: 2026-05-14 - Prepared GitHub publishing materials; remote creation blocked by missing create-repo/release auth
 
 Progress: [██████████] 100%
 
@@ -105,6 +105,7 @@ Recent decisions affecting current work:
 
 - [Phase 4] CPU and MEM color rules need final combined-display treatment.
 - [Phase 5] macOS 26 menu bar privacy control — may need onboarding alert for users to allow in System Settings
+- [Publishing] Public GitHub repo/Release upload is blocked because the connector cannot create repositories or releases, and local `gh`/token/SSH credentials are unavailable.
 
 ### Quick Tasks Completed
 
@@ -116,6 +117,7 @@ Recent decisions affecting current work:
 | 260514-s6f | 调整菜单栏顺序并以内存压力替代内存用量 | 2026-05-14 | 438d31c | [260514-s6f-cpu](./quick/260514-s6f-cpu/) |
 | 260514-uxx | 生成 MacStatus app 图标并接入 AppIcon | 2026-05-14 | ef57696 | [260514-uxx-macstatus-app-appicon](./quick/260514-uxx-macstatus-app-appicon/) |
 | 260514-vax | 将内存菜单栏显示改为 M OK 68% 格式 | 2026-05-14 | 0b4b1fa | [260514-vax-m-ok-68](./quick/260514-vax-m-ok-68/) |
+| 260514-vhu | 准备公开 GitHub README、效果图和 Release 包 | 2026-05-14 | 9ba8720 | [260514-vhu-github-readme-release](./quick/260514-vhu-github-readme-release/) |
 
 ## Deferred Items
 

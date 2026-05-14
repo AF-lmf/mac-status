@@ -29,7 +29,7 @@ C 12%  G 34%  M OK 68%  ↓2.1M ↑512K
 ## 从源码构建
 
 ```bash
-git clone https://github.com/<your-account>/mac-status.git
+git clone https://github.com/AF-lmf/mac-status.git
 cd mac-status
 xcodebuild -project MacStatus/MacStatus.xcodeproj \
   -scheme MacStatus \
