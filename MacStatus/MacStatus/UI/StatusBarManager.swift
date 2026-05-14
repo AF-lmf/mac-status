@@ -12,17 +12,22 @@ final class StatusBarManager {
     private var statusItem: NSStatusItem?
     /// Last displayed value for D-06 tolerance-based redraw (0.5% threshold).
     private var lastDisplayedValue: Double?
-    private var latestCPUText = "CPU --%"
+    private var latestCPUText = "C --%"
+    private var latestGPUText = "G --"
     private var latestNetworkText = "↓-- ↑--"
-    private var latestMemoryText = "MEM --"
+    private var latestMemoryText = "M --"
+    private var latestGPUPressure: GPUPressureLevel?
 
-    // Phase 2 visible combined status item: CPU + network + memory.
+    // Visible combined status item: CPU + GPU + memory + network.
     private var networkStatusItem: NSStatusItem?
     /// Last displayed network stats for tolerance-based redraw (1 KB/s threshold).
     private var lastNetworkStats: NetworkStats?
 
     /// Last displayed memory stats for tolerance-based redraw (0.5% threshold).
     private var lastMemoryStats: MemoryStats?
+
+    /// Last displayed GPU stats for redraw skipping.
+    private var lastGPUStats: GPUStats?
 
     // MARK: - Initialization
 
@@ -72,7 +77,7 @@ final class StatusBarManager {
     func updateCPU(_ value: Double?) {
         guard let value else {
             // Error state: Mach API failed, always update to "--"
-            latestCPUText = "CPU --%"
+            latestCPUText = "C --%"
             updateCombinedStatus()
             lastDisplayedValue = nil
             return
@@ -84,8 +89,30 @@ final class StatusBarManager {
         }
 
         lastDisplayedValue = value
-        // D-04: "CPU XX%" format
-        latestCPUText = String(format: "CPU %.0f%%", value)
+        latestCPUText = String(format: "C %.0f%%", value)
+        updateCombinedStatus()
+    }
+
+    // MARK: - GPU Display
+
+    /// Update the menu bar GPU display.
+    /// - Parameter stats: Current GPU statistics, or `nil` for unavailable GPU data.
+    func updateGPU(_ stats: GPUStats?) {
+        guard let stats else {
+            latestGPUText = "G --"
+            latestGPUPressure = nil
+            lastGPUStats = nil
+            updateCombinedStatus()
+            return
+        }
+
+        if let last = lastGPUStats, stats == last {
+            return
+        }
+
+        lastGPUStats = stats
+        latestGPUText = String(format: "G %.0f%%", stats.utilizationPercent)
+        latestGPUPressure = stats.pressureLevel
         updateCombinedStatus()
     }
 
@@ -93,12 +120,12 @@ final class StatusBarManager {
 
     /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width accommodates `"CPU 12% | MEM OK | ↓2.1M ↑512K"` plus macOS padding.
+    /// - Fixed width accommodates `"C 12% | G 34% | M OK | ↓2.1M ↑512K"` plus macOS padding.
     /// - `autosaveName` persists position across launches.
     /// - Initial placeholder follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 240)
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 300)
         networkStatusItem?.autosaveName = "com.macstatus.network"
         networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
@@ -136,7 +163,7 @@ final class StatusBarManager {
     /// item is not reliably visible for the user. The visible source of truth is
     /// now the combined `networkStatusItem`.
     func setupMemoryItem() {
-        latestMemoryText = "MEM --"
+        latestMemoryText = "M --"
         updateCombinedStatus()
     }
 
@@ -144,7 +171,7 @@ final class StatusBarManager {
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
-            latestMemoryText = "MEM --"
+            latestMemoryText = "M --"
             updateCombinedStatus()
             lastMemoryStats = nil
             return
@@ -167,37 +194,60 @@ final class StatusBarManager {
         button?.cell?.wraps = false
     }
 
-    private func setTitle(_ text: String, on item: NSStatusItem?) {
-        item?.button?.title = text
-        item?.button?.attributedTitle = attributedString(text)
-    }
-
     private func updateCombinedStatus() {
-        setTitle(
-            "\(latestCPUText) | \(latestMemoryText) | \(latestNetworkText)",
-            on: networkStatusItem
-        )
+        let text = "\(latestCPUText) | \(latestGPUText) | \(latestMemoryText) | \(latestNetworkText)"
+        networkStatusItem?.button?.title = text
+        networkStatusItem?.button?.attributedTitle = combinedAttributedString()
     }
 
-    /// Create an NSAttributedString with monospaced digits and label color.
-    /// - D-07: monospacedDigitSystemFont prevents menu bar width jitter.
-    /// - labelColor auto-adapts to light/dark mode.
-    private func attributedString(_ text: String) -> NSAttributedString {
-        let font = NSFont.monospacedDigitSystemFont(
-            ofSize: NSFont.smallSystemFontSize,
-            weight: .regular
-        )
-        let color = NSColor.labelColor
+    private func combinedAttributedString() -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let separator = NSAttributedString(string: " | ", attributes: baseAttributes())
+
+        result.append(NSAttributedString(string: latestCPUText, attributes: baseAttributes()))
+        result.append(separator)
+        result.append(NSAttributedString(string: latestGPUText, attributes: gpuAttributes()))
+        result.append(separator)
+        result.append(NSAttributedString(string: latestMemoryText, attributes: baseAttributes()))
+        result.append(separator)
+        result.append(NSAttributedString(string: latestNetworkText, attributes: baseAttributes()))
+
+        return result
+    }
+
+    private func gpuAttributes() -> [NSAttributedString.Key: Any] {
+        var attributes = baseAttributes()
+        if let color = gpuPressureColor() {
+            attributes[.foregroundColor] = color
+        }
+        return attributes
+    }
+
+    private func gpuPressureColor() -> NSColor? {
+        switch latestGPUPressure {
+        case .normal:
+            return .systemGreen
+        case .warning:
+            return .systemYellow
+        case .critical:
+            return .systemRed
+        case nil:
+            return nil
+        }
+    }
+
+    private func baseAttributes() -> [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byClipping
 
-        return NSAttributedString(
-            string: text,
-            attributes: [
-                .font: font,
-                .foregroundColor: color,
-                .paragraphStyle: paragraph,
-            ]
-        )
+        return [
+            .font: NSFont.monospacedDigitSystemFont(
+                ofSize: NSFont.smallSystemFontSize,
+                weight: .regular
+            ),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: paragraph,
+        ]
     }
+
 }

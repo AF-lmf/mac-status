@@ -26,12 +26,12 @@ func formatNetworkCompact(download: Double, upload: Double) -> String {
 func formatMemoryPressure(_ level: MemoryPressureLevel) -> String {
     switch level {
     case .normal:
-        return "MEM OK"
+        return "M OK"
     case .warning:
-        return "MEM WARN"
+        return "M WARN"
     case .critical:
-        return "MEM CRIT"
+        return "M CRIT"
     case .unknown:
-        return "MEM --"
+        return "M --"
     }
 }
