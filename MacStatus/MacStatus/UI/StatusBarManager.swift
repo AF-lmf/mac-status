@@ -86,13 +86,19 @@ final class StatusBarManager {
             return
         }
 
-        // D-06: tolerance-based redraw — skip if change < 0.5%
-        if let last = lastDisplayedValue, abs(value - last) < 0.5 {
+        let nextCPUText = String(format: "C %.0f%%", value)
+
+        // D-06: tolerance-based redraw — still redraw if rounded text or
+        // warning/critical color band changes inside the 0.5% tolerance.
+        if let last = lastDisplayedValue,
+           abs(value - last) < 0.5,
+           nextCPUText == latestCPUText,
+           usageSeverity(for: value) == usageSeverity(for: latestCPUUsage) {
             return
         }
 
         lastDisplayedValue = value
-        latestCPUText = String(format: "C %.0f%%", value)
+        latestCPUText = nextCPUText
         latestCPUUsage = value
         updateCombinedStatus()
     }
@@ -262,15 +268,26 @@ final class StatusBarManager {
     }
 
     private func usageColor(for value: Double?) -> NSColor? {
-        guard let value else { return nil }
+        switch usageSeverity(for: value) {
+        case 1:
+            return .systemYellow
+        case 2:
+            return .systemRed
+        default:
+            return nil
+        }
+    }
+
+    private func usageSeverity(for value: Double?) -> Int {
+        guard let value else { return 0 }
 
         switch value {
         case ..<60:
-            return nil
+            return 0
         case ..<85:
-            return .systemYellow
+            return 1
         default:
-            return .systemRed
+            return 2
         }
     }
 
