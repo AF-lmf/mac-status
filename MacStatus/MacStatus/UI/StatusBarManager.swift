@@ -26,7 +26,7 @@ final class StatusBarManager {
     // MARK: - Initialization
 
     init() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: 70)
         statusItem?.autosaveName = "com.macstatus.cpu"
         // D-04: zero-config startup shows "CPU --%" until first read completes
         statusItem?.button?.attributedTitle = attributedString("CPU --%")

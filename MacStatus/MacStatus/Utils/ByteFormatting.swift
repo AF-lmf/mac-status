@@ -38,8 +38,12 @@ func formatMemoryBytes(_ bytes: Double) -> String {
 ///   - upload: Upload bytes-per-second rate.
 /// - Returns: Formatted string like `"↓2.1M ↑512K"`.
 func formatNetworkCompact(download: Double, upload: Double) -> String {
-    let dl = formatNetworkRate(download).replacingOccurrences(of: "/s", with: "")
-    let ul = formatNetworkRate(upload).replacingOccurrences(of: "/s", with: "")
+    let dl = formatNetworkRate(download)
+        .replacingOccurrences(of: "/s", with: "")
+        .replacingOccurrences(of: " ", with: "")
+    let ul = formatNetworkRate(upload)
+        .replacingOccurrences(of: "/s", with: "")
+        .replacingOccurrences(of: " ", with: "")
     return "↓\(dl) ↑\(ul)"
 }
 
