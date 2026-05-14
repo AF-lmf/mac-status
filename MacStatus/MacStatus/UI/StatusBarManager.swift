@@ -28,9 +28,10 @@ final class StatusBarManager {
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.autosaveName = "com.macstatus.cpu"
+        statusItem?.isVisible = true
         configureStatusButton(statusItem?.button)
         // D-04: zero-config startup shows "CPU --%" until first read completes
-        statusItem?.button?.attributedTitle = attributedString("CPU --%")
+        setTitle("CPU --%", on: statusItem)
 
         // macOS 26 (Tahoe) privacy gate detection.
         // On macOS 26+, the user must explicitly allow menu bar items
@@ -80,7 +81,7 @@ final class StatusBarManager {
     func updateCPU(_ value: Double?) {
         guard let value else {
             // Error state: Mach API failed, always update to "--"
-            statusItem?.button?.attributedTitle = attributedString("CPU --%")
+            setTitle("CPU --%", on: statusItem)
             lastDisplayedValue = nil
             return
         }
@@ -92,9 +93,7 @@ final class StatusBarManager {
 
         lastDisplayedValue = value
         // D-04: "CPU XX%" format
-        statusItem?.button?.attributedTitle = attributedString(
-            String(format: "CPU %.0f%%", value)
-        )
+        setTitle(String(format: "CPU %.0f%%", value), on: statusItem)
     }
 
     // MARK: - Network Display
@@ -108,15 +107,16 @@ final class StatusBarManager {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
         networkStatusItem = NSStatusBar.system.statusItem(withLength: 90)
         networkStatusItem?.autosaveName = "com.macstatus.network"
+        networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
-        networkStatusItem?.button?.attributedTitle = attributedString("↓-- ↑--")
+        setTitle("↓-- ↑--", on: networkStatusItem)
     }
 
     /// Update the menu bar network rate display.
     /// - Parameter stats: Current network throughput rates, or `nil` for error state.
     func updateNetwork(_ stats: NetworkStats?) {
         guard let stats else {
-            networkStatusItem?.button?.attributedTitle = attributedString("↓-- ↑--")
+            setTitle("↓-- ↑--", on: networkStatusItem)
             lastNetworkStats = nil
             return
         }
@@ -131,7 +131,7 @@ final class StatusBarManager {
         lastNetworkStats = stats
         let text = formatNetworkCompact(download: stats.downloadBytesPerSec,
                                          upload: stats.uploadBytesPerSec)
-        networkStatusItem?.button?.attributedTitle = attributedString(text)
+        setTitle(text, on: networkStatusItem)
     }
 
     // MARK: - Memory Display
@@ -145,15 +145,16 @@ final class StatusBarManager {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
         memoryStatusItem = NSStatusBar.system.statusItem(withLength: 100)
         memoryStatusItem?.autosaveName = "com.macstatus.memory"
+        memoryStatusItem?.isVisible = true
         configureStatusButton(memoryStatusItem?.button)
-        memoryStatusItem?.button?.attributedTitle = attributedString("MEM --/--")
+        setTitle("MEM --/--", on: memoryStatusItem)
     }
 
     /// Update the menu bar memory usage display.
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
-            memoryStatusItem?.button?.attributedTitle = attributedString("MEM --/--")
+            setTitle("MEM --/--", on: memoryStatusItem)
             lastMemoryStats = nil
             return
         }
@@ -168,7 +169,7 @@ final class StatusBarManager {
         lastMemoryStats = stats
         let text = formatMemoryCompact(used: stats.usedBytes,
                                         total: stats.totalBytes)
-        memoryStatusItem?.button?.attributedTitle = attributedString(text)
+        setTitle(text, on: memoryStatusItem)
     }
 
     // MARK: - Text Formatting
@@ -177,6 +178,11 @@ final class StatusBarManager {
         button?.cell?.lineBreakMode = .byClipping
         button?.cell?.usesSingleLineMode = true
         button?.cell?.wraps = false
+    }
+
+    private func setTitle(_ text: String, on item: NSStatusItem?) {
+        item?.button?.title = text
+        item?.button?.attributedTitle = attributedString(text)
     }
 
     /// Create an NSAttributedString with monospaced digits and label color.
