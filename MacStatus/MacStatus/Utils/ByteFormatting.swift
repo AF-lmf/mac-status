@@ -16,7 +16,12 @@ private func compactBytes(_ bytes: Double) -> String {
     if unitIndex == 0 || value >= 9.95 {
         return "\(min(Int(value.rounded()), 999))\(unit)"
     }
-    return String(format: "%.1f", value) + unit
+
+    let decimalText = String(format: "%.1f", value)
+    if decimalText.hasSuffix(".0") {
+        return String(decimalText.dropLast(2)) + unit
+    }
+    return decimalText + unit
 }
 
 func formatNetworkCompact(download: Double, upload: Double) -> String {
@@ -27,19 +32,15 @@ func formatMemoryPressure(_ level: MemoryPressureLevel, usedPercent: Double?) ->
     let usageText = formatMemoryUsagePercent(usedPercent)
 
     switch level {
-    case .normal:
-        return "M OK \(usageText)"
-    case .warning:
-        return "M WARN \(usageText)"
-    case .critical:
-        return "M CRIT \(usageText)"
+    case .normal, .warning, .critical:
+        return "M\(usageText)"
     case .unknown:
-        guard usedPercent != nil else { return "M --" }
-        return "M -- \(usageText)"
+        guard usedPercent != nil else { return "M--" }
+        return "M\(usageText)"
     }
 }
 
 private func formatMemoryUsagePercent(_ usedPercent: Double?) -> String {
-    guard let usedPercent else { return "--%" }
-    return String(format: "%.0f%%", usedPercent)
+    guard let usedPercent else { return "--" }
+    return String(format: "%.0f", usedPercent)
 }

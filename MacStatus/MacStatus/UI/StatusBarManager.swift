@@ -12,10 +12,10 @@ final class StatusBarManager: NSObject {
     private var statusItem: NSStatusItem?
     /// Last displayed value for D-06 tolerance-based redraw (0.5% threshold).
     private var lastDisplayedValue: Double?
-    private var latestCPUText = "C --%"
-    private var latestGPUText = "G --"
+    private var latestCPUText = "C--"
+    private var latestGPUText = "G--"
     private var latestNetworkText = "↓-- ↑--"
-    private var latestMemoryText = "M --"
+    private var latestMemoryText = "M--"
     private var latestCPUUsage: Double?
     private var latestGPUUsage: Double?
     private var latestMemoryPressure: MemoryPressureLevel?
@@ -93,14 +93,14 @@ final class StatusBarManager: NSObject {
     func updateCPU(_ value: Double?) {
         guard let value else {
             // Error state: Mach API failed, always update to "--"
-            latestCPUText = "C --%"
+            latestCPUText = "C--"
             latestCPUUsage = nil
             updateCombinedStatus()
             lastDisplayedValue = nil
             return
         }
 
-        let nextCPUText = String(format: "C %.0f%%", value)
+        let nextCPUText = String(format: "C%.0f", value)
 
         // D-06: tolerance-based redraw — still redraw if rounded text or
         // warning/critical color band changes inside the 0.5% tolerance.
@@ -123,7 +123,7 @@ final class StatusBarManager: NSObject {
     /// - Parameter stats: Current GPU statistics, or `nil` for unavailable GPU data.
     func updateGPU(_ stats: GPUStats?) {
         guard let stats else {
-            latestGPUText = "G --"
+            latestGPUText = "G--"
             latestGPUUsage = nil
             lastGPUStats = nil
             updateCombinedStatus()
@@ -135,7 +135,7 @@ final class StatusBarManager: NSObject {
         }
 
         lastGPUStats = stats
-        latestGPUText = String(format: "G %.0f%%", stats.utilizationPercent)
+        latestGPUText = String(format: "G%.0f", stats.utilizationPercent)
         latestGPUUsage = stats.utilizationPercent
         updateCombinedStatus()
     }
@@ -144,12 +144,12 @@ final class StatusBarManager: NSObject {
 
     /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width accommodates `"C 12% | G 34% | M OK 68% | ↓2.1M ↑512K"` plus macOS padding.
+    /// - Fixed width accommodates `"C100 G100 M100 ↓999M ↑999M"` plus macOS padding.
     /// - `autosaveName` persists position across launches.
     /// - Initial placeholder follows LIFE-03 zero-config pattern.
     func setupNetworkItem() {
         // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 300)
+        networkStatusItem = NSStatusBar.system.statusItem(withLength: 210)
         networkStatusItem?.autosaveName = "com.macstatus.network"
         networkStatusItem?.isVisible = true
         configureStatusButton(networkStatusItem?.button)
@@ -187,7 +187,7 @@ final class StatusBarManager: NSObject {
     /// item is not reliably visible for the user. The visible source of truth is
     /// now the combined `networkStatusItem`.
     func setupMemoryItem() {
-        latestMemoryText = "M --"
+        latestMemoryText = "M--"
         latestMemoryPressure = nil
         updateCombinedStatus()
     }
@@ -196,7 +196,7 @@ final class StatusBarManager: NSObject {
     /// - Parameter stats: Current memory statistics, or `nil` for error state.
     func updateMemory(_ stats: MemoryStats?) {
         guard let stats else {
-            latestMemoryText = "M --"
+            latestMemoryText = "M--"
             latestMemoryPressure = nil
             updateCombinedStatus()
             lastMemoryStats = nil
@@ -244,14 +244,14 @@ final class StatusBarManager: NSObject {
     }
 
     private func updateCombinedStatus() {
-        let text = "\(latestCPUText) | \(latestGPUText) | \(latestMemoryText) | \(latestNetworkText)"
+        let text = "\(latestCPUText) \(latestGPUText) \(latestMemoryText) \(latestNetworkText)"
         networkStatusItem?.button?.title = text
         networkStatusItem?.button?.attributedTitle = combinedAttributedString()
     }
 
     private func combinedAttributedString() -> NSAttributedString {
         let result = NSMutableAttributedString()
-        let separator = NSAttributedString(string: " | ", attributes: baseAttributes())
+        let separator = NSAttributedString(string: " ", attributes: baseAttributes())
 
         appendMetric(
             label: "C",
@@ -285,12 +285,12 @@ final class StatusBarManager: NSObject {
         valueColor: NSColor?,
         to result: NSMutableAttributedString
     ) {
-        result.append(NSAttributedString(string: "\(label) ", attributes: baseAttributes()))
+        result.append(NSAttributedString(string: label, attributes: baseAttributes()))
         result.append(NSAttributedString(string: value, attributes: metricAttributes(valueColor: valueColor)))
     }
 
     private func valueText(from text: String, label: String) -> String {
-        let prefix = "\(label) "
+        let prefix = label
         guard text.hasPrefix(prefix) else { return text }
         return String(text.dropFirst(prefix.count))
     }
