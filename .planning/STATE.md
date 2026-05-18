@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-05-14T15:01:16Z"
-last_activity: 2026-05-14 - Added Developer ID notarized release packaging flow for MacStatus
+last_updated: "2026-05-18T13:45:13Z"
+last_activity: 2026-05-18 - Completed quick task 260518-u7o: 将菜单栏显示格式改为紧凑版 C12 G0 M39 ↓1K ↑1K
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 Phase: 5
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-14 - Published MacStatus to public GitHub repository with v1.0 Release
+Last activity: 2026-05-18 - Completed quick task 260518-u7o: 将菜单栏显示格式改为紧凑版 C12 G0 M39 ↓1K ↑1K
 
 Progress: [██████████] 100%
 
@@ -118,6 +118,7 @@ Recent decisions affecting current work:
 | 260514-vax | 将内存菜单栏显示改为 M OK 68% 格式 | 2026-05-14 | 0b4b1fa | [260514-vax-m-ok-68](./quick/260514-vax-m-ok-68/) |
 | 260514-vhu | 准备并发布公开 GitHub README、效果图和 Release 包 | 2026-05-14 | 149763f | [260514-vhu-github-readme-release](./quick/260514-vhu-github-readme-release/) |
 | 260514-vww | 修复 Release 分发时其他 Mac 无法验证 MacStatus.app 的签名/公证流程说明 | 2026-05-14 | f15b0c8 | [260514-vww-release-mac-macstatus-app](./quick/260514-vww-release-mac-macstatus-app/) |
+| 260518-u7o | 将菜单栏显示格式改为紧凑版 C12 G0 M39 ↓1K ↑1K | 2026-05-18 | da37905 | [260518-u7o-c12-g0-m39-1k-1k](./quick/260518-u7o-c12-g0-m39-1k-1k/) |
 
 ## Deferred Items
 
