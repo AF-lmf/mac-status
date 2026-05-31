@@ -28,6 +28,10 @@ func formatNetworkCompact(download: Double, upload: Double) -> String {
     "↓\(compactBytes(download)) ↑\(compactBytes(upload))"
 }
 
+func formatNetworkRateCompact(_ bytesPerSec: Double) -> String {
+    "\(compactBytes(bytesPerSec))/s"
+}
+
 func formatMemoryPressure(_ level: MemoryPressureLevel, usedPercent: Double?) -> String {
     let usageText = formatMemoryUsagePercent(usedPercent)
 

@@ -18,19 +18,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Application Entry Point
 
     static func main() {
-        let app = NSApplication.shared
         let delegate = AppDelegate()
-        app.delegate = delegate
-        // .accessory = pure menu bar app, no Dock icon (reinforces Info.plist LSUIElement)
-        app.setActivationPolicy(.accessory)
-        app.run()
+        NSApplication.shared.delegate = delegate
+        _ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
     }
 
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        terminateExistingInstances()
+
+        // Wipe any stale autosaved preferred position before creating the
+        // NSStatusItem. A cached position from an earlier autosaveName-based
+        // build (Preferred Position = 1000 on a notched display) parks the
+        // item under the notch / Control Center cluster so it never renders.
+        UserDefaults.standard.removeObject(
+            forKey: "NSStatusItem Preferred Position com.macstatus.network"
+        )
+        UserDefaults.standard.removeObject(
+            forKey: "NSStatusItem Visible com.macstatus.network"
+        )
+        UserDefaults.standard.removeObject(
+            forKey: "NSStatusItem Preferred Position com.macstatus.status"
+        )
+        UserDefaults.standard.removeObject(
+            forKey: "NSStatusItem Visible com.macstatus.status"
+        )
+
         // Create status bar item via StatusBarManager (D-08)
         statusBarManager = StatusBarManager()
+        statusBarManager?.setupNetworkItem()
         configureLaunchAtLogin()
         configureReaders()
         registerSleepWakeObservers()
@@ -154,5 +171,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     deinit {
         print("AppDelegate deinit — status item cleaned up")
+    }
+
+    // MARK: - Instance Guard
+
+    @MainActor
+    private func terminateExistingInstances() {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        let existingInstances = NSRunningApplication
+            .runningApplications(withBundleIdentifier: bundleIdentifier)
+            .filter { $0.processIdentifier != currentPID && !$0.isTerminated }
+
+        guard !existingInstances.isEmpty else { return }
+
+        for app in existingInstances {
+            if !app.terminate() {
+                app.forceTerminate()
+            }
+        }
+
+        let deadline = Date().addingTimeInterval(1.0)
+        while Date() < deadline,
+              existingInstances.contains(where: { !$0.isTerminated }) {
+            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
+        }
+
+        for app in existingInstances where !app.isTerminated {
+            app.forceTerminate()
+        }
     }
 }

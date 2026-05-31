@@ -34,9 +34,9 @@ cd mac-status
 xcodebuild -project MacStatus/MacStatus.xcodeproj \
   -scheme MacStatus \
   -configuration Release \
-  -derivedDataPath build \
+  -derivedDataPath build.noindex \
   build
-open build/Build/Products/Release/MacStatus.app
+open build.noindex/Build/Products/Release/MacStatus.app
 ```
 
 也可以直接用 Xcode 打开：
@@ -56,7 +56,7 @@ open MacStatus/MacStatus.xcodeproj
 
 ## Release 包
 
-直接把 `build/Build/Products/Release/MacStatus.app` 压成 zip 只适合本机调试。要让其他 Mac 正常打开，需要 Apple Developer Program 的 `Developer ID Application` 证书，并完成 notarization 和 staple。
+直接把 `build.noindex/Build/Products/Release/MacStatus.app` 压成 zip 只适合本机调试。要让其他 Mac 正常打开，需要 Apple Developer Program 的 `Developer ID Application` 证书，并完成 notarization 和 staple。
 
 首次发布前，先把 Apple 公证凭据保存到钥匙串：
 

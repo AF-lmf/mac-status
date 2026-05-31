@@ -5,7 +5,7 @@ import Cocoa
 /// All NSStatusItem operations must occur on the main actor — marking the
 /// class @MainActor satisfies Swift 6 strict concurrency checking.
 @MainActor
-final class StatusBarManager: NSObject {
+final class StatusBarManager: NSObject, NSMenuDelegate {
 
     // MARK: - Properties
 
@@ -19,6 +19,9 @@ final class StatusBarManager: NSObject {
     private var latestCPUUsage: Double?
     private var latestGPUUsage: Double?
     private var latestMemoryPressure: MemoryPressureLevel?
+    private var hasPresentedMenuBarNotice = false
+    private let minimumStatusItemLength: CGFloat = 120
+    private let maximumStatusItemLength: CGFloat = 260
 
     // Visible combined status item: CPU + GPU + memory + network.
     private var networkStatusItem: NSStatusItem?
@@ -31,8 +34,25 @@ final class StatusBarManager: NSObject {
     /// Last displayed GPU stats for redraw skipping.
     private var lastGPUStats: GPUStats?
 
+    private let processNetworkQueue = DispatchQueue(
+        label: "com.aflmf.macstatus.process-network",
+        qos: .utility
+    )
+    private var processNetworkRequestID = 0
+    private lazy var processNetworkHeaderItem = disabledMenuItem("网络占用最高 5 个进程")
+    private lazy var processNetworkItems: [NSMenuItem] = (0..<5).map { _ in
+        disabledMenuItem("正在采样...")
+    }
+
     private lazy var statusMenu: NSMenu = {
         let menu = NSMenu()
+        menu.autoenablesItems = false
+        menu.delegate = self
+
+        menu.addItem(processNetworkHeaderItem)
+        processNetworkItems.forEach { menu.addItem($0) }
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(
             title: "Quit MacStatus",
             action: #selector(quitMacStatus(_:)),
@@ -48,26 +68,7 @@ final class StatusBarManager: NSObject {
     override init() {
         super.init()
 
-        // macOS 26 (Tahoe) privacy gate detection.
-        // On macOS 26+, the user must explicitly allow menu bar items
-        // in System Settings. This check fires after 2 seconds to give
-        // the system time to register the status item.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            guard let self, let item = self.networkStatusItem else { return }
-            if item.isVisible == false {
-                let alert = NSAlert()
-                alert.messageText = "Menu Bar Permission Needed"
-                alert.informativeText = "MacStatus needs permission to display in the menu bar. Open System Settings → Menu Bar and enable MacStatus."
-                alert.alertStyle = .warning
-                alert.addButton(withTitle: "Open System Settings")
-                alert.addButton(withTitle: "Later")
-                if alert.runModal() == .alertFirstButtonReturn {
-                    NSWorkspace.shared.open(
-                        URL(string: "x-apple.systempreferences:com.apple.preference.menubar")!
-                    )
-                }
-            }
-        }
+        scheduleMenuBarVisibilityNotice()
     }
 
     /// D-10: Prevent ghost icons by removing the status item before deallocation.
@@ -117,6 +118,36 @@ final class StatusBarManager: NSObject {
         updateCombinedStatus()
     }
 
+    private func scheduleMenuBarVisibilityNotice() {
+        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 else { return }
+
+        // macOS 26+ exposes a per-app menu bar visibility toggle in
+        // System Settings → Menu Bar. Only prompt the user when the item
+        // genuinely failed to register (isVisible == false), otherwise the
+        // alert pops on every launch even when everything is fine.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.presentMenuBarVisibilityNoticeIfNeeded()
+        }
+    }
+
+    private func presentMenuBarVisibilityNoticeIfNeeded() {
+        guard !hasPresentedMenuBarNotice else { return }
+        guard let item = networkStatusItem, item.isVisible == false else { return }
+        hasPresentedMenuBarNotice = true
+
+        let alert = NSAlert()
+        alert.messageText = "Menu Bar Permission Needed"
+        alert.informativeText = "MacStatus needs permission to display in the menu bar. Open System Settings → Menu Bar and enable MacStatus."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Later")
+
+        if alert.runModal() == .alertFirstButtonReturn,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.menubar") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     // MARK: - GPU Display
 
     /// Update the menu bar GPU display.
@@ -144,15 +175,20 @@ final class StatusBarManager: NSObject {
 
     /// Create the network `NSStatusItem` (Phase 2 visible combined display).
     ///
-    /// - Fixed width accommodates `"C100 G100 M100 ↓999M ↑999M"` plus macOS padding.
-    /// - `autosaveName` persists position across launches.
-    /// - Initial placeholder follows LIFE-03 zero-config pattern.
+    /// - `variableLength` sizes the slot to the metric string. A fixed/oversized
+    ///   width can exceed the available menu bar space on a notched display, in
+    ///   which case macOS hides the item even though `isVisible` reports true.
+    /// - No `autosaveName`: persisting a Preferred Position previously cached a
+    ///   slot that landed under the notch / Control Center overlay and never
+    ///   rendered. Letting AppKit place the item fresh each launch avoids that.
     func setupNetworkItem() {
-        // D-14: FixedWidth — PITFALL P8: variableLength causes menu bar jitter
-        networkStatusItem = NSStatusBar.system.statusItem(withLength: 210)
-        networkStatusItem?.autosaveName = "com.macstatus.network"
+        if networkStatusItem == nil {
+            networkStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+            networkStatusItem?.menu = statusMenu
+            configureStatusButton(networkStatusItem?.button)
+        }
+
         networkStatusItem?.isVisible = true
-        configureStatusButton(networkStatusItem?.button)
         updateCombinedStatus()
     }
 
@@ -226,27 +262,155 @@ final class StatusBarManager: NSObject {
         button?.cell?.lineBreakMode = .byClipping
         button?.cell?.usesSingleLineMode = true
         button?.cell?.wraps = false
-        button?.target = self
-        button?.action = #selector(showStatusMenu(_:))
-        _ = button?.sendAction(on: [.rightMouseUp])
-    }
-
-    @objc private func showStatusMenu(_ sender: NSStatusBarButton) {
-        statusMenu.popUp(
-            positioning: nil,
-            at: NSPoint(x: 0, y: sender.bounds.height + 2),
-            in: sender
-        )
+        button?.imagePosition = .imageOnly
     }
 
     @objc private func quitMacStatus(_ sender: NSMenuItem) {
         NSApp.terminate(nil)
     }
 
+    func menuWillOpen(_ menu: NSMenu) {
+        refreshProcessNetworkMenu()
+    }
+
+    private func disabledMenuItem(_ title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
+    }
+
+    private func refreshProcessNetworkMenu() {
+        processNetworkRequestID += 1
+        let requestID = processNetworkRequestID
+        showProcessNetworkLoadingState()
+
+        processNetworkQueue.async { [requestID] in
+            let result = ProcessNetworkReader.readTopProcesses(limit: 5)
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.processNetworkRequestID == requestID else { return }
+                self.updateProcessNetworkMenu(with: result)
+            }
+        }
+    }
+
+    private func showProcessNetworkLoadingState() {
+        for (index, item) in processNetworkItems.enumerated() {
+            item.isHidden = index != 0
+            item.title = index == 0 ? "正在采样..." : ""
+            item.toolTip = nil
+        }
+    }
+
+    private func updateProcessNetworkMenu(with result: ProcessNetworkUsageResult) {
+        switch result {
+        case let .processes(usages):
+            for (index, item) in processNetworkItems.enumerated() {
+                guard usages.indices.contains(index) else {
+                    item.isHidden = true
+                    item.title = ""
+                    item.toolTip = nil
+                    continue
+                }
+
+                let usage = usages[index]
+                item.isHidden = false
+                item.title = formattedProcessRow(for: usage)
+                item.toolTip = formattedProcessTooltip(for: usage)
+            }
+
+        case .idle:
+            showSingleProcessNetworkMessage("当前没有明显网络活动")
+
+        case let .unavailable(reason):
+            showSingleProcessNetworkMessage("无法读取进程网络状态", toolTip: reason)
+        }
+    }
+
+    private func showSingleProcessNetworkMessage(_ title: String, toolTip: String? = nil) {
+        for (index, item) in processNetworkItems.enumerated() {
+            item.isHidden = index != 0
+            item.title = index == 0 ? title : ""
+            item.toolTip = index == 0 ? toolTip : nil
+        }
+    }
+
+    private func formattedProcessTitle(for usage: ProcessNetworkUsage) -> String {
+        guard let pid = usage.processIdentifier else {
+            return usage.processName
+        }
+        return "\(usage.processName) (PID \(pid))"
+    }
+
+    private func formattedProcessRow(for usage: ProcessNetworkUsage) -> String {
+        let processTitle = trimmedMenuTitle(formattedProcessTitle(for: usage), limit: 34)
+        let uploadRate = formatNetworkRateCompact(usage.uploadBytesPerSec)
+        let downloadRate = formatNetworkRateCompact(usage.downloadBytesPerSec)
+        return "\(processTitle)  ↑ \(uploadRate)  ↓ \(downloadRate)"
+    }
+
+    private func formattedProcessTooltip(for usage: ProcessNetworkUsage) -> String {
+        let uploadRate = formatNetworkRateCompact(usage.uploadBytesPerSec)
+        let downloadRate = formatNetworkRateCompact(usage.downloadBytesPerSec)
+        return "\(formattedProcessTitle(for: usage))  ↑ \(uploadRate)  ↓ \(downloadRate)"
+    }
+
+    private func trimmedMenuTitle(_ text: String, limit: Int = 48) -> String {
+        guard text.count > limit else { return text }
+        return "\(text.prefix(max(limit - 3, 0)))..."
+    }
+
     private func updateCombinedStatus() {
         let text = "\(latestCPUText) \(latestGPUText) \(latestMemoryText) \(latestNetworkText)"
-        networkStatusItem?.button?.title = text
-        networkStatusItem?.button?.attributedTitle = combinedAttributedString()
+        let attributedText = combinedAttributedString()
+        let image = renderedStatusImage(for: attributedText)
+
+        networkStatusItem?.button?.title = ""
+        networkStatusItem?.button?.toolTip = text
+        networkStatusItem?.button?.attributedTitle = NSAttributedString()
+        networkStatusItem?.button?.image = image
+        networkStatusItem?.button?.setAccessibilityLabel(text)
+        updateStatusItemLength(for: image.size.width)
+    }
+
+    private func updateStatusItemLength(for contentWidth: CGFloat) {
+        guard let item = networkStatusItem else { return }
+
+        let targetLength = min(
+            max(ceil(contentWidth) + 18, minimumStatusItemLength),
+            maximumStatusItemLength
+        )
+
+        if abs(item.length - targetLength) >= 1 {
+            item.length = targetLength
+        }
+    }
+
+    private func renderedStatusImage(for attributedText: NSAttributedString) -> NSImage {
+        let drawableText = NSMutableAttributedString(attributedString: attributedText)
+        let fullRange = NSRange(location: 0, length: drawableText.length)
+        drawableText.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
+            if value == nil {
+                drawableText.addAttribute(.foregroundColor, value: NSColor.white, range: range)
+            }
+        }
+
+        let textSize = drawableText.size()
+        let imageSize = NSSize(
+            width: ceil(textSize.width),
+            height: NSStatusBar.system.thickness
+        )
+        let image = NSImage(size: imageSize)
+
+        image.lockFocus()
+        drawableText.draw(
+            at: NSPoint(
+                x: 0,
+                y: floor((imageSize.height - textSize.height) / 2)
+            )
+        )
+        image.unlockFocus()
+
+        return image
     }
 
     private func combinedAttributedString() -> NSAttributedString {
@@ -347,7 +511,6 @@ final class StatusBarManager: NSObject {
                 ofSize: NSFont.smallSystemFontSize,
                 weight: .regular
             ),
-            .foregroundColor: NSColor.labelColor,
             .paragraphStyle: paragraph,
         ]
     }
