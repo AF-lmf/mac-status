@@ -37,6 +37,10 @@ enum ProcessNetworkReader {
             "-L", "2",
             "-s", "1",
             "-x",
+            "-n", // Skip hostname resolution — without this, nettop blocks
+                   // for ~5s on reverse-DNS lookups when run from a non-TTY
+                   // Process(), exceeding the 3s timeout and always returning
+                   // .unavailable. With -n, completes in ~1s.
             "-J", "bytes_in,bytes_out",
         ]
 
