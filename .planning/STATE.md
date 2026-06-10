@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
+status: Awaiting next milestone
 stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-05-31T23:17:16+08:00"
-last_activity: 2026-05-31 - Completed quick task 260531-wb7: 调整状态栏网络进程菜单为最高五个进程单行展示
+last_updated: "2026-06-10T00:22:54.310Z"
+last_activity: 2026-06-10 — Milestone v1.0 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -25,12 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-31 - Completed quick task 260531-wb7: 调整状态栏网络进程菜单为最高五个进程单行展示
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-10 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -125,14 +123,25 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and deferred at milestone close on 2026-06-10:
 
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| *(none)* | | | |
+| Category | Item | Status |
+|----------|------|--------|
+| debug | duplicate-macstatus-no-menubar | partially-resolved |
+| quick_task | 260514-r6z-cpu | missing |
+| quick_task | 260514-rfa-cpu | missing |
+| quick_task | 260514-rj1-cpu | missing |
+| quick_task | 260514-s6f-cpu | missing |
+| quick_task | 260529-3a7-macstatus-position-cache | missing |
+| verification | 01-VERIFICATION.md | human_needed |
+| verification | 05-VERIFICATION.md | human_needed |
 
 ## Session Continuity
 
 Last session: 2026-05-14T14:11:12.514Z
 Stopped at: Completed 05-01-PLAN.md
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
