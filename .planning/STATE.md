@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: ready_to_plan
-last_updated: "2026-06-16T09:10:00.000Z"
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-06-16T15:49:37.070Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 6 — Settings Foundation + Live Re-apply Seam (v2.0 critical-path prerequisite)
+**Current focus:** Phase 06 — Settings Foundation + Live Re-apply Seam
 
 ## Current Position
 
-Phase: 6 — Settings Foundation + Live Re-apply Seam (not started)
-Plan: —
-Status: Roadmap created — ready to plan Phase 6
-Last activity: 2026-06-16 — v2.0 roadmap created (Phases 6-9, 16/16 requirements mapped)
+Phase: 06 (Settings Foundation + Live Re-apply Seam) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-16
 
 **v2.0 phase map (build order — respects dependency ordering):**
 
@@ -66,6 +67,7 @@ Last activity: 2026-06-16 — v2.0 roadmap created (Phases 6-9, 16/16 requiremen
 | Phase 03 P01 | 4 min | 2 tasks | 2 files |
 | Phase 03 P02 | 5 min | 3 tasks | 3 files |
 | Phase 04 P01 | 2 min | 3 tasks | 1 files |
+| Phase 06 P01 | 20 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 3]: GPU pressure is represented as a v1 utilization-threshold color on the `G ...%` segment only.
 - [Phase 3]: CPU/MEM coloring remains deferred to Phase 4 combined display formatting.
 - [Phase 04]: Value-level menu bar colors are derived from raw metric state, not parsed display strings — This prevents stale warning/critical colors after fallback and keeps labels default-colored.
+- [Phase ?]: @MainActor @Observable SettingsManager — all access on main actor; @unchecked Sendable removed
+- [Phase ?]: Default metricOrder = [cpu, gpu, memory, network] — matches v1.0 compact mode order
+- [Phase ?]: migrateToV1() writes directly to UserDefaults to prevent notification storm during init
 
 ### v2.0 Cross-cutting Constraints (apply to every new phase)
 
@@ -153,8 +158,8 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-06-16T09:10:00.000Z
-Stopped at: v2.0 roadmap created (ROADMAP.md Phases 6-9, REQUIREMENTS.md traceability 16/16)
+Last session: 2026-06-16T15:49:37.066Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
