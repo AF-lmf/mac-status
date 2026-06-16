@@ -123,11 +123,14 @@ final class MetricCollector {
             guard let self,
                   let changedKeys = notification.userInfo?[SettingsManager.changedKeysUserInfoKey] as? Set<String>
             else { return }
-
-            if changedKeys.contains("refreshInterval") {
-                self.reconfigure()
-            } else {
-                self.applyNow()
+            // 显式 hop 回 MainActor，与 Timer 闭包的处理方式保持一致
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if changedKeys.contains("refreshInterval") {
+                    self.reconfigure()
+                } else {
+                    self.applyNow()
+                }
             }
         }
     }
