@@ -212,21 +212,25 @@ final class SettingsManager {
     // MARK: - Launch at Login
 
     /// Mirrors system login item registration. Setter triggers SMAppService side-effect.
+    /// SMAppService 调用成功后才持久化；失败时不写 UserDefaults 也不更新 backing var，
+    /// 使 UI 绑定自动回弹到旧值，保持 UI 与系统真实状态一致。
     var launchAtLogin: Bool {
         get { _launchAtLogin }
         set {
-            _launchAtLogin = newValue
-            defaults.set(newValue, forKey: Keys.launchAtLogin)
             do {
                 if newValue {
                     try SMAppService.mainApp.register()
                 } else {
                     try SMAppService.mainApp.unregister()
                 }
+                // 仅在系统调用成功后才持久化
+                _launchAtLogin = newValue
+                defaults.set(newValue, forKey: Keys.launchAtLogin)
+                postChange(keys: [Keys.launchAtLogin])
             } catch {
                 print("[Settings] launchAtLogin toggle failed: \(error)")
+                // 不更新 backing var，UI 绑定会自动回弹到旧值
             }
-            postChange(keys: [Keys.launchAtLogin])
         }
     }
 
