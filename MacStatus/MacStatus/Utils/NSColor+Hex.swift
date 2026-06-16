@@ -22,11 +22,13 @@ extension NSColor {
     /// 将颜色转回 "#RRGGBB" 格式字符串（sRGB，截断到 0–255 整数）。
     ///
     /// 若颜色无法转换到 sRGB 色彩空间（极少见），回退返回 "#000000"。
+    /// Display P3 等宽色域颜色转换到 sRGB 后分量可能超过 1.0（如 1.093），
+    /// 故在转为整数前先截断到 0...255，确保输出始终为合法的 7 字符 "#RRGGBB"。
     var hexString: String {
         guard let rgb = usingColorSpace(.sRGB) else { return "#000000" }
-        let r = Int(rgb.redComponent * 255)
-        let g = Int(rgb.greenComponent * 255)
-        let b = Int(rgb.blueComponent * 255)
+        let r = min(255, max(0, Int(rgb.redComponent   * 255)))
+        let g = min(255, max(0, Int(rgb.greenComponent * 255)))
+        let b = min(255, max(0, Int(rgb.blueComponent  * 255)))
         return String(format: "#%02X%02X%02X", r, g, b)
     }
 }
