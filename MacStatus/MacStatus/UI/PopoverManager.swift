@@ -36,12 +36,16 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
-        popover.contentViewController = NSHostingController(
+        let hostingController = NSHostingController(
             rootView: DashboardView()
                 .environmentObject(dashboardState)
         )
-        // Compact size — fits 2x2 grid + process list
-        popover.contentSize = NSSize(width: 320, height: 520)
+        // Size the popover to the SwiftUI content's intrinsic height
+        // (DashboardView pins a fixed 320pt width) so there's no dead space
+        // below short content — the process list is capped at 5 rows, so the
+        // body is always bounded. macOS 13+.
+        hostingController.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hostingController
         self.popover = popover
         super.init()
         // Used to clean up the outside-click monitor no matter how it closes.

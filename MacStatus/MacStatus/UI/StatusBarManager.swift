@@ -42,7 +42,7 @@ final class StatusBarManager {
         let menu = NSMenu()
 
         let prefsItem = NSMenuItem(
-            title: "Preferences...",
+            title: "偏好设置…",
             action: #selector(showPreferences),
             keyEquivalent: ","
         )
@@ -52,7 +52,7 @@ final class StatusBarManager {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quit MacStatus",
+            title: "退出 MacStatus",
             action: #selector(quitApplication),
             keyEquivalent: "q"
         )

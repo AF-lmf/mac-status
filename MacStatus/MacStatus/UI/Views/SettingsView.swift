@@ -19,9 +19,9 @@ struct SettingsView: View {
     var body: some View {
         Form {
             // General
-            Section("General") {
+            Section("通用") {
                 HStack {
-                    Text("Refresh Interval")
+                    Text("刷新间隔")
                     Spacer()
                     Picker("", selection: $refreshInterval) {
                         Text("1s").tag(1.0)
@@ -33,59 +33,59 @@ struct SettingsView: View {
                 }
 
                 HStack {
-                    Text("Display Mode")
+                    Text("显示模式")
                     Spacer()
                     Picker("", selection: $displayModeRaw) {
-                        Text("Full").tag(DisplayMode.full.rawValue)
-                        Text("Compact").tag(DisplayMode.compact.rawValue)
-                        Text("Percentage").tag(DisplayMode.percentage.rawValue)
+                        Text("完整").tag(DisplayMode.full.rawValue)
+                        Text("紧凑").tag(DisplayMode.compact.rawValue)
+                        Text("百分比").tag(DisplayMode.percentage.rawValue)
                     }
                     .frame(width: 120)
                 }
 
-                Toggle("Launch at Login", isOn: $launchAtLogin)
+                Toggle("登录时启动", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, newValue in
                         setLaunchAtLogin(newValue)
                     }
             }
 
             // Alert Thresholds
-            Section("Alert Thresholds") {
+            Section("告警阈值") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("CPU Warning: \(Int(cpuWarning))%")
+                    Text("CPU 警告：\(Int(cpuWarning))%")
                     Slider(value: $cpuWarning, in: 30...90, step: 5)
 
-                    Text("CPU Critical: \(Int(cpuCritical))%")
+                    Text("CPU 严重：\(Int(cpuCritical))%")
                     Slider(value: $cpuCritical, in: 50...95, step: 5)
 
                     Divider()
 
-                    Text("Memory Warning: \(Int(memWarning))%")
+                    Text("内存警告：\(Int(memWarning))%")
                     Slider(value: $memWarning, in: 30...90, step: 5)
 
-                    Text("Memory Critical: \(Int(memCritical))%")
+                    Text("内存严重：\(Int(memCritical))%")
                     Slider(value: $memCritical, in: 50...95, step: 5)
                 }
             }
 
             // Data
-            Section("Data") {
+            Section("数据") {
                 HStack {
-                    Text("Persisted Samples")
+                    Text("已存采样点")
                     Spacer()
                     Text("\(MetricCollector.shared.persistedCount)")
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                 }
 
-                Button("Clear History") {
+                Button("清除历史") {
                     // TODO: Implement via MetricCollector.purgeAll()
                 }
                 .disabled(true)
             }
 
             // About
-            Section("About") {
+            Section("关于") {
                 HStack {
                     Text("MacStatus")
                     Spacer()
@@ -143,7 +143,7 @@ final class SettingsWindowManager {
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "MacStatus Preferences"
+        window.title = "MacStatus 偏好设置"
         window.styleMask = [.titled, .closable]
         window.center()
         window.makeKeyAndOrderFront(nil)

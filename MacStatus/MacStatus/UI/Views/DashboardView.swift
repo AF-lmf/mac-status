@@ -8,7 +8,6 @@ struct DashboardView: View {
     @EnvironmentObject private var state: DashboardState
 
     var body: some View {
-        ScrollView {
         VStack(spacing: 8) {
             // Header
             HStack {
@@ -92,8 +91,7 @@ struct DashboardView: View {
             .padding(.top, 2)
         }
         .padding(12)
-        .frame(maxWidth: .infinity)
-        }
+        .frame(width: 320)
     }
 }
 
