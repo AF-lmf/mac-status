@@ -49,7 +49,7 @@ Phases 1-5 delivered the shipped v1.0 MVP: single combined fixed-width status-ba
 Plans:
 - [x] 06-01-PLAN.md — Metric 枚举 + SettingsManager 重构（@Observable + 版本化存储 + 新键）
 - [x] 06-02-PLAN.md — MetricCollector reconfigure/applyNow/observer + SettingsView @AppStorage 消除
-- [ ] 06-03-PLAN.md — NSColor+Hex 扩展 + StatusBarManager 启用集/顺序接缝 + colorForUsage 实时阈值/配色
+- [x] 06-03-PLAN.md — NSColor+Hex 扩展 + StatusBarManager 启用集/顺序接缝 + colorForUsage 实时阈值/配色
 
 ### Phase 7: Battery & Power
 **Goal**: On laptops the user can open the popover and see a complete battery picture — charge %, charging state, time remaining, real-time power draw, and health — while desktop Macs hide the whole battery section cleanly.
@@ -95,7 +95,7 @@ Plans:
 | 3. GPU Monitoring | v1.0 | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | v1.0 | 1/1 | Complete | 2026-05-14 |
 | 5. Launch at Login + QoL | v1.0 | 1/1 | Complete | 2026-05-14 |
-| 6. Settings Foundation + Live Re-apply Seam | v2.0 | 2/3 | In Progress|  |
+| 6. Settings Foundation + Live Re-apply Seam | v2.0 | 3/3 | Complete   | 2026-06-16 |
 | 7. Battery & Power | v2.0 | 0/? | Not started | - |
 | 8. Per-Process Top-N CPU & Memory | v2.0 | 0/? | Not started | - |
 | 9. Settings Window UI + Customization | v2.0 | 0/? | Not started | - |
