@@ -14,6 +14,7 @@
 		A00000000000000000000006 /* ReaderProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* ReaderProtocol.swift */; };
 		A00000000000000000000008 /* TimerReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* TimerReader.swift */; };
 		A0000000000000000000000A /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* SettingsManager.swift */; };
+		F60000000000000000000002 /* Metric.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60000000000000000000001 /* Metric.swift */; };
 		2791956B-B428-43E5-A15E-53915BFFA9D6 /* NetworkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */; };
 		E10000000000000000000002 /* ProcessNetworkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000001 /* ProcessNetworkReader.swift */; };
 		4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */; };
@@ -45,6 +46,7 @@
 		A00000000000000000000005 /* ReaderProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderProtocol.swift; sourceTree = "<group>"; };
 		A00000000000000000000007 /* TimerReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerReader.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		F60000000000000000000001 /* Metric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metric.swift; sourceTree = "<group>"; };
 		DD9388B0-76C5-4944-98B4-990FB09BC512 /* NetworkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReader.swift; sourceTree = "<group>"; };
 		E10000000000000000000001 /* ProcessNetworkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessNetworkReader.swift; sourceTree = "<group>"; };
 		5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteFormatting.swift; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				A00000000000000000000009 /* SettingsManager.swift */,
+				F60000000000000000000001 /* Metric.swift */,
 				5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */,
 			);
 			path = Utils;
@@ -268,6 +271,7 @@
 				A00000000000000000000002 /* CPUReader.swift in Sources */,
 				A00000000000000000000004 /* StatusBarManager.swift in Sources */,
 				A0000000000000000000000A /* SettingsManager.swift in Sources */,
+				F60000000000000000000002 /* Metric.swift in Sources */,
 				2791956B-B428-43E5-A15E-53915BFFA9D6 /* NetworkReader.swift in Sources */,
 				E10000000000000000000002 /* ProcessNetworkReader.swift in Sources */,
 				4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */,
