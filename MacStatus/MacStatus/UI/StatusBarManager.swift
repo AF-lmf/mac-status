@@ -118,6 +118,12 @@ final class StatusBarManager {
             }
         }
 
+        // 所有 active metrics 均返回 nil segment（例如仅含 .battery 时）——
+        // 回退到占位符，保持"菜单栏永不为空"的不变量。
+        if result.length == 0 {
+            button.title = "◆"
+            return
+        }
         button.attributedTitle = result
     }
 
