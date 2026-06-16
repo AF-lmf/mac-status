@@ -347,17 +347,31 @@ final class SettingsManager {
 
         _showIcons = defaults.bool(forKey: Keys.showIcons)
 
-        let rawCpuWarn = defaults.double(forKey: Keys.cpuWarningThreshold)
-        _cpuWarningThreshold = rawCpuWarn > 0 ? rawCpuWarn : 60.0
+        // 使用 object(forKey:) != nil 区分 "key 不存在" 与 "值为 0.0"，
+        // 避免将合法的 0.0 阈值静默重置为默认值。
+        if let raw = defaults.object(forKey: Keys.cpuWarningThreshold) as? Double {
+            _cpuWarningThreshold = raw
+        } else {
+            _cpuWarningThreshold = 60.0
+        }
 
-        let rawCpuCrit = defaults.double(forKey: Keys.cpuCriticalThreshold)
-        _cpuCriticalThreshold = rawCpuCrit > 0 ? rawCpuCrit : 80.0
+        if let raw = defaults.object(forKey: Keys.cpuCriticalThreshold) as? Double {
+            _cpuCriticalThreshold = raw
+        } else {
+            _cpuCriticalThreshold = 80.0
+        }
 
-        let rawMemWarn = defaults.double(forKey: Keys.memoryWarningThreshold)
-        _memoryWarningThreshold = rawMemWarn > 0 ? rawMemWarn : 60.0
+        if let raw = defaults.object(forKey: Keys.memoryWarningThreshold) as? Double {
+            _memoryWarningThreshold = raw
+        } else {
+            _memoryWarningThreshold = 60.0
+        }
 
-        let rawMemCrit = defaults.double(forKey: Keys.memoryCriticalThreshold)
-        _memoryCriticalThreshold = rawMemCrit > 0 ? rawMemCrit : 80.0
+        if let raw = defaults.object(forKey: Keys.memoryCriticalThreshold) as? Double {
+            _memoryCriticalThreshold = raw
+        } else {
+            _memoryCriticalThreshold = 80.0
+        }
 
         let orderRaws = defaults.stringArray(forKey: Keys.metricOrder) ?? []
         let order = orderRaws.compactMap(Metric.init(rawValue:))
