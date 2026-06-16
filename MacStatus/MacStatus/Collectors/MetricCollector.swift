@@ -38,6 +38,12 @@ final class MetricCollector {
     // Tick counter
     private var tickCount = 0
 
+    // Last collected sample — used by applyNow() to re-push UI without a new read
+    private var lastSample: MetricSample?
+
+    // Token retaining the .settingsDidChange NotificationCenter observer
+    private var settingsObserver: NSObjectProtocol?
+
     // MARK: - Initialization
 
     private init() {}
@@ -68,6 +74,9 @@ final class MetricCollector {
 
         // Load recent history from SQLite for the popover sparklines
         loadRecentHistory()
+
+        // Register settings-change observer (must come after timer setup)
+        setupSettingsObserver()
     }
 
     /// Stop collecting.
@@ -78,6 +87,48 @@ final class MetricCollector {
         if !pendingSamples.isEmpty {
             historyStore.insertSamples(pendingSamples)
             pendingSamples.removeAll()
+        }
+    }
+
+    // MARK: - Live Re-apply
+
+    /// Reschedule the tick timer to reflect the new refreshInterval.
+    /// Does NOT touch any reader (setup/stop/readValue) — preserves NetworkReader delta baseline.
+    func reconfigure() {
+        timer?.invalidate()
+        timer = nil
+        let interval = SettingsManager.shared.refreshInterval
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.tick()
+            }
+        }
+    }
+
+    /// Re-push the last cached sample through updateUI without waiting for next tick.
+    /// Called on appearance-only setting changes (display mode, thresholds, colors, order).
+    func applyNow() {
+        guard let sample = lastSample else { return }
+        updateUI(sample: sample)
+    }
+
+    /// Register a closure-form NotificationCenter observer for .settingsDidChange.
+    /// Stored in settingsObserver to prevent ARC from releasing the token.
+    private func setupSettingsObserver() {
+        settingsObserver = NotificationCenter.default.addObserver(
+            forName: .settingsDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self,
+                  let changedKeys = notification.userInfo?[SettingsManager.changedKeysUserInfoKey] as? Set<String>
+            else { return }
+
+            if changedKeys.contains("refreshInterval") {
+                self.reconfigure()
+            } else {
+                self.applyNow()
+            }
         }
     }
 
@@ -99,6 +150,9 @@ final class MetricCollector {
             networkDownloadBps: net?.downloadBytesPerSec,
             gpuUsage: gpu?.utilizationPercent
         )
+
+        // Cache last sample for applyNow()
+        lastSample = sample
 
         // 1. In-memory ring buffer
         ringBuffer.append(sample)
