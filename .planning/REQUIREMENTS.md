@@ -77,28 +77,34 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROC-01 | TBD | Pending |
-| PROC-02 | TBD | Pending |
-| PROC-03 | TBD | Pending |
-| BATT-01 | TBD | Pending |
-| BATT-02 | TBD | Pending |
-| BATT-03 | TBD | Pending |
-| BATT-04 | TBD | Pending |
-| BATT-05 | TBD | Pending |
-| SET-01 | TBD | Pending |
-| SET-02 | TBD | Pending |
-| SET-03 | TBD | Pending |
-| SET-04 | TBD | Pending |
-| SET-05 | TBD | Pending |
-| SET-06 | TBD | Pending |
-| SET-07 | TBD | Pending |
-| SET-08 | TBD | Pending |
+| PROC-01 | Phase 8 | Pending |
+| PROC-02 | Phase 8 | Pending |
+| PROC-03 | Phase 8 | Pending |
+| BATT-01 | Phase 7 | Pending |
+| BATT-02 | Phase 7 | Pending |
+| BATT-03 | Phase 7 | Pending |
+| BATT-04 | Phase 7 | Pending |
+| BATT-05 | Phase 7 | Pending |
+| SET-01 | Phase 9 | Pending |
+| SET-02 | Phase 9 | Pending |
+| SET-03 | Phase 9 | Pending |
+| SET-04 | Phase 9 | Pending |
+| SET-05 | Phase 9 | Pending |
+| SET-06 | Phase 9 | Pending |
+| SET-07 | Phase 6 | Pending |
+| SET-08 | Phase 6 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 16 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 16 ⚠️ (resolved when roadmap is created)
+- Mapped to phases: 16 ✓
+- Unmapped: 0 ✓
+
+**Phase distribution:**
+- Phase 6 (Settings Foundation + Live Re-apply Seam): SET-07, SET-08 (2)
+- Phase 7 (Battery & Power): BATT-01..05 (5)
+- Phase 8 (Per-Process Top-N CPU & Memory): PROC-01..03 (3)
+- Phase 9 (Settings Window UI + Customization): SET-01..06 (6)
 
 ---
 *Requirements defined: 2026-06-16*
-*Last updated: 2026-06-16 after initial definition*
+*Last updated: 2026-06-16 after roadmap creation (traceability filled, coverage 16/16)*

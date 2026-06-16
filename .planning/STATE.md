@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: planning
-last_updated: "2026-06-16T08:41:38.012Z"
+status: ready_to_plan
+last_updated: "2026-06-16T09:10:00.000Z"
 last_activity: 2026-06-16
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,24 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-14)
+See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 04 — combined-display-formatting
+**Current focus:** Phase 6 — Settings Foundation + Live Re-apply Seam (v2.0 critical-path prerequisite)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 6 — Settings Foundation + Live Re-apply Seam (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-16 — Milestone v2.0 started
+Status: Roadmap created — ready to plan Phase 6
+Last activity: 2026-06-16 — v2.0 roadmap created (Phases 6-9, 16/16 requirements mapped)
+
+**v2.0 phase map (build order — respects dependency ordering):**
+
+1. Phase 6: Settings Foundation + Live Re-apply Seam (SET-07, SET-08) — critical-path prerequisite; single SettingsManager source of truth + reconfigure()/applyNow() + StatusBarManager enabled-set/order seam.
+2. Phase 7: Battery & Power (BATT-01..05) — independent; popover-only; desktop nil-degradation.
+3. Phase 8: Per-Process Top-N CPU & Memory (PROC-01..03) — independent; popover-gated libproc sampler.
+4. Phase 9: Settings Window UI + Customization (SET-01..06) — control surface; comes after foundation + features.
 
 ## Performance Metrics
 
@@ -94,14 +101,23 @@ Recent decisions affecting current work:
 - [Phase 3]: CPU/MEM coloring remains deferred to Phase 4 combined display formatting.
 - [Phase 04]: Value-level menu bar colors are derived from raw metric state, not parsed display strings — This prevents stale warning/critical colors after fallback and keeps labels default-colored.
 
+### v2.0 Cross-cutting Constraints (apply to every new phase)
+
+- Every new reader/sampler must emit only `Sendable` snapshots across actor boundaries (Swift 6 strict concurrency).
+- Every new live-tick reader (BatteryReader) must rejoin the v1.0 sleep/wake recovery chain (prepareForSleep/recoverFromWake); delay trusting post-wake battery estimates ~5s.
+- Status bar stays ONE combined NSStatusItem — toggling/reorder = conditional segment composition over metricOrder, never add/remove status items.
+- Per-process sampling is popover-gated (Task.detached), NEVER on the collector tick. `task_for_pid` is forbidden — libproc only, no new entitlement.
+- Per-metric refresh interval was CUT from v2.0 scope (SET-F1 deferred) — the foundation does NOT need per-metric timer-scheduling/modulo gating; keep MetricCollector.reconfigure() simpler.
+
 ### Pending Todos
 
 - None.
 
 ### Blockers/Concerns
 
-- [Phase 4] CPU and MEM color rules need final combined-display treatment.
-- [Phase 5] macOS 26 menu bar privacy control — may need onboarding alert for users to allow in System Settings
+- [Phase 7] Battery Watts/health on heterogeneous hardware (MEDIUM confidence) — AppleSmartBattery sign/bit-width/key names vary by model and are absent on desktop; needs real-device matrix verification (consider /gsd-plan-phase --research-phase). Probe-and-nil, never strong-unwrap.
+- [Phase 8] libproc under Swift 6 strict concurrency — if C structs/handles are awkward off the actor boundary, documented fallback is spawning /bin/ps with the existing ProcessNetworkReader scaffolding. Prefer libproc.
+- [Phase 6] Latent two-sources-of-truth bug: SettingsView raw @AppStorage vs collectors reading SettingsManager — must be reconciled (Option A: route everything through SettingsManager) before new keys land.
 
 ### Quick Tasks Completed
 
@@ -137,10 +153,10 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-05-14T14:11:12.514Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-06-16T09:10:00.000Z
+Stopped at: v2.0 roadmap created (ROADMAP.md Phases 6-9, REQUIREMENTS.md traceability 16/16)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v2.0 phase with `/gsd-plan-phase 6` (Settings Foundation + Live Re-apply Seam).
