@@ -45,7 +45,11 @@ Phases 1-5 delivered the shipped v1.0 MVP: single combined fixed-width status-ba
   2. Every preference (existing + new keys: `metricOrder`, per-metric enabled-set, custom thresholds, custom colors, compact/verbose mode) persists across an app quit-and-relaunch via versioned `UserDefaults` storage (a `schemaVersion` exists so future key additions migrate cleanly).
   3. Changing a setting re-applies live without relaunch: a `SettingsManager` change broadcast triggers `MetricCollector.applyNow()` (re-push the last sample) and `reconfigure()` when timing changes, so the status bar and popover reflect the change on the next forced refresh, not after a restart.
   4. `StatusBarManager.updateTitle` honors an enabled-set and `metricOrder` by conditionally composing segments on the single combined `NSStatusItem` (never adding/removing status items), and `colorForUsage` reads custom thresholds/colors live — the seam that Phase 9's controls will drive.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 06-01-PLAN.md — Metric 枚举 + SettingsManager 重构（@Observable + 版本化存储 + 新键）
+- [ ] 06-02-PLAN.md — MetricCollector reconfigure/applyNow/observer + SettingsView @AppStorage 消除
+- [ ] 06-03-PLAN.md — NSColor+Hex 扩展 + StatusBarManager 启用集/顺序接缝 + colorForUsage 实时阈值/配色
 
 ### Phase 7: Battery & Power
 **Goal**: On laptops the user can open the popover and see a complete battery picture — charge %, charging state, time remaining, real-time power draw, and health — while desktop Macs hide the whole battery section cleanly.
@@ -91,7 +95,7 @@ Phases 1-5 delivered the shipped v1.0 MVP: single combined fixed-width status-ba
 | 3. GPU Monitoring | v1.0 | 2/2 | Complete | 2026-05-14 |
 | 4. Combined Display + Formatting | v1.0 | 1/1 | Complete | 2026-05-14 |
 | 5. Launch at Login + QoL | v1.0 | 1/1 | Complete | 2026-05-14 |
-| 6. Settings Foundation + Live Re-apply Seam | v2.0 | 0/? | Not started | - |
+| 6. Settings Foundation + Live Re-apply Seam | v2.0 | 0/3 | Not started | - |
 | 7. Battery & Power | v2.0 | 0/? | Not started | - |
 | 8. Per-Process Top-N CPU & Memory | v2.0 | 0/? | Not started | - |
 | 9. Settings Window UI + Customization | v2.0 | 0/? | Not started | - |
