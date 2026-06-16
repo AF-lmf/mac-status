@@ -28,13 +28,19 @@
 
 ### 指标标识、顺序与启用集 (Metric Identity, Order & Enabled-set)
 - 规范标识：引入 `Metric` 枚举（现 `cpu, memory, network, gpu`，预留 `battery`），以稳定的 string rawValue 作为顺序/启用/阈值/配色处处通用的 id。
-- 默认 `metricOrder`：`[cpu, memory, network, gpu]` —— 与当前标题组合顺序一致，升级后行为不变。
+- 默认 `metricOrder`：`[cpu, gpu, memory, network]` —— 当前默认显示模式是 `.compact`（`SettingsManager.displayMode` 默认即 compact），其实际渲染顺序为 CPU→GPU→Memory→Network；用此顺序才真正满足"升级零变化"硬约束。（研究阶段更正：先前误以为默认是 full 模式，用户已确认改用 compact 顺序。）
 - 默认启用集：四项全部启用 —— 保留 v1.0 行为，升级后不会有指标消失。
 - `updateTitle` 如何尊重禁用/重排：在唯一的合并 `NSStatusItem` 上按启用集与顺序**条件式组合** segment（并丢弃多余的分隔符），**绝不**增删 status item；启用集为空时显示一个最小占位字形（如应用 glyph），而非空白栏。`colorForUsage` 实时读取自定义阈值/配色。
 
 ### Claude's Discretion
 - "紧凑/详细模式切换"键（compact/verbose）：Phase 6 仅需保证其在版本化存储中持久化；其与现有 `displayMode`(full/compact/percentage) 的最终关系与 UI 交由 Phase 9 决定。本阶段按 Claude 判断添加最小持久化键即可。
-- `SettingsManager` 当前为 `@unchecked Sendable` 单例；改为 `@MainActor @Observable` 后若仍有后台读取需求，按需提供快照/线程安全读取路径，具体由 Claude 在规划/执行时依 Swift 6 严格并发裁定。
+- `SettingsManager` 当前为 `@unchecked Sendable` 单例；研究阶段已审计确认**无任何后台读取路径**（所有访问均在 @MainActor 上下文），故改为 `@MainActor @Observable` 后无需快照 struct，可直接移除 `@unchecked Sendable`。
+
+### 研究阶段澄清 (resolved post-research)
+- **launchAtLogin 纳入 SettingsManager**（Q2 已定）：当前 `SettingsView` 仍有 `launchAtLogin` 的 `@AppStorage`。为彻底消除 `@AppStorage` 重复真源，将 `launchAtLogin` 也纳入 `SettingsManager`，其 setter 触发 `SMAppService` 注册/注销副作用。
+- **迁移期直写 UserDefaults**（Q3 已定）：`migrateToV1()` 等迁移闭包写默认值时直接调用 `UserDefaults.standard.set(...)`，**不**经过属性 setter，避免 init 期间发出 `.settingsDidChange` 通知风暴。
+- **`@Observable` + 副作用的正确写法**（研究关键陷阱）：绝不在 `@Observable` 公开存储属性上写 `didSet`（会被宏静默忽略，编译通过但不执行）。改用"公开计算属性 + 私有 backing 存储"，在计算属性的 `set` 中写 UserDefaults + post notification。
+- **NotificationCenter 用闭包式** `addObserver(forName:object:queue:.main)`，**禁用** `@objc #selector` 形式（swift#74037 已知崩溃）。Swift 6.2 `NotificationCenter.MainActorMessage` 需 macOS 26+，本项目 target 14.0 不可用。
 </decisions>
 
 <code_context>
