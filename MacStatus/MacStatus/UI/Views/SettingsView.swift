@@ -1,20 +1,11 @@
 import SwiftUI
-import ServiceManagement
 
 // MARK: - Settings View
 
 /// Preferences panel for MacStatus. Displayed in a separate window
 /// via NSWindow + NSHostingView. Changes take effect immediately.
 struct SettingsView: View {
-    @AppStorage("refreshInterval") private var refreshInterval: Double = 2.0
-    @AppStorage("displayMode") private var displayModeRaw: String = DisplayMode.full.rawValue
-    @AppStorage("displayUnit") private var displayUnitRaw: String = DisplayUnit.auto.rawValue
-    @AppStorage("showIcons") private var showIcons: Bool = false
-    @AppStorage("cpuWarningThreshold") private var cpuWarning: Double = 60.0
-    @AppStorage("cpuCriticalThreshold") private var cpuCritical: Double = 80.0
-    @AppStorage("memoryWarningThreshold") private var memWarning: Double = 60.0
-    @AppStorage("memoryCriticalThreshold") private var memCritical: Double = 80.0
-    @AppStorage("launchAtLogin") private var launchAtLogin: Bool = false
+    @Bindable var settings = SettingsManager.shared
 
     var body: some View {
         Form {
@@ -23,7 +14,7 @@ struct SettingsView: View {
                 HStack {
                     Text("刷新间隔")
                     Spacer()
-                    Picker("", selection: $refreshInterval) {
+                    Picker("", selection: $settings.refreshInterval) {
                         Text("1s").tag(1.0)
                         Text("2s").tag(2.0)
                         Text("5s").tag(5.0)
@@ -35,36 +26,33 @@ struct SettingsView: View {
                 HStack {
                     Text("显示模式")
                     Spacer()
-                    Picker("", selection: $displayModeRaw) {
-                        Text("完整").tag(DisplayMode.full.rawValue)
-                        Text("紧凑").tag(DisplayMode.compact.rawValue)
-                        Text("百分比").tag(DisplayMode.percentage.rawValue)
+                    Picker("", selection: $settings.displayMode) {
+                        Text("完整").tag(DisplayMode.full)
+                        Text("紧凑").tag(DisplayMode.compact)
+                        Text("百分比").tag(DisplayMode.percentage)
                     }
                     .frame(width: 120)
                 }
 
-                Toggle("登录时启动", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, newValue in
-                        setLaunchAtLogin(newValue)
-                    }
+                Toggle("登录时启动", isOn: $settings.launchAtLogin)
             }
 
             // Alert Thresholds
             Section("告警阈值") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("CPU 警告：\(Int(cpuWarning))%")
-                    Slider(value: $cpuWarning, in: 30...90, step: 5)
+                    Text("CPU 警告：\(Int(settings.cpuWarningThreshold))%")
+                    Slider(value: $settings.cpuWarningThreshold, in: 30...90, step: 5)
 
-                    Text("CPU 严重：\(Int(cpuCritical))%")
-                    Slider(value: $cpuCritical, in: 50...95, step: 5)
+                    Text("CPU 严重：\(Int(settings.cpuCriticalThreshold))%")
+                    Slider(value: $settings.cpuCriticalThreshold, in: 50...95, step: 5)
 
                     Divider()
 
-                    Text("内存警告：\(Int(memWarning))%")
-                    Slider(value: $memWarning, in: 30...90, step: 5)
+                    Text("内存警告：\(Int(settings.memoryWarningThreshold))%")
+                    Slider(value: $settings.memoryWarningThreshold, in: 30...90, step: 5)
 
-                    Text("内存严重：\(Int(memCritical))%")
-                    Slider(value: $memCritical, in: 50...95, step: 5)
+                    Text("内存严重：\(Int(settings.memoryCriticalThreshold))%")
+                    Slider(value: $settings.memoryCriticalThreshold, in: 50...95, step: 5)
                 }
             }
 
@@ -103,20 +91,6 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 380, height: 440)
         .padding()
-    }
-
-    // MARK: - Launch at Login
-
-    private func setLaunchAtLogin(_ enabled: Bool) {
-        do {
-            if enabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-        } catch {
-            print("[Settings] Failed to \(enabled ? "register" : "unregister") login item: \(error)")
-        }
     }
 }
 
