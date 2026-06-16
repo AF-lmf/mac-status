@@ -30,7 +30,9 @@ final class CPUReader: TimerReader<Double> {
     // MARK: - Initialization
 
     init() {
-        super.init(interval: SettingsManager.shared.refreshInterval)
+        // Use the same hardcoded default as other readers; MetricCollector manages
+        // the unified tick timer independently via SettingsManager.shared.refreshInterval.
+        super.init(interval: 2.0)
     }
 
     // MARK: - ReaderProtocol Lifecycle
