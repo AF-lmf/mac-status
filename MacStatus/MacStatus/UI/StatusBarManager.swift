@@ -8,6 +8,11 @@ import AppKit
 /// NSAttributedString colored text. Left-click toggles NSPopover.
 ///
 /// Thread safety: All methods must be called on the main thread.
+///
+/// Repaint path: SettingsManager posts .settingsDidChange → MetricCollector
+/// observer calls reconfigure() or applyNow() → updateUI(sample:) →
+/// StatusBarManager.updateTitle(...). StatusBarManager itself does NOT register
+/// a .settingsDidChange observer — doing so would trigger a double applyNow().
 @MainActor
 final class StatusBarManager {
 
@@ -69,7 +74,11 @@ final class StatusBarManager {
     // MARK: - Title Update
 
     /// Update the status bar button title with current metrics.
-    /// Respects the user's chosen DisplayMode from SettingsManager.
+    ///
+    /// Reads SettingsManager.metricOrder + enabledMetrics to determine which
+    /// segments to render and in what order. Inserts separator only between
+    /// segments (no leading/trailing separators). Falls back to "◆" when the
+    /// enabled set is empty (never leaves the status bar blank).
     func updateTitle(
         cpuUsage: Double?,
         memoryStats: MemoryStats?,
@@ -78,203 +87,165 @@ final class StatusBarManager {
     ) {
         guard let button = statusItem.button else { return }
 
-        let mode = SettingsManager.shared.displayMode
-        let title: NSAttributedString
+        let settings = SettingsManager.shared
+        let order   = settings.metricOrder           // [Metric]
+        let enabled = Set(settings.enabledMetrics)   // Set<Metric> for O(1) lookup
+        let mode    = settings.displayMode
 
+        let active = order.filter { enabled.contains($0) }
+        if active.isEmpty {
+            button.title = "◆"   // minimal placeholder — never empty status bar
+            return
+        }
+
+        let sep = mode == .compact ? compactSeparator() : separator()
+        let result = NSMutableAttributedString()
+
+        for (index, metric) in active.enumerated() {
+            if index > 0 { result.append(sep) }
+            switch metric {
+            case .cpu:
+                result.append(cpuSegment(cpuUsage, mode: mode))
+            case .memory:
+                result.append(memSegment(memoryStats, mode: mode))
+            case .network:
+                result.append(netSegment(networkStats, mode: mode))
+            case .gpu:
+                result.append(gpuSegment(gpuStats, mode: mode))
+            case .battery:
+                break   // Phase 7 activates this case
+            }
+        }
+
+        button.attributedTitle = result
+    }
+
+    // MARK: - Per-Metric Segment Helpers
+
+    /// CPU segment: "CPU: X%" / "C:X%" / "X%" depending on mode.
+    private func cpuSegment(_ cpu: Double?, mode: DisplayMode) -> NSAttributedString {
         switch mode {
         case .full:
-            title = buildFullTitle(
-                cpuUsage: cpuUsage, memoryStats: memoryStats,
-                networkStats: networkStats, gpuStats: gpuStats
-            )
+            let text  = cpu.map { "CPU: \(Int($0))%" } ?? "CPU: --"
+            let color = cpu.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
         case .compact:
-            title = buildCompactTitle(
-                cpuUsage: cpuUsage, memoryStats: memoryStats,
-                networkStats: networkStats, gpuStats: gpuStats
-            )
+            let text  = cpu.map { "C:\(Int($0))%" } ?? "C:--"
+            let color = cpu.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
         case .percentage:
-            title = buildPercentageTitle(
-                cpuUsage: cpuUsage, memoryStats: memoryStats,
-                networkStats: networkStats, gpuStats: gpuStats
-            )
+            let text  = cpu.map { "\(Int($0))%" } ?? "--"
+            let color = cpu.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
         }
-
-        button.attributedTitle = title
     }
 
-    // MARK: - Full Mode
-
-    /// Full: `CPU: 23% | MEM: 67% OK | NET: ↑0B/s ↓1.2K/s | GPU: 12%`
-    private func buildFullTitle(
-        cpuUsage: Double?,
-        memoryStats: MemoryStats?,
-        networkStats: NetworkStats?,
-        gpuStats: GPUStats?
-    ) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let sep = separator()
-
-        let cpuText: String
-        let cpuColor: NSColor
-        if let cpu = cpuUsage {
-            cpuText = "CPU: \(Int(cpu))%"
-            cpuColor = colorForUsage(cpu, metric: .cpu)
-        } else {
-            cpuText = "CPU: --"
-            cpuColor = .secondaryLabelColor
+    /// Memory segment: includes pressure label in full mode.
+    private func memSegment(_ mem: MemoryStats?, mode: DisplayMode) -> NSAttributedString {
+        switch mode {
+        case .full:
+            let text: String
+            let color: NSColor
+            if let m = mem, let used = m.usedPercent {
+                let label = pressureLabel(m.pressureLevel)
+                text  = "MEM: \(Int(used))% \(label)"
+                color = colorForUsage(used, metric: .memory)
+            } else {
+                text  = "MEM: --"
+                color = .secondaryLabelColor
+            }
+            return segment(text, color: color)
+        case .compact:
+            let text: String
+            let color: NSColor
+            if let m = mem, let used = m.usedPercent {
+                text  = "M:\(Int(used))%"
+                color = colorForUsage(used, metric: .memory)
+            } else {
+                text  = "M:--"
+                color = .secondaryLabelColor
+            }
+            return segment(text, color: color)
+        case .percentage:
+            let text: String
+            let color: NSColor
+            if let m = mem, let used = m.usedPercent {
+                text  = "\(Int(used))%"
+                color = colorForUsage(used, metric: .memory)
+            } else {
+                text  = "--"
+                color = .secondaryLabelColor
+            }
+            return segment(text, color: color)
         }
-        result.append(segment(cpuText, color: cpuColor))
-        result.append(sep)
-
-        let memText: String
-        let memColor: NSColor
-        if let mem = memoryStats, let used = mem.usedPercent {
-            let label = pressureLabel(mem.pressureLevel)
-            memText = "MEM: \(Int(used))% \(label)"
-            memColor = colorForUsage(used, metric: .memory)
-        } else {
-            memText = "MEM: --"
-            memColor = .secondaryLabelColor
-        }
-        result.append(segment(memText, color: memColor))
-        result.append(sep)
-
-        let netText: String
-        let netColor: NSColor
-        if let net = networkStats {
-            let up = ByteFormatting.format(net.uploadBytesPerSec)
-            let down = ByteFormatting.format(net.downloadBytesPerSec)
-            netText = "NET: ↑\(up)/s ↓\(down)/s"
-            netColor = .labelColor
-        } else {
-            netText = "NET: --"
-            netColor = .secondaryLabelColor
-        }
-        result.append(segment(netText, color: netColor))
-        result.append(sep)
-
-        let gpuText: String
-        let gpuColor: NSColor
-        if let gpu = gpuStats {
-            gpuText = "GPU: \(Int(gpu.utilizationPercent))%"
-            gpuColor = colorForUsage(gpu.utilizationPercent, metric: .gpu)
-        } else {
-            gpuText = "GPU: N/A"
-            gpuColor = .secondaryLabelColor
-        }
-        result.append(segment(gpuText, color: gpuColor))
-
-        return result
     }
 
-    // MARK: - Compact Mode
-
-    /// Compact: `C:23% M:67% N:↑0↓1.2K G:12%`
-    private func buildCompactTitle(
-        cpuUsage: Double?,
-        memoryStats: MemoryStats?,
-        networkStats: NetworkStats?,
-        gpuStats: GPUStats?
-    ) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let sep = NSAttributedString(string: " ", attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)])
-
-        let cpuText = cpuUsage.map { "C:\(Int($0))%" } ?? "C:--"
-        let cpuColor = cpuUsage.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
-        result.append(segment(cpuText, color: cpuColor))
-        result.append(sep)
-
-        let gpuText = gpuStats.map { "G:\(Int($0.utilizationPercent))%" } ?? "G:--"
-        let gpuColor = gpuStats.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
-        result.append(segment(gpuText, color: gpuColor))
-        result.append(sep)
-
-        let memText: String
-        let memColor: NSColor
-        if let mem = memoryStats, let used = mem.usedPercent {
-            memText = "M:\(Int(used))%"
-            memColor = colorForUsage(used, metric: .memory)
-        } else {
-            memText = "M:--"
-            memColor = .secondaryLabelColor
+    /// Network segment: colored with .labelColor (no usage threshold for network).
+    private func netSegment(_ net: NetworkStats?, mode: DisplayMode) -> NSAttributedString {
+        switch mode {
+        case .full:
+            if let n = net {
+                let up   = ByteFormatting.format(n.uploadBytesPerSec)
+                let down = ByteFormatting.format(n.downloadBytesPerSec)
+                return segment("NET: ↑\(up)/s ↓\(down)/s", color: .labelColor)
+            } else {
+                return segment("NET: --", color: .secondaryLabelColor)
+            }
+        case .compact:
+            if let n = net {
+                let up   = ByteFormatting.format(n.uploadBytesPerSec)
+                let down = ByteFormatting.format(n.downloadBytesPerSec)
+                return segment("N:↑\(up)↓\(down)", color: .labelColor)
+            } else {
+                return segment("N:--", color: .secondaryLabelColor)
+            }
+        case .percentage:
+            if let n = net {
+                let total = n.uploadBytesPerSec + n.downloadBytesPerSec
+                return segment(ByteFormatting.format(total) + "/s", color: .labelColor)
+            } else {
+                return segment("--", color: .secondaryLabelColor)
+            }
         }
-        result.append(segment(memText, color: memColor))
-        result.append(sep)
-
-        let netText: String
-        let netColor: NSColor
-        if let net = networkStats {
-            let up = ByteFormatting.format(net.uploadBytesPerSec)
-            let down = ByteFormatting.format(net.downloadBytesPerSec)
-            netText = "N:↑\(up)↓\(down)"
-            netColor = .labelColor
-        } else {
-            netText = "N:--"
-            netColor = .secondaryLabelColor
-        }
-        result.append(segment(netText, color: netColor))
-
-        return result
     }
 
-    // MARK: - Percentage Mode
-
-    /// Percentage: `23% | 67% | -- | 12%`
-    private func buildPercentageTitle(
-        cpuUsage: Double?,
-        memoryStats: MemoryStats?,
-        networkStats: NetworkStats?,
-        gpuStats: GPUStats?
-    ) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let sep = separator()
-
-        let cpuText = cpuUsage.map { "\(Int($0))%" } ?? "--"
-        let cpuColor = cpuUsage.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
-        result.append(segment(cpuText, color: cpuColor))
-        result.append(sep)
-
-        let memText: String
-        let memColor: NSColor
-        if let mem = memoryStats, let used = mem.usedPercent {
-            memText = "\(Int(used))%"
-            memColor = colorForUsage(used, metric: .memory)
-        } else {
-            memText = "--"
-            memColor = .secondaryLabelColor
+    /// GPU segment: "GPU: X%" / "G:X%" / "X%" depending on mode.
+    private func gpuSegment(_ gpu: GPUStats?, mode: DisplayMode) -> NSAttributedString {
+        switch mode {
+        case .full:
+            let text  = gpu.map { "GPU: \(Int($0.utilizationPercent))%" } ?? "GPU: N/A"
+            let color = gpu.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
+        case .compact:
+            let text  = gpu.map { "G:\(Int($0.utilizationPercent))%" } ?? "G:--"
+            let color = gpu.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
+        case .percentage:
+            let text  = gpu.map { "\(Int($0.utilizationPercent))%" } ?? "--"
+            let color = gpu.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
+            return segment(text, color: color)
         }
-        result.append(segment(memText, color: memColor))
-        result.append(sep)
-
-        // Network in percentage mode: show total throughput
-        let netText: String
-        let netColor: NSColor
-        if let net = networkStats {
-            let total = net.uploadBytesPerSec + net.downloadBytesPerSec
-            netText = ByteFormatting.format(total) + "/s"
-            netColor = .labelColor
-        } else {
-            netText = "--"
-            netColor = .secondaryLabelColor
-        }
-        result.append(segment(netText, color: netColor))
-        result.append(sep)
-
-        let gpuText = gpuStats.map { "\(Int($0.utilizationPercent))%" } ?? "--"
-        let gpuColor = gpuStats.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
-        result.append(segment(gpuText, color: gpuColor))
-
-        return result
     }
 
     // MARK: - Helpers
 
+    /// " | " separator for full/percentage modes.
     private func separator() -> NSAttributedString {
         NSAttributedString(
             string: " | ",
             attributes: [
                 .foregroundColor: NSColor.secondaryLabelColor,
                 .font: NSFont.systemFont(ofSize: 12),
+            ]
+        )
+    }
+
+    /// Single space separator for compact mode (preserves v1.0 compact appearance).
+    private func compactSeparator() -> NSAttributedString {
+        NSAttributedString(
+            string: " ",
+            attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
             ]
         )
     }
@@ -289,25 +260,48 @@ final class StatusBarManager {
         )
     }
 
-    /// Metric type for threshold lookup.
-    private enum MetricType { case cpu, memory, gpu }
+    /// Color based on usage percentage, reading real-time custom thresholds and colors
+    /// from SettingsManager. Falls back to semantic system colors (.systemOrange, .systemRed,
+    /// .labelColor) when no custom values are configured.
+    ///
+    /// T-06-06: NSColor(hex:) returns nil on malformed input — caller falls back to system color.
+    /// T-06-07: threshold clamping is handled at the SettingsManager setter side.
+    private func colorForUsage(_ percent: Double, metric: Metric) -> NSColor {
+        let settings = SettingsManager.shared
 
-    /// Color based on usage percentage.
-    /// Normal: system label color (auto adapts to dark/light mode).
-    /// High load (>= warning threshold): orange.
-    private func colorForUsage(_ percent: Double, metric: MetricType) -> NSColor {
-        let warning: Double
+        let warning  = settings.customThresholds[metric.rawValue]?["warning"]  ?? defaultWarning(for: metric)
+        let critical = settings.customThresholds[metric.rawValue]?["critical"] ?? defaultCritical(for: metric)
 
-        switch metric {
-        case .cpu:
-            warning = SettingsManager.shared.cpuWarningThreshold
-        case .memory:
-            warning = SettingsManager.shared.memoryWarningThreshold
-        case .gpu:
-            warning = 80.0
+        if percent >= critical {
+            if let hex = settings.customColors[metric.rawValue]?["critical"],
+               let color = NSColor(hex: hex) { return color }
+            return .systemRed
+        } else if percent >= warning {
+            if let hex = settings.customColors[metric.rawValue]?["warning"],
+               let color = NSColor(hex: hex) { return color }
+            return .systemOrange
         }
+        return .labelColor   // semantic; adapts to dark/light mode
+    }
 
-        return percent >= warning ? .systemOrange : .labelColor
+    /// Fallback warning threshold when no custom value is configured for the metric.
+    private func defaultWarning(for metric: Metric) -> Double {
+        switch metric {
+        case .cpu:     return SettingsManager.shared.cpuWarningThreshold
+        case .memory:  return SettingsManager.shared.memoryWarningThreshold
+        case .gpu:     return 80.0
+        default:       return 80.0
+        }
+    }
+
+    /// Fallback critical threshold when no custom value is configured for the metric.
+    private func defaultCritical(for metric: Metric) -> Double {
+        switch metric {
+        case .cpu:     return SettingsManager.shared.cpuCriticalThreshold
+        case .memory:  return SettingsManager.shared.memoryCriticalThreshold
+        case .gpu:     return 90.0
+        default:       return 90.0
+        }
     }
 
     private func pressureLabel(_ level: MemoryPressureLevel) -> String {
