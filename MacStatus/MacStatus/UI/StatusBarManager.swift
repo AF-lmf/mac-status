@@ -100,20 +100,21 @@ final class StatusBarManager {
 
         let sep = mode == .compact ? compactSeparator() : separator()
         let result = NSMutableAttributedString()
+        var firstSegmentWritten = false
 
-        for (index, metric) in active.enumerated() {
-            if index > 0 { result.append(sep) }
+        for metric in active {
+            let segment: NSAttributedString?
             switch metric {
-            case .cpu:
-                result.append(cpuSegment(cpuUsage, mode: mode))
-            case .memory:
-                result.append(memSegment(memoryStats, mode: mode))
-            case .network:
-                result.append(netSegment(networkStats, mode: mode))
-            case .gpu:
-                result.append(gpuSegment(gpuStats, mode: mode))
-            case .battery:
-                break   // Phase 7 activates this case
+            case .cpu:     segment = cpuSegment(cpuUsage, mode: mode)
+            case .memory:  segment = memSegment(memoryStats, mode: mode)
+            case .network: segment = netSegment(networkStats, mode: mode)
+            case .gpu:     segment = gpuSegment(gpuStats, mode: mode)
+            case .battery: segment = nil  // Phase 7 activates this case
+            }
+            if let segment {
+                if firstSegmentWritten { result.append(sep) }
+                result.append(segment)
+                firstSegmentWritten = true
             }
         }
 
