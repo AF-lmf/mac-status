@@ -166,4 +166,29 @@ final class NetworkReader: TimerReader<NetworkStats> {
         }
         return nil
     }
+
+    /// Synchronous read returning NetworkStats directly.
+    func readValue() -> NetworkStats? {
+        let now = Date()
+        let interface = getPrimaryInterface()
+        guard !interface.isEmpty else { return nil }
+        guard let current = readBytes(for: interface) else { return nil }
+
+        defer {
+            previousBytes = current
+            previousTime = now
+        }
+
+        guard let prev = previousBytes, let prevTime = previousTime else {
+            return nil // First read — baseline only
+        }
+
+        let dt = now.timeIntervalSince(prevTime)
+        guard dt > 0 else { return nil }
+
+        let dlRate = Double(max(current.download - prev.download, 0)) / dt
+        let ulRate = Double(max(current.upload - prev.upload, 0)) / dt
+
+        return NetworkStats(downloadBytesPerSec: dlRate, uploadBytesPerSec: ulRate)
+    }
 }

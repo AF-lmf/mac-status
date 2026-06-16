@@ -1,518 +1,344 @@
-import Cocoa
+import AppKit
 
-/// Manages the NSStatusItem lifecycle, display formatting, and macOS 26
-/// menu bar privacy gate detection.
-/// All NSStatusItem operations must occur on the main actor — marking the
-/// class @MainActor satisfies Swift 6 strict concurrency checking.
+// MARK: - Status Bar Manager
+
+/// Manages the NSStatusItem lifecycle and user interactions.
+///
+/// M002: Supports three display modes (full/compact/percentage) with
+/// NSAttributedString colored text. Left-click toggles NSPopover.
+///
+/// Thread safety: All methods must be called on the main thread.
 @MainActor
-final class StatusBarManager: NSObject, NSMenuDelegate {
+final class StatusBarManager {
+
+    // MARK: - Singleton
+
+    static let shared = StatusBarManager()
 
     // MARK: - Properties
 
-    private var statusItem: NSStatusItem?
-    /// Last displayed value for D-06 tolerance-based redraw (0.5% threshold).
-    private var lastDisplayedValue: Double?
-    private var latestCPUText = "C--"
-    private var latestGPUText = "G--"
-    private var latestNetworkText = "↓-- ↑--"
-    private var latestMemoryText = "M--"
-    private var latestCPUUsage: Double?
-    private var latestGPUUsage: Double?
-    private var latestMemoryPressure: MemoryPressureLevel?
-    private var hasPresentedMenuBarNotice = false
-    private let minimumStatusItemLength: CGFloat = 120
-    private let maximumStatusItemLength: CGFloat = 260
+    private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private var popoverManager: PopoverManager?
+    private var rightClickMenu: NSMenu?
 
-    // Visible combined status item: CPU + GPU + memory + network.
-    private var networkStatusItem: NSStatusItem?
-    /// Last displayed network stats for tolerance-based redraw (1 KB/s threshold).
-    private var lastNetworkStats: NetworkStats?
+    // MARK: - Initialization
 
-    /// Last displayed memory stats for tolerance-based redraw (0.5% threshold).
-    private var lastMemoryStats: MemoryStats?
-
-    /// Last displayed GPU stats for redraw skipping.
-    private var lastGPUStats: GPUStats?
-
-    private let processNetworkQueue = DispatchQueue(
-        label: "com.aflmf.macstatus.process-network",
-        qos: .utility
-    )
-    private var processNetworkRequestID = 0
-    private lazy var processNetworkHeaderItem = disabledMenuItem("网络占用最高 5 个进程")
-    private lazy var processNetworkItems: [NSMenuItem] = (0..<5).map { _ in
-        disabledMenuItem("正在采样...")
+    private init() {
+        setupStatusBarButton()
+        setupRightClickMenu()
     }
 
-    private lazy var statusMenu: NSMenu = {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        menu.delegate = self
+    // MARK: - Setup
 
-        menu.addItem(processNetworkHeaderItem)
-        processNetworkItems.forEach { menu.addItem($0) }
+    private func setupStatusBarButton() {
+        guard let button = statusItem.button else { return }
+        button.title = "⏳ Initializing..."
+        button.target = self
+        button.action = #selector(statusBarButtonClicked(_:))
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    private func setupRightClickMenu() {
+        let menu = NSMenu()
+
+        let prefsItem = NSMenuItem(
+            title: "Preferences...",
+            action: #selector(showPreferences),
+            keyEquivalent: ","
+        )
+        prefsItem.target = self
+        menu.addItem(prefsItem)
+
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
             title: "Quit MacStatus",
-            action: #selector(quitMacStatus(_:)),
+            action: #selector(quitApplication),
             keyEquivalent: "q"
         )
         quitItem.target = self
         menu.addItem(quitItem)
-        return menu
-    }()
 
-    // MARK: - Initialization
-
-    override init() {
-        super.init()
-
-        scheduleMenuBarVisibilityNotice()
+        self.rightClickMenu = menu
     }
 
-    /// D-10: Prevent ghost icons by removing the status item before deallocation.
-    deinit {
-        // deinit is nonisolated in a @MainActor class — assumeIsolated is safe
-        // because the AppDelegate holds the sole strong reference and releases it
-        // on the main thread via applicationWillTerminate.
-        MainActor.assumeIsolated {
-            if let item = statusItem {
-                NSStatusBar.system.removeStatusItem(item)
-            }
-            if let item = networkStatusItem {
-                NSStatusBar.system.removeStatusItem(item)
-            }
-            print("StatusBarManager deinit — status items removed")
-        }
+    func configure(popoverManager: PopoverManager) {
+        self.popoverManager = popoverManager
     }
 
-    // MARK: - Display Update
+    // MARK: - Title Update
 
-    /// Update the menu bar CPU display.
-    /// - Parameter value: CPU usage percentage (0-100), or nil for error state.
-    func updateCPU(_ value: Double?) {
-        guard let value else {
-            // Error state: Mach API failed, always update to "--"
-            latestCPUText = "C--"
-            latestCPUUsage = nil
-            updateCombinedStatus()
-            lastDisplayedValue = nil
-            return
-        }
+    /// Update the status bar button title with current metrics.
+    /// Respects the user's chosen DisplayMode from SettingsManager.
+    func updateTitle(
+        cpuUsage: Double?,
+        memoryStats: MemoryStats?,
+        networkStats: NetworkStats?,
+        gpuStats: GPUStats?
+    ) {
+        guard let button = statusItem.button else { return }
 
-        let nextCPUText = String(format: "C%.0f", value)
+        let mode = SettingsManager.shared.displayMode
+        let title: NSAttributedString
 
-        // D-06: tolerance-based redraw — still redraw if rounded text or
-        // warning/critical color band changes inside the 0.5% tolerance.
-        if let last = lastDisplayedValue,
-           abs(value - last) < 0.5,
-           nextCPUText == latestCPUText,
-           usageSeverity(for: value) == usageSeverity(for: latestCPUUsage) {
-            return
-        }
-
-        lastDisplayedValue = value
-        latestCPUText = nextCPUText
-        latestCPUUsage = value
-        updateCombinedStatus()
-    }
-
-    private func scheduleMenuBarVisibilityNotice() {
-        guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 else { return }
-
-        // macOS 26+ exposes a per-app menu bar visibility toggle in
-        // System Settings → Menu Bar. Only prompt the user when the item
-        // genuinely failed to register (isVisible == false), otherwise the
-        // alert pops on every launch even when everything is fine.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            self?.presentMenuBarVisibilityNoticeIfNeeded()
-        }
-    }
-
-    private func presentMenuBarVisibilityNoticeIfNeeded() {
-        guard !hasPresentedMenuBarNotice else { return }
-        guard let item = networkStatusItem, item.isVisible == false else { return }
-        hasPresentedMenuBarNotice = true
-
-        let alert = NSAlert()
-        alert.messageText = "Menu Bar Permission Needed"
-        alert.informativeText = "MacStatus needs permission to display in the menu bar. Open System Settings → Menu Bar and enable MacStatus."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Open System Settings")
-        alert.addButton(withTitle: "Later")
-
-        if alert.runModal() == .alertFirstButtonReturn,
-           let url = URL(string: "x-apple.systempreferences:com.apple.preference.menubar") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    // MARK: - GPU Display
-
-    /// Update the menu bar GPU display.
-    /// - Parameter stats: Current GPU statistics, or `nil` for unavailable GPU data.
-    func updateGPU(_ stats: GPUStats?) {
-        guard let stats else {
-            latestGPUText = "G--"
-            latestGPUUsage = nil
-            lastGPUStats = nil
-            updateCombinedStatus()
-            return
-        }
-
-        if let last = lastGPUStats, stats == last {
-            return
-        }
-
-        lastGPUStats = stats
-        latestGPUText = String(format: "G%.0f", stats.utilizationPercent)
-        latestGPUUsage = stats.utilizationPercent
-        updateCombinedStatus()
-    }
-
-    // MARK: - Network Display
-
-    /// Create the network `NSStatusItem` (Phase 2 visible combined display).
-    ///
-    /// - `variableLength` sizes the slot to the metric string. A fixed/oversized
-    ///   width can exceed the available menu bar space on a notched display, in
-    ///   which case macOS hides the item even though `isVisible` reports true.
-    /// - No `autosaveName`: persisting a Preferred Position previously cached a
-    ///   slot that landed under the notch / Control Center overlay and never
-    ///   rendered. Letting AppKit place the item fresh each launch avoids that.
-    func setupNetworkItem() {
-        if networkStatusItem == nil {
-            networkStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-            networkStatusItem?.menu = statusMenu
-            configureStatusButton(networkStatusItem?.button)
-        }
-
-        networkStatusItem?.isVisible = true
-        updateCombinedStatus()
-    }
-
-    /// Update the menu bar network rate display.
-    /// - Parameter stats: Current network throughput rates, or `nil` for error state.
-    func updateNetwork(_ stats: NetworkStats?) {
-        guard let stats else {
-            latestNetworkText = "↓-- ↑--"
-            updateCombinedStatus()
-            lastNetworkStats = nil
-            return
-        }
-
-        // Tolerance check: skip redraw if both rates changed less than 1 KB/s
-        if let last = lastNetworkStats,
-           abs(stats.downloadBytesPerSec - last.downloadBytesPerSec) < 1024,
-           abs(stats.uploadBytesPerSec - last.uploadBytesPerSec) < 1024 {
-            return
-        }
-
-        lastNetworkStats = stats
-        latestNetworkText = formatNetworkCompact(download: stats.downloadBytesPerSec,
-                                                  upload: stats.uploadBytesPerSec)
-        updateCombinedStatus()
-    }
-
-    // MARK: - Memory Display
-
-    /// Initialize memory text for the visible combined status item.
-    ///
-    /// Memory used to render into a separate `NSStatusItem`, but UAT showed that
-    /// item is not reliably visible for the user. The visible source of truth is
-    /// now the combined `networkStatusItem`.
-    func setupMemoryItem() {
-        latestMemoryText = "M--"
-        latestMemoryPressure = nil
-        updateCombinedStatus()
-    }
-
-    /// Update the menu bar memory pressure display.
-    /// - Parameter stats: Current memory statistics, or `nil` for error state.
-    func updateMemory(_ stats: MemoryStats?) {
-        guard let stats else {
-            latestMemoryText = "M--"
-            latestMemoryPressure = nil
-            updateCombinedStatus()
-            lastMemoryStats = nil
-            return
-        }
-
-        let nextMemoryText = formatMemoryPressure(
-            stats.pressureLevel,
-            usedPercent: stats.usedPercent
-        )
-
-        if latestMemoryPressure == stats.pressureLevel,
-           nextMemoryText == latestMemoryText {
-            lastMemoryStats = stats
-            return
-        }
-
-        lastMemoryStats = stats
-        latestMemoryText = nextMemoryText
-        latestMemoryPressure = stats.pressureLevel
-        updateCombinedStatus()
-    }
-
-    // MARK: - Text Formatting
-
-    private func configureStatusButton(_ button: NSStatusBarButton?) {
-        button?.cell?.lineBreakMode = .byClipping
-        button?.cell?.usesSingleLineMode = true
-        button?.cell?.wraps = false
-        button?.imagePosition = .imageOnly
-    }
-
-    @objc private func quitMacStatus(_ sender: NSMenuItem) {
-        NSApp.terminate(nil)
-    }
-
-    func menuWillOpen(_ menu: NSMenu) {
-        refreshProcessNetworkMenu()
-    }
-
-    private func disabledMenuItem(_ title: String) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        item.isEnabled = false
-        return item
-    }
-
-    private func refreshProcessNetworkMenu() {
-        processNetworkRequestID += 1
-        let requestID = processNetworkRequestID
-        showProcessNetworkLoadingState()
-
-        processNetworkQueue.async { [requestID] in
-            let result = ProcessNetworkReader.readTopProcesses(limit: 5)
-            DispatchQueue.main.async { [weak self] in
-                guard let self, self.processNetworkRequestID == requestID else { return }
-                self.updateProcessNetworkMenu(with: result)
-            }
-        }
-    }
-
-    private func showProcessNetworkLoadingState() {
-        for (index, item) in processNetworkItems.enumerated() {
-            item.isHidden = index != 0
-            item.title = index == 0 ? "正在采样..." : ""
-            item.toolTip = nil
-        }
-    }
-
-    private func updateProcessNetworkMenu(with result: ProcessNetworkUsageResult) {
-        switch result {
-        case let .processes(usages):
-            for (index, item) in processNetworkItems.enumerated() {
-                guard usages.indices.contains(index) else {
-                    item.isHidden = true
-                    item.title = ""
-                    item.toolTip = nil
-                    continue
-                }
-
-                let usage = usages[index]
-                item.isHidden = false
-                item.title = formattedProcessRow(for: usage)
-                item.toolTip = formattedProcessTooltip(for: usage)
-            }
-
-        case .idle:
-            showSingleProcessNetworkMessage("当前没有明显网络活动")
-
-        case let .unavailable(reason):
-            showSingleProcessNetworkMessage("无法读取进程网络状态", toolTip: reason)
-        }
-    }
-
-    private func showSingleProcessNetworkMessage(_ title: String, toolTip: String? = nil) {
-        for (index, item) in processNetworkItems.enumerated() {
-            item.isHidden = index != 0
-            item.title = index == 0 ? title : ""
-            item.toolTip = index == 0 ? toolTip : nil
-        }
-    }
-
-    private func formattedProcessTitle(for usage: ProcessNetworkUsage) -> String {
-        guard let pid = usage.processIdentifier else {
-            return usage.processName
-        }
-        return "\(usage.processName) (PID \(pid))"
-    }
-
-    private func formattedProcessRow(for usage: ProcessNetworkUsage) -> String {
-        let processTitle = trimmedMenuTitle(formattedProcessTitle(for: usage), limit: 34)
-        let uploadRate = formatNetworkRateCompact(usage.uploadBytesPerSec)
-        let downloadRate = formatNetworkRateCompact(usage.downloadBytesPerSec)
-        return "\(processTitle)  ↑ \(uploadRate)  ↓ \(downloadRate)"
-    }
-
-    private func formattedProcessTooltip(for usage: ProcessNetworkUsage) -> String {
-        let uploadRate = formatNetworkRateCompact(usage.uploadBytesPerSec)
-        let downloadRate = formatNetworkRateCompact(usage.downloadBytesPerSec)
-        return "\(formattedProcessTitle(for: usage))  ↑ \(uploadRate)  ↓ \(downloadRate)"
-    }
-
-    private func trimmedMenuTitle(_ text: String, limit: Int = 48) -> String {
-        guard text.count > limit else { return text }
-        return "\(text.prefix(max(limit - 3, 0)))..."
-    }
-
-    private func updateCombinedStatus() {
-        let text = "\(latestCPUText) \(latestGPUText) \(latestMemoryText) \(latestNetworkText)"
-        let attributedText = combinedAttributedString()
-        let image = renderedStatusImage(for: attributedText)
-
-        networkStatusItem?.button?.title = ""
-        networkStatusItem?.button?.toolTip = text
-        networkStatusItem?.button?.attributedTitle = NSAttributedString()
-        networkStatusItem?.button?.image = image
-        networkStatusItem?.button?.setAccessibilityLabel(text)
-        updateStatusItemLength(for: image.size.width)
-    }
-
-    private func updateStatusItemLength(for contentWidth: CGFloat) {
-        guard let item = networkStatusItem else { return }
-
-        let targetLength = min(
-            max(ceil(contentWidth) + 18, minimumStatusItemLength),
-            maximumStatusItemLength
-        )
-
-        if abs(item.length - targetLength) >= 1 {
-            item.length = targetLength
-        }
-    }
-
-    private func renderedStatusImage(for attributedText: NSAttributedString) -> NSImage {
-        let drawableText = NSMutableAttributedString(attributedString: attributedText)
-        let fullRange = NSRange(location: 0, length: drawableText.length)
-        drawableText.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
-            if value == nil {
-                drawableText.addAttribute(.foregroundColor, value: NSColor.white, range: range)
-            }
-        }
-
-        let textSize = drawableText.size()
-        let imageSize = NSSize(
-            width: ceil(textSize.width),
-            height: NSStatusBar.system.thickness
-        )
-        let image = NSImage(size: imageSize)
-
-        image.lockFocus()
-        drawableText.draw(
-            at: NSPoint(
-                x: 0,
-                y: floor((imageSize.height - textSize.height) / 2)
+        switch mode {
+        case .full:
+            title = buildFullTitle(
+                cpuUsage: cpuUsage, memoryStats: memoryStats,
+                networkStats: networkStats, gpuStats: gpuStats
             )
-        )
-        image.unlockFocus()
+        case .compact:
+            title = buildCompactTitle(
+                cpuUsage: cpuUsage, memoryStats: memoryStats,
+                networkStats: networkStats, gpuStats: gpuStats
+            )
+        case .percentage:
+            title = buildPercentageTitle(
+                cpuUsage: cpuUsage, memoryStats: memoryStats,
+                networkStats: networkStats, gpuStats: gpuStats
+            )
+        }
 
-        return image
+        button.attributedTitle = title
     }
 
-    private func combinedAttributedString() -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let separator = NSAttributedString(string: " ", attributes: baseAttributes())
+    // MARK: - Full Mode
 
-        appendMetric(
-            label: "C",
-            value: valueText(from: latestCPUText, label: "C"),
-            valueColor: usageColor(for: latestCPUUsage),
-            to: result
-        )
-        result.append(separator)
-        appendMetric(
-            label: "G",
-            value: valueText(from: latestGPUText, label: "G"),
-            valueColor: usageColor(for: latestGPUUsage),
-            to: result
-        )
-        result.append(separator)
-        appendMetric(
-            label: "M",
-            value: valueText(from: latestMemoryText, label: "M"),
-            valueColor: memoryColor(for: latestMemoryPressure),
-            to: result
-        )
-        result.append(separator)
-        result.append(NSAttributedString(string: latestNetworkText, attributes: baseAttributes()))
+    /// Full: `CPU: 23% | MEM: 67% OK | NET: ↑0B/s ↓1.2K/s | GPU: 12%`
+    private func buildFullTitle(
+        cpuUsage: Double?,
+        memoryStats: MemoryStats?,
+        networkStats: NetworkStats?,
+        gpuStats: GPUStats?
+    ) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let sep = separator()
+
+        let cpuText: String
+        let cpuColor: NSColor
+        if let cpu = cpuUsage {
+            cpuText = "CPU: \(Int(cpu))%"
+            cpuColor = colorForUsage(cpu, metric: .cpu)
+        } else {
+            cpuText = "CPU: --"
+            cpuColor = .secondaryLabelColor
+        }
+        result.append(segment(cpuText, color: cpuColor))
+        result.append(sep)
+
+        let memText: String
+        let memColor: NSColor
+        if let mem = memoryStats, let used = mem.usedPercent {
+            let label = pressureLabel(mem.pressureLevel)
+            memText = "MEM: \(Int(used))% \(label)"
+            memColor = colorForUsage(used, metric: .memory)
+        } else {
+            memText = "MEM: --"
+            memColor = .secondaryLabelColor
+        }
+        result.append(segment(memText, color: memColor))
+        result.append(sep)
+
+        let netText: String
+        let netColor: NSColor
+        if let net = networkStats {
+            let up = ByteFormatting.format(net.uploadBytesPerSec)
+            let down = ByteFormatting.format(net.downloadBytesPerSec)
+            netText = "NET: ↑\(up)/s ↓\(down)/s"
+            netColor = .labelColor
+        } else {
+            netText = "NET: --"
+            netColor = .secondaryLabelColor
+        }
+        result.append(segment(netText, color: netColor))
+        result.append(sep)
+
+        let gpuText: String
+        let gpuColor: NSColor
+        if let gpu = gpuStats {
+            gpuText = "GPU: \(Int(gpu.utilizationPercent))%"
+            gpuColor = colorForUsage(gpu.utilizationPercent, metric: .gpu)
+        } else {
+            gpuText = "GPU: N/A"
+            gpuColor = .secondaryLabelColor
+        }
+        result.append(segment(gpuText, color: gpuColor))
 
         return result
     }
 
-    private func appendMetric(
-        label: String,
-        value: String,
-        valueColor: NSColor?,
-        to result: NSMutableAttributedString
-    ) {
-        result.append(NSAttributedString(string: label, attributes: baseAttributes()))
-        result.append(NSAttributedString(string: value, attributes: metricAttributes(valueColor: valueColor)))
-    }
+    // MARK: - Compact Mode
 
-    private func valueText(from text: String, label: String) -> String {
-        let prefix = label
-        guard text.hasPrefix(prefix) else { return text }
-        return String(text.dropFirst(prefix.count))
-    }
+    /// Compact: `C:23% M:67% N:↑0↓1.2K G:12%`
+    private func buildCompactTitle(
+        cpuUsage: Double?,
+        memoryStats: MemoryStats?,
+        networkStats: NetworkStats?,
+        gpuStats: GPUStats?
+    ) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let sep = NSAttributedString(string: " ", attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)])
 
-    private func metricAttributes(valueColor: NSColor?) -> [NSAttributedString.Key: Any] {
-        var attributes = baseAttributes()
-        if let valueColor {
-            attributes[.foregroundColor] = valueColor
+        let cpuText = cpuUsage.map { "C:\(Int($0))%" } ?? "C:--"
+        let cpuColor = cpuUsage.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
+        result.append(segment(cpuText, color: cpuColor))
+        result.append(sep)
+
+        let gpuText = gpuStats.map { "G:\(Int($0.utilizationPercent))%" } ?? "G:--"
+        let gpuColor = gpuStats.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
+        result.append(segment(gpuText, color: gpuColor))
+        result.append(sep)
+
+        let memText: String
+        let memColor: NSColor
+        if let mem = memoryStats, let used = mem.usedPercent {
+            memText = "M:\(Int(used))%"
+            memColor = colorForUsage(used, metric: .memory)
+        } else {
+            memText = "M:--"
+            memColor = .secondaryLabelColor
         }
-        return attributes
-    }
+        result.append(segment(memText, color: memColor))
+        result.append(sep)
 
-    private func usageColor(for value: Double?) -> NSColor? {
-        switch usageSeverity(for: value) {
-        case 1:
-            return .systemYellow
-        case 2:
-            return .systemRed
-        default:
-            return nil
+        let netText: String
+        let netColor: NSColor
+        if let net = networkStats {
+            let up = ByteFormatting.format(net.uploadBytesPerSec)
+            let down = ByteFormatting.format(net.downloadBytesPerSec)
+            netText = "N:↑\(up)↓\(down)"
+            netColor = .labelColor
+        } else {
+            netText = "N:--"
+            netColor = .secondaryLabelColor
         }
+        result.append(segment(netText, color: netColor))
+
+        return result
     }
 
-    private func usageSeverity(for value: Double?) -> Int {
-        guard let value else { return 0 }
+    // MARK: - Percentage Mode
 
-        switch value {
-        case ..<60:
-            return 0
-        case ..<85:
-            return 1
-        default:
-            return 2
+    /// Percentage: `23% | 67% | -- | 12%`
+    private func buildPercentageTitle(
+        cpuUsage: Double?,
+        memoryStats: MemoryStats?,
+        networkStats: NetworkStats?,
+        gpuStats: GPUStats?
+    ) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let sep = separator()
+
+        let cpuText = cpuUsage.map { "\(Int($0))%" } ?? "--"
+        let cpuColor = cpuUsage.map { colorForUsage($0, metric: .cpu) } ?? NSColor.secondaryLabelColor
+        result.append(segment(cpuText, color: cpuColor))
+        result.append(sep)
+
+        let memText: String
+        let memColor: NSColor
+        if let mem = memoryStats, let used = mem.usedPercent {
+            memText = "\(Int(used))%"
+            memColor = colorForUsage(used, metric: .memory)
+        } else {
+            memText = "--"
+            memColor = .secondaryLabelColor
         }
+        result.append(segment(memText, color: memColor))
+        result.append(sep)
+
+        // Network in percentage mode: show total throughput
+        let netText: String
+        let netColor: NSColor
+        if let net = networkStats {
+            let total = net.uploadBytesPerSec + net.downloadBytesPerSec
+            netText = ByteFormatting.format(total) + "/s"
+            netColor = .labelColor
+        } else {
+            netText = "--"
+            netColor = .secondaryLabelColor
+        }
+        result.append(segment(netText, color: netColor))
+        result.append(sep)
+
+        let gpuText = gpuStats.map { "\(Int($0.utilizationPercent))%" } ?? "--"
+        let gpuColor = gpuStats.map { colorForUsage($0.utilizationPercent, metric: .gpu) } ?? NSColor.secondaryLabelColor
+        result.append(segment(gpuText, color: gpuColor))
+
+        return result
     }
 
-    private func memoryColor(for level: MemoryPressureLevel?) -> NSColor? {
+    // MARK: - Helpers
+
+    private func separator() -> NSAttributedString {
+        NSAttributedString(
+            string: " | ",
+            attributes: [
+                .foregroundColor: NSColor.secondaryLabelColor,
+                .font: NSFont.systemFont(ofSize: 12),
+            ]
+        )
+    }
+
+    private func segment(_ text: String, color: NSColor) -> NSAttributedString {
+        NSAttributedString(
+            string: text,
+            attributes: [
+                .foregroundColor: color,
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
+            ]
+        )
+    }
+
+    /// Metric type for threshold lookup.
+    private enum MetricType { case cpu, memory, gpu }
+
+    /// Color based on usage percentage.
+    /// Normal: system label color (auto adapts to dark/light mode).
+    /// High load (>= warning threshold): orange.
+    private func colorForUsage(_ percent: Double, metric: MetricType) -> NSColor {
+        let warning: Double
+
+        switch metric {
+        case .cpu:
+            warning = SettingsManager.shared.cpuWarningThreshold
+        case .memory:
+            warning = SettingsManager.shared.memoryWarningThreshold
+        case .gpu:
+            warning = 80.0
+        }
+
+        return percent >= warning ? .systemOrange : .labelColor
+    }
+
+    private func pressureLabel(_ level: MemoryPressureLevel) -> String {
         switch level {
-        case .warning:
-            return .systemYellow
-        case .critical:
-            return .systemRed
-        case .normal, .unknown, nil:
-            return nil
+        case .normal: return "OK"
+        case .warning: return "WARN"
+        case .critical: return "CRIT"
+        case .unknown: return "?"
         }
     }
 
-    private func baseAttributes() -> [NSAttributedString.Key: Any] {
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.lineBreakMode = .byClipping
+    // MARK: - Actions
 
-        return [
-            .font: NSFont.monospacedDigitSystemFont(
-                ofSize: NSFont.smallSystemFontSize,
-                weight: .regular
-            ),
-            .paragraphStyle: paragraph,
-        ]
+    @objc private func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        if event?.type == .rightMouseUp {
+            if let menu = rightClickMenu {
+                statusItem.menu = menu
+                sender.performClick(nil)
+                statusItem.menu = nil
+            }
+        } else {
+            popoverManager?.toggle(from: sender)
+        }
     }
 
+    @objc private func showPreferences() {
+        SettingsWindowManager.shared.showSettings()
+    }
+
+    @objc private func quitApplication() {
+        NSApplication.shared.terminate(nil)
+    }
 }

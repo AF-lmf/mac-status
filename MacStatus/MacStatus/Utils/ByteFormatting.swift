@@ -2,38 +2,61 @@ import Foundation
 
 // MARK: - Compact Byte Formatting — menu bar optimized
 
-private let byteUnits = ["B", "K", "M", "G", "T"]
+/// Namespace for byte formatting utilities.
+/// All methods are static — the enum has no cases and cannot be instantiated.
+enum ByteFormatting {
+    private static let units = ["B", "K", "M", "G", "T"]
 
-private func compactBytes(_ bytes: Double) -> String {
-    var value = max(bytes, 0)
-    var unitIndex = 0
-    while value >= 1000 && unitIndex < byteUnits.count - 1 {
-        value /= 1000
-        unitIndex += 1
+    /// Format a byte count or rate into a compact string (e.g. "23B", "1.2K", "99M").
+    /// Used in both the menu bar title and the popover detail panel.
+    static func format(_ bytes: Double) -> String {
+        var value = max(bytes, 0)
+        var unitIndex = 0
+        while value >= 1000 && unitIndex < units.count - 1 {
+            value /= 1000
+            unitIndex += 1
+        }
+
+        let unit = units[unitIndex]
+        if unitIndex == 0 || value >= 9.95 {
+            return "\(min(Int(value.rounded()), 999))\(unit)"
+        }
+
+        let decimalText = String(format: "%.1f", value)
+        if decimalText.hasSuffix(".0") {
+            return String(decimalText.dropLast(2)) + unit
+        }
+        return decimalText + unit
     }
 
-    let unit = byteUnits[unitIndex]
-    if unitIndex == 0 || value >= 9.95 {
-        return "\(min(Int(value.rounded()), 999))\(unit)"
+    /// Format download/upload pair for network display.
+    static func formatNetwork(download: Double, upload: Double) -> String {
+        "↓\(format(download)) ↑\(format(upload))"
     }
 
-    let decimalText = String(format: "%.1f", value)
-    if decimalText.hasSuffix(".0") {
-        return String(decimalText.dropLast(2)) + unit
+    /// Format a single rate value with /s suffix.
+    static func formatRate(_ bytesPerSec: Double) -> String {
+        "\(format(bytesPerSec))/s"
     }
-    return decimalText + unit
 }
 
+// MARK: - Legacy Global Functions (for backward compatibility)
+
 func formatNetworkCompact(download: Double, upload: Double) -> String {
-    "↓\(compactBytes(download)) ↑\(compactBytes(upload))"
+    ByteFormatting.formatNetwork(download: download, upload: upload)
 }
 
 func formatNetworkRateCompact(_ bytesPerSec: Double) -> String {
-    "\(compactBytes(bytesPerSec))/s"
+    ByteFormatting.formatRate(bytesPerSec)
 }
 
 func formatMemoryPressure(_ level: MemoryPressureLevel, usedPercent: Double?) -> String {
-    let usageText = formatMemoryUsagePercent(usedPercent)
+    let usageText: String
+    if let usedPercent {
+        usageText = String(format: "%.0f", usedPercent)
+    } else {
+        usageText = "--"
+    }
 
     switch level {
     case .normal, .warning, .critical:
@@ -42,9 +65,4 @@ func formatMemoryPressure(_ level: MemoryPressureLevel, usedPercent: Double?) ->
         guard usedPercent != nil else { return "M--" }
         return "M\(usageText)"
     }
-}
-
-private func formatMemoryUsagePercent(_ usedPercent: Double?) -> String {
-    guard let usedPercent else { return "--" }
-    return String(format: "%.0f", usedPercent)
 }

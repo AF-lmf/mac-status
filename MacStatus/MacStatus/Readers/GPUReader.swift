@@ -122,4 +122,35 @@ final class GPUReader: TimerReader<GPUStats> {
         let result = sysctlbyname("hw.optional.arm64", &value, &size, nil, 0)
         return result == 0 && value == 1
     }
+
+    /// Synchronous read returning GPUStats directly.
+    func readValue() -> GPUStats? {
+        guard let matching = IOServiceMatching("IOAccelerator") else { return nil }
+
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator)
+        guard result == KERN_SUCCESS else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        var bestUtilization: Double?
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            defer {
+                IOObjectRelease(service)
+                service = IOIteratorNext(iterator)
+            }
+
+            guard let statistics = performanceStatistics(for: service),
+                  let utilization = utilizationPercent(from: statistics) else {
+                continue
+            }
+
+            bestUtilization = max(bestUtilization ?? utilization, utilization)
+        }
+
+        guard let utilization = bestUtilization else { return nil }
+
+        let pressure = isAppleSilicon ? pressureLevel(for: utilization) : nil
+        return GPUStats(utilizationPercent: utilization, pressureLevel: pressure)
+    }
 }

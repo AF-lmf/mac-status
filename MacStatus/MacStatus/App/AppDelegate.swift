@@ -1,205 +1,79 @@
+import AppKit
 import Cocoa
-import ServiceManagement
 
-/// MacStatus — macOS menu bar system monitor
-/// AppDelegate: @main entry point and thin wiring hub between StatusBarManager and CPUReader.
-
-@main
-class AppDelegate: NSObject, NSApplicationDelegate {
+/// Pure-menu-bar application delegate.
+///
+/// M002: Uses MetricCollector as the unified orchestrator for all readers.
+/// MetricCollector handles reader creation, timer scheduling, and data routing
+/// to both the status bar and popover dashboard.
+///
+/// AppDelegate's role is now minimal:
+/// 1. Wire PopoverManager ↔ StatusBarManager
+/// 2. Start MetricCollector
+/// 3. Self-monitoring
+final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
     // MARK: - Properties
 
-    private var statusBarManager: StatusBarManager?
-    private var cpuReader: CPUReader?
-    private var networkReader: NetworkReader?
-    private var memoryReader: MemoryReader?
-    private var gpuReader: GPUReader?
-
-    // MARK: - Application Entry Point
-
-    static func main() {
-        let delegate = AppDelegate()
-        NSApplication.shared.delegate = delegate
-        _ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
-    }
+    private var selfMonitorTimer: Timer?
 
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        terminateExistingInstances()
+        // Wire up popover ↔ status bar
+        let popoverManager = PopoverManager.shared
+        StatusBarManager.shared.configure(popoverManager: popoverManager)
 
-        // Wipe any stale autosaved preferred position before creating the
-        // NSStatusItem. A cached position from an earlier autosaveName-based
-        // build (Preferred Position = 1000 on a notched display) parks the
-        // item under the notch / Control Center cluster so it never renders.
-        UserDefaults.standard.removeObject(
-            forKey: "NSStatusItem Preferred Position com.macstatus.network"
-        )
-        UserDefaults.standard.removeObject(
-            forKey: "NSStatusItem Visible com.macstatus.network"
-        )
-        UserDefaults.standard.removeObject(
-            forKey: "NSStatusItem Preferred Position com.macstatus.status"
-        )
-        UserDefaults.standard.removeObject(
-            forKey: "NSStatusItem Visible com.macstatus.status"
-        )
+        MetricCollector.shared.start()
 
-        // Create status bar item via StatusBarManager (D-08)
-        statusBarManager = StatusBarManager()
-        statusBarManager?.setupNetworkItem()
-        configureLaunchAtLogin()
-        configureReaders()
-        registerSleepWakeObservers()
-        startReaders()
+        // Start self-monitoring (separate from MetricCollector to avoid skew)
+        startSelfMonitor()
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
-        unregisterSleepWakeObservers()
-        stopReaders()
-        // Setting to nil triggers deinit -> StatusBarManager.deinit -> removeStatusItem (D-10)
-        cpuReader = nil
-        networkReader = nil
-        memoryReader = nil
-        gpuReader = nil
-        statusBarManager = nil
-    }
+    // NOTE: Do NOT implement applicationShouldTerminateAfterLastWindowClosed.
+    // Menu bar apps have no regular windows; the popover doesn't count.
+    // Returning true here would cause immediate termination when the popover closes.
+    // Quit is handled explicitly via the popover Quit button or right-click menu.
 
-    // MARK: - Launch at Login
+    // MARK: - Self Monitoring
 
-    private func configureLaunchAtLogin() {
-        let service = SMAppService.mainApp
-        guard service.status != .enabled else { return }
-
-        do {
-            try service.register()
-        } catch {
-            print("Launch at login registration failed: \(error)")
+    private func startSelfMonitor() {
+        selfMonitorTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.refreshSelfMonitor()
+            }
         }
     }
 
-    // MARK: - Reader Lifecycle
-
+    /// Measure MacStatus's own CPU and memory usage for the popover footer.
     @MainActor
-    private func configureReaders() {
-        // Create CPU reader — Timer-based polling on background queue via TimerReader
-        cpuReader = CPUReader()
+    private func refreshSelfMonitor() {
+        let dashboard = PopoverManager.shared.dashboardState
 
-        // Wire callback: CPUReader.onUpdate → StatusBarManager.updateCPU
-        cpuReader?.onUpdate = { [weak self] value in
-            DispatchQueue.main.async {
-                self?.statusBarManager?.updateCPU(value)
-            }
+        // CPU via sysctl kinfo_proc
+        let pid = getpid()
+        var kinfo = kinfo_proc()
+        var size = MemoryLayout<kinfo_proc>.stride
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
+        let result = sysctl(&mib, UInt32(mib.count), &kinfo, &size, nil, 0)
+        if result == 0 {
+            let usagePercent = Double(kinfo.kp_proc.p_pctcpu) / Double(0x7fff) * 100.0
+            dashboard.selfCpuUsage = max(0, usagePercent)
         }
 
-        // Phase 2: Network reader (1s interval per D-06)
-        statusBarManager?.setupNetworkItem()
-
-        networkReader = NetworkReader()
-        networkReader?.onUpdate = { [weak self] stats in
-            DispatchQueue.main.async {
-                self?.statusBarManager?.updateNetwork(stats)
-            }
-        }
-
-        // Phase 2: Memory reader (2s interval per D-10)
-        statusBarManager?.setupMemoryItem()
-
-        memoryReader = MemoryReader()
-        memoryReader?.onUpdate = { [weak self] stats in
-            DispatchQueue.main.async {
-                self?.statusBarManager?.updateMemory(stats)
-            }
-        }
-
-        // Phase 3: GPU reader (2s interval per GPUReader)
-        gpuReader = GPUReader()
-        gpuReader?.onUpdate = { [weak self] stats in
-            DispatchQueue.main.async {
-                self?.statusBarManager?.updateGPU(stats)
-            }
-        }
-    }
-
-    private func startReaders() {
-        // TimerReader fires first read immediately (LIFE-03) and replaces
-        // any existing timer, so wake recovery can safely reuse this path.
-        cpuReader?.start()
-        networkReader?.start()
-        memoryReader?.start()
-        gpuReader?.start()
-    }
-
-    private func stopReaders() {
-        cpuReader?.stop()
-        networkReader?.stop()
-        memoryReader?.stop()
-        gpuReader?.stop()
-    }
-
-    // MARK: - Sleep/Wake Recovery
-
-    private func registerSleepWakeObservers() {
-        let center = NSWorkspace.shared.notificationCenter
-        center.addObserver(
-            self,
-            selector: #selector(applicationWillSleep(_:)),
-            name: NSWorkspace.willSleepNotification,
-            object: nil
+        // Memory via task_info (resident size in MB)
+        var info = task_basic_info()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<task_basic_info>.stride / MemoryLayout<integer_t>.stride
         )
-        center.addObserver(
-            self,
-            selector: #selector(applicationDidWake(_:)),
-            name: NSWorkspace.didWakeNotification,
-            object: nil
-        )
-    }
-
-    private func unregisterSleepWakeObservers() {
-        let center = NSWorkspace.shared.notificationCenter
-        center.removeObserver(self, name: NSWorkspace.willSleepNotification, object: nil)
-        center.removeObserver(self, name: NSWorkspace.didWakeNotification, object: nil)
-    }
-
-    @objc private func applicationWillSleep(_ notification: Notification) {
-        stopReaders()
-    }
-
-    @objc private func applicationDidWake(_ notification: Notification) {
-        startReaders()
-    }
-
-    deinit {
-        print("AppDelegate deinit — status item cleaned up")
-    }
-
-    // MARK: - Instance Guard
-
-    @MainActor
-    private func terminateExistingInstances() {
-        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
-
-        let currentPID = ProcessInfo.processInfo.processIdentifier
-        let existingInstances = NSRunningApplication
-            .runningApplications(withBundleIdentifier: bundleIdentifier)
-            .filter { $0.processIdentifier != currentPID && !$0.isTerminated }
-
-        guard !existingInstances.isEmpty else { return }
-
-        for app in existingInstances {
-            if !app.terminate() {
-                app.forceTerminate()
+        let memResult = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_BASIC_INFO), $0, &count)
             }
         }
-
-        let deadline = Date().addingTimeInterval(1.0)
-        while Date() < deadline,
-              existingInstances.contains(where: { !$0.isTerminated }) {
-            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
-        }
-
-        for app in existingInstances where !app.isTerminated {
-            app.forceTerminate()
+        if memResult == KERN_SUCCESS {
+            let residentMB = Double(info.resident_size) / 1_048_576.0
+            dashboard.selfMemoryMB = residentMB
         }
     }
 }

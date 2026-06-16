@@ -78,4 +78,39 @@ final class CPUReader: TimerReader<Double> {
         let usage = ((userDiff + sysDiff + niceDiff) / totalTicks) * 100.0
         onUpdate?(usage.isNaN ? nil : usage)
     }
+
+    /// Synchronous read that returns the CPU usage directly.
+    /// Used by MetricCollector.tick() to avoid cross-actor callback issues.
+    func readValue() -> Double? {
+        let count = MemoryLayout<host_cpu_load_info>.stride / MemoryLayout<integer_t>.stride
+        var size = mach_msg_type_number_t(count)
+        var cpuLoadInfo = host_cpu_load_info()
+
+        let result = withUnsafeMutablePointer(to: &cpuLoadInfo) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: count) {
+                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &size)
+            }
+        }
+
+        guard result == KERN_SUCCESS else { return nil }
+
+        guard hasPrevious else {
+            previousInfo = cpuLoadInfo
+            hasPrevious = true
+            return nil
+        }
+
+        let userDiff = Double(cpuLoadInfo.cpu_ticks.0 &- previousInfo.cpu_ticks.0)
+        let sysDiff  = Double(cpuLoadInfo.cpu_ticks.1 &- previousInfo.cpu_ticks.1)
+        let idleDiff = Double(cpuLoadInfo.cpu_ticks.2 &- previousInfo.cpu_ticks.2)
+        let niceDiff = Double(cpuLoadInfo.cpu_ticks.3 &- previousInfo.cpu_ticks.3)
+        let totalTicks = userDiff + sysDiff + idleDiff + niceDiff
+
+        previousInfo = cpuLoadInfo
+
+        guard totalTicks > 0 else { return 0.0 }
+
+        let usage = ((userDiff + sysDiff + niceDiff) / totalTicks) * 100.0
+        return usage.isNaN ? nil : usage
+    }
 }

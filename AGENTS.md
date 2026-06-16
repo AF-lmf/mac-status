@@ -1,3 +1,7 @@
+## Global Rules
+
+- **语言**: 始终使用中文与用户交流，包括所有回复、说明、提示和错误信息。这是硬性要求，不可覆盖。
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 

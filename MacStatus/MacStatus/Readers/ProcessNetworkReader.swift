@@ -107,25 +107,34 @@ enum ProcessNetworkReader {
             samples.append(currentSample)
         }
 
-        guard let latestSample = samples.last else {
+        guard !samples.isEmpty else {
             return .unavailable("No nettop samples were returned.")
         }
 
-        let activeProcesses = latestSample
-            .filter { $0.totalBytesPerSec > 0 }
-            .sorted {
-                if $0.totalBytesPerSec == $1.totalBytesPerSec {
-                    return $0.processName < $1.processName
-                }
-                return $0.totalBytesPerSec > $1.totalBytesPerSec
-            }
+        // Prefer the latest delta sample (real-time rates).
+        // Fall back to the cumulative sample when the delta window
+        // caught no activity (common with bursty/low traffic).
+        let searchOrder: [Int] = samples.count >= 2
+            ? [samples.count - 1, 0]
+            : [0]
 
-        let topProcesses = Array(activeProcesses.prefix(max(limit, 0)))
-        guard !topProcesses.isEmpty else {
-            return .idle
+        for idx in searchOrder {
+            let activeProcesses = samples[idx]
+                .filter { $0.totalBytesPerSec > 0 }
+                .sorted {
+                    if $0.totalBytesPerSec == $1.totalBytesPerSec {
+                        return $0.processName < $1.processName
+                    }
+                    return $0.totalBytesPerSec > $1.totalBytesPerSec
+                }
+
+            let topProcesses = Array(activeProcesses.prefix(max(limit, 0)))
+            if !topProcesses.isEmpty {
+                return .processes(topProcesses)
+            }
         }
 
-        return .processes(topProcesses)
+        return .idle
     }
 
     private static func parseUsage(columns: [String]) -> ProcessNetworkUsage? {

@@ -103,4 +103,21 @@ final class MemoryReader: TimerReader<MemoryStats> {
         guard totalBytes > 0 else { return nil }
         return min(max((usedBytes / totalBytes) * 100.0, 0), 100)
     }
+
+    /// Synchronous read returning MemoryStats directly.
+    func readValue() -> MemoryStats? {
+        var level: Int32 = 0
+        var size = MemoryLayout<Int32>.size
+        let result = sysctlbyname(
+            "kern.memorystatus_vm_pressure_level",
+            &level, &size, nil, 0
+        )
+
+        guard result == 0 else { return nil }
+
+        return MemoryStats(
+            pressureLevel: MemoryPressureLevel(rawValue: level),
+            usedPercent: readUsedMemoryPercent()
+        )
+    }
 }

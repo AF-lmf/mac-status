@@ -22,6 +22,17 @@
 		C30000000000000000000002 /* GPUReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000001 /* GPUReader.swift */; };
 		C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
 		D50000000000000000000002 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D50000000000000000000001 /* ServiceManagement.framework */; };
+		B10000000000000000000002 /* PopoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* PopoverManager.swift */; };
+		B10000000000000000000004 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* DashboardView.swift */; };
+		B10000000000000000000006 /* MetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* MetricCard.swift */; };
+		B10000000000000000000008 /* ProcessListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* ProcessListView.swift */; };
+		B20000000000000000000002 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* main.swift */; };
+		B1000000000000000000000A /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* SparklineView.swift */; };
+		C10000000000000000000002 /* MetricSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* MetricSample.swift */; };
+		C10000000000000000000004 /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000003 /* RingBuffer.swift */; };
+		C10000000000000000000006 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000005 /* HistoryStore.swift */; };
+		C10000000000000000000008 /* MetricCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000007 /* MetricCollector.swift */; };
+		B1000000000000000000000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000B /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +53,17 @@
 		C30000000000000000000001 /* GPUReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUReader.swift; sourceTree = "<group>"; };
 		C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		D50000000000000000000001 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
+		B10000000000000000000001 /* PopoverManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverManager.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCard.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* ProcessListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessListView.swift; sourceTree = "<group>"; };
+		B20000000000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		B10000000000000000000009 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
+		C10000000000000000000001 /* MetricSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricSample.swift; sourceTree = "<group>"; };
+		C10000000000000000000003 /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
+		C10000000000000000000005 /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
+		C10000000000000000000007 /* MetricCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCollector.swift; sourceTree = "<group>"; };
+		B1000000000000000000000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +95,8 @@
 				08FB7793FE84155DC02AAC0B /* Readers */,
 				08FB7793FE84155DC02AAC0C /* UI */,
 				08FB7793FE84155DC02AAC0D /* Utils */,
+				C10000000000000000000010 /* Storage */,
+				C10000000000000000000020 /* Collectors */,
 				08FB7793FE84155DC02AAC0E /* Resources */,
 			);
 			path = MacStatus;
@@ -82,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				08FB7793FE84155DC02AAC10 /* AppDelegate.swift */,
+				B20000000000000000000001 /* main.swift */,
 				08FB7793FE84155DC02AAC11 /* Info.plist */,
 			);
 			path = App;
@@ -105,8 +130,22 @@
 			isa = PBXGroup;
 			children = (
 				A00000000000000000000003 /* StatusBarManager.swift */,
+				B10000000000000000000001 /* PopoverManager.swift */,
+				B10000000000000000000010 /* Views */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		B10000000000000000000010 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000003 /* DashboardView.swift */,
+				B10000000000000000000005 /* MetricCard.swift */,
+				B10000000000000000000007 /* ProcessListView.swift */,
+				B10000000000000000000009 /* SparklineView.swift */,
+				B1000000000000000000000B /* SettingsView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		08FB7793FE84155DC02AAC0D /* Utils */ = {
@@ -116,6 +155,24 @@
 				5A304B17-30B5-40B8-8B04-7DA24858D242 /* ByteFormatting.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		C10000000000000000000010 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000001 /* MetricSample.swift */,
+				C10000000000000000000003 /* RingBuffer.swift */,
+				C10000000000000000000005 /* HistoryStore.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		C10000000000000000000020 /* Collectors */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000007 /* MetricCollector.swift */,
+			);
+			path = Collectors;
 			sourceTree = "<group>";
 		};
 		08FB7793FE84155DC02AAC0E /* Resources */ = {
@@ -205,6 +262,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				08FB7793FE84155DC02AAC14 /* AppDelegate.swift in Sources */,
+				B20000000000000000000002 /* main.swift in Sources */,
 				A00000000000000000000006 /* ReaderProtocol.swift in Sources */,
 				A00000000000000000000008 /* TimerReader.swift in Sources */,
 				A00000000000000000000002 /* CPUReader.swift in Sources */,
@@ -215,6 +273,16 @@
 				4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */,
 				A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */,
 				C30000000000000000000002 /* GPUReader.swift in Sources */,
+				B10000000000000000000002 /* PopoverManager.swift in Sources */,
+				B10000000000000000000004 /* DashboardView.swift in Sources */,
+				B10000000000000000000006 /* MetricCard.swift in Sources */,
+				B10000000000000000000008 /* ProcessListView.swift in Sources */,
+				B1000000000000000000000A /* SparklineView.swift in Sources */,
+				C10000000000000000000002 /* MetricSample.swift in Sources */,
+				C10000000000000000000004 /* RingBuffer.swift in Sources */,
+				C10000000000000000000006 /* HistoryStore.swift in Sources */,
+				C10000000000000000000008 /* MetricCollector.swift in Sources */,
+				B1000000000000000000000C /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
