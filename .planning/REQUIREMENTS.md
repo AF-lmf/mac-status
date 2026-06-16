@@ -30,7 +30,7 @@
 - [ ] **SET-05**: 用户能自定义各指标的着色
 - [ ] **SET-06**: 用户能在紧凑 / 详细两种状态栏文本模式间切换
 - [x] **SET-07**: 用户的所有偏好在重启应用后保持（持久化）
-- [ ] **SET-08**: 设置更改即时生效，无需重启应用（实时重应用）
+- [x] **SET-08**: 设置更改即时生效，无需重启应用（实时重应用）
 
 ## Future Requirements
 
@@ -92,7 +92,7 @@
 | SET-05 | Phase 9 | Pending |
 | SET-06 | Phase 9 | Pending |
 | SET-07 | Phase 6 | Complete |
-| SET-08 | Phase 6 | Pending |
+| SET-08 | Phase 6 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 16 total

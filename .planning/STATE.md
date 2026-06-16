@@ -4,14 +4,14 @@ milestone: v2.0
 milestone_name: 洞察与可定制
 status: executing
 stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-16T15:49:37.070Z"
+last_updated: "2026-06-16T15:53:49.384Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 06 (Settings Foundation + Live Re-apply Seam) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-16
 
@@ -68,6 +68,7 @@ Last activity: 2026-06-16
 | Phase 03 P02 | 5 min | 3 tasks | 3 files |
 | Phase 04 P01 | 2 min | 3 tasks | 1 files |
 | Phase 06 P01 | 20 | 2 tasks | 4 files |
+| Phase 06 P02 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase ?]: @MainActor @Observable SettingsManager — all access on main actor; @unchecked Sendable removed
 - [Phase ?]: Default metricOrder = [cpu, gpu, memory, network] — matches v1.0 compact mode order
 - [Phase ?]: migrateToV1() writes directly to UserDefaults to prevent notification storm during init
+- [Phase ?]: changedKeys 使用字符串字面量 'refreshInterval'，非 SettingsManager.Keys（private enum）
 
 ### v2.0 Cross-cutting Constraints (apply to every new phase)
 
@@ -158,7 +160,7 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-06-16T15:49:37.066Z
+Last session: 2026-06-16T15:53:45.342Z
 Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
