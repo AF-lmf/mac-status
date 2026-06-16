@@ -392,7 +392,14 @@ final class SettingsManager {
 
         if let data = defaults.data(forKey: Keys.customColors),
            let decoded = try? JSONDecoder().decode([String: [String: String]].self, from: data) {
-            _customColors = decoded
+            // 复用 setter 的过滤逻辑，过滤掉非 #RRGGBB 格式的条目，
+            // 防止外部工具（如 defaults write）写入非法格式污染内存状态。
+            var filtered: [String: [String: String]] = [:]
+            for (metric, levels) in decoded {
+                let valid = levels.filter { _, hex in hex.hasPrefix("#") && hex.count == 7 }
+                if !valid.isEmpty { filtered[metric] = valid }
+            }
+            _customColors = filtered
         } else {
             _customColors = [:]
         }
