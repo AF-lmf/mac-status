@@ -126,7 +126,7 @@ Recent decisions affecting current work:
 
 - [Phase 7] Battery Watts/health on heterogeneous hardware (MEDIUM confidence) — AppleSmartBattery sign/bit-width/key names vary by model and are absent on desktop; needs real-device matrix verification (consider /gsd-plan-phase --research-phase). Probe-and-nil, never strong-unwrap.
 - [Phase 8] libproc under Swift 6 strict concurrency — if C structs/handles are awkward off the actor boundary, documented fallback is spawning /bin/ps with the existing ProcessNetworkReader scaffolding. Prefer libproc.
-- [Phase 6] Latent two-sources-of-truth bug: SettingsView raw @AppStorage vs collectors reading SettingsManager — must be reconciled (Option A: route everything through SettingsManager) before new keys land.
+- ~~[Phase 6] Latent two-sources-of-truth bug~~ — ✅ RESOLVED 2026-06-17 in Phase 6 (Option A: SettingsView 全部经 SettingsManager，@AppStorage 已消除；@MainActor @Observable 单一真源)。
 
 ### Quick Tasks Completed
 
