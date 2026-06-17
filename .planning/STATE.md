@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: verifying
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-17T03:24:02.240Z"
-last_activity: 2026-06-17
+status: ready_to_plan
+stopped_at: Phase 08 complete (static verified; human UAT deferred 2026-06-17)
+last_updated: "2026-06-17T04:00:00.000Z"
+last_activity: 2026-06-17 -- Phase 08 complete, advancing to Phase 09 (final)
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 7
   completed_plans: 7
-  percent: 100
+  percent: 75
 ---
 
 # Project State
@@ -21,19 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 08 — Per-Process Top-N CPU & Memory
+**Current focus:** Phase 09 — Settings Window UI + Customization（最后一个阶段；Phase 06/07/08 已完成）
 
 ## Current Position
 
-Phase: 08 (Per-Process Top-N CPU & Memory) — EXECUTING
-Next: Phase 08 (Per-Process Top-N CPU & Memory) — not started
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-17
+Phase: 08 (Per-Process Top-N CPU & Memory) — ✅ COMPLETE (static verified 4/4 + build + review clean; 2 并发 bug 已 actor 修复; 人工 UAT 延后)
+Next: Phase 09 (Settings Window UI + Customization) — not started (final phase)
+Plan: —
+Status: Phase 08 complete — ready to plan Phase 09
+Last activity: 2026-06-17 -- Phase 08 complete, advancing to Phase 09
 
 **⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
 
 - Phase 7 电池区 4 项运行时验证（笔记本渲染、台式机隐藏、充放电态切换+功率符号、睡眠唤醒"计算中"）— 见 07-VERIFICATION.md human_verification
+- Phase 8 进程 Top-N 3 项运行时验证（CPU/内存 Top 5 实时渲染、关闭弹窗后零后台开销、PID 动态鲁棒性）— 见 08-VERIFICATION.md human_verification
 
 **v2.0 phase map (build order — respects dependency ordering):**
 
@@ -133,7 +134,7 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 - [Phase 7] Battery Watts/health on heterogeneous hardware (MEDIUM confidence) — AppleSmartBattery sign/bit-width/key names vary by model and are absent on desktop; needs real-device matrix verification (consider /gsd-plan-phase --research-phase). Probe-and-nil, never strong-unwrap.
-- [Phase 8] libproc under Swift 6 strict concurrency — if C structs/handles are awkward off the actor boundary, documented fallback is spawning /bin/ps with the existing ProcessNetworkReader scaffolding. Prefer libproc.
+- ~~[Phase 8] libproc under Swift 6 strict concurrency~~ — ✅ RESOLVED 2026-06-17 (研究确认 libproc 纯净，rusage_info_v4 全值类型；ProcessResourceReader 实现为 actor 串行化 prevSnapshot，无需 /bin/ps fallback)。
 - ~~[Phase 6] Latent two-sources-of-truth bug~~ — ✅ RESOLVED 2026-06-17 in Phase 6 (Option A: SettingsView 全部经 SettingsManager，@AppStorage 已消除；@MainActor @Observable 单一真源)。
 
 ### Quick Tasks Completed

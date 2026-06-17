@@ -4,7 +4,7 @@ verified: 2026-06-17T00:00:00Z
 status: human_needed
 score: 4/4 must-haves verified
 verifier: inline (orchestrator — verifier subagent socket dropped mid-run; verification completed inline via grep + source read + build)
-human_validation_disposition: pending
+human_validation_disposition: "deferred 2026-06-17 — 用户在自主模式选择继续到 Phase 9；3 项运行时 UAT 与 Phase 7/9 一并补测。代码静态验证(4/4) + build + 审查 clean（2 并发 bug 已 actor 修复）。"
 overrides_applied: 0
 human_verification:
   - test: "打开 popover，观察 'CPU 占用 Top 5' 与 '内存占用 Top 5' 两个区块"
