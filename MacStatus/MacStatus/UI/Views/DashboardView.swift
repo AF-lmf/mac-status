@@ -58,6 +58,11 @@ struct DashboardView: View {
                 )
             }
 
+            // Battery section (laptops only; entire section hidden on desktop Macs)
+            if state.hasBattery, let battery = state.battery {
+                BatterySectionView(snapshot: battery)
+            }
+
             // Process list
             ProcessListView(
                 processes: state.topProcesses,
@@ -149,6 +154,105 @@ struct MetricCardWithSparkline: View {
     }
 }
 
+// MARK: - Battery Section
+
+/// Full-width popover battery section. Rendered only when a battery is present
+/// (laptops); hidden entirely on desktop Macs. Each field degrades to "—" when its
+/// underlying `AppleSmartBattery` key is unreadable.
+struct BatterySectionView: View {
+    let snapshot: BatterySnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("电池")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(snapshot.chargePercent)% · \(chargeStateText)")
+                    .font(.system(.body, design: .monospaced))
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+            }
+
+            row(timeLabel, timeText)
+            row("功率", wattsText)
+            row("健康度", healthText)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.04))
+        )
+    }
+
+    private func row(_ label: String, _ value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// 充电三态（不依赖 kIOPSIsChargedKey）：
+    /// isCharging→充电中；!isCharging && isOnAC→已充满；否则→使用电池。
+    private var chargeStateText: String {
+        if snapshot.isCharging { return "充电中" }
+        if snapshot.isOnAC { return "已充满" }
+        return "使用电池"
+    }
+
+    /// 充电时显示"距充满"，使用电池时显示"剩余时间"，AC 已充满时无意义。
+    private var timeLabel: String {
+        snapshot.isCharging ? "距充满" : "剩余时间"
+    }
+
+    private var timeText: String {
+        if snapshot.isCharging {
+            return formatTime(snapshot.timeToFullMinutes)
+        }
+        if !snapshot.isOnAC {
+            return formatTime(snapshot.timeToEmptyMinutes)
+        }
+        return "—"  // 已充满 / AC 待机：剩余时间无意义
+    }
+
+    /// 分钟 → 显示文本。nil（含 post-wake 抑制）→ 计算中；-1（Apple 哨兵）→ 计算中；0 → —。
+    private func formatTime(_ minutes: Int?) -> String {
+        guard let m = minutes else { return "计算中" }
+        switch m {
+        case -1: return "计算中"
+        case 0: return "—"
+        case let t where t > 0:
+            let hrs = t / 60
+            let mins = t % 60
+            return hrs > 0 ? "\(hrs)小时\(mins)分" : "\(mins)分钟"
+        default: return "—"
+        }
+    }
+
+    /// 带符号瓦数：充电 +18.5W、放电 −12.3W；nil（键缺失或 <0.1W）→ —。
+    private var wattsText: String {
+        guard let w = snapshot.watts else { return "—" }
+        let sign = w >= 0 ? "+" : "−"
+        return "\(sign)\(String(format: "%.1f", abs(w)))W"
+    }
+
+    /// "92%（320 次循环）"；健康度缺失 → —；循环数缺失则仅显示百分比。
+    private var healthText: String {
+        guard let h = snapshot.healthPercent else { return "—" }
+        let pct = "\(Int(h.rounded()))%"
+        if let cycles = snapshot.cycleCount {
+            return "\(pct)（\(cycles) 次循环）"
+        }
+        return pct
+    }
+}
+
 // MARK: - Dashboard State
 
 @MainActor
@@ -172,6 +276,10 @@ final class DashboardState: ObservableObject {
     @Published var gpuUsage: Double = 0
     @Published var gpuText: String = "--"
     @Published var gpuSamples: [Double] = []
+
+    // Battery (popover-only; nil = no battery = desktop → section hidden)
+    @Published var battery: BatterySnapshot? = nil
+    @Published var hasBattery: Bool = false
 
     // Processes
     @Published var topProcesses: [ProcessNetworkUsage] = []
@@ -246,6 +354,12 @@ final class DashboardState: ObservableObject {
         gpuUsage = stats.utilizationPercent
         gpuText = "\(Int(stats.utilizationPercent))%"
         appendSample(&gpuSamples, value: stats.utilizationPercent)
+    }
+
+    /// Update the battery snapshot. nil (desktop / no battery) hides the whole section.
+    func updateBattery(_ snapshot: BatterySnapshot?) {
+        battery = snapshot
+        hasBattery = snapshot != nil
     }
 
     func updateRefreshInterval(_ interval: Double) {
