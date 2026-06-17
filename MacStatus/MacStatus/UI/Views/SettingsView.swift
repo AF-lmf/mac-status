@@ -58,18 +58,20 @@ struct SettingsView: View {
                 }
             }
 
-            // ── Section 5: 告警阈值（占位，由 Plan 03 替换为按指标 ThresholdSubsection）
+            // ── Section 5: 告警阈值（按指标 ThresholdSubsection，替换 Plan 02 占位）
             Section("告警阈值") {
-                // TODO: 由 Plan 03 替换为按指标 ThresholdSubsection 占位
-                Text("（由 Plan 03 实现按指标编辑）")
-                    .foregroundStyle(.secondary)
+                ForEach([Metric.cpu, .memory, .gpu], id: \.rawValue) { metric in
+                    ThresholdSubsection(metric: metric, settings: settings)
+                    if metric != .gpu { Divider() }
+                }
             }
 
-            // ── Section 6: 配色（占位，由 Plan 03 替换为按指标 ColorSubsection）
+            // ── Section 6: 配色（按指标 ColorSubsection，替换 Plan 02 占位）
             Section("配色") {
-                // TODO: 由 Plan 03 替换为按指标 ColorSubsection 占位
-                Text("（由 Plan 03 实现按指标配色）")
-                    .foregroundStyle(.secondary)
+                ForEach([Metric.cpu, .memory, .gpu], id: \.rawValue) { metric in
+                    ColorSubsection(metric: metric, settings: settings)
+                    if metric != .gpu { Divider() }
+                }
             }
 
             // ── Section 7: 数据（原样保留）
@@ -162,6 +164,185 @@ private struct MetricOrderRow: View {
                 settings.enabledMetrics.removeAll { $0 == metric }
             }
         }
+    }
+}
+
+// MARK: - ThresholdSubsection（内嵌私有 struct，避免 pbxproj 变更）
+
+/// 单个指标的告警阈值编辑区：warning Slider + critical Slider + 恢复默认按钮。
+/// 所有计算 Binding 定义为 struct 计算属性（非 body 内局部），防止无限重渲染（Research 陷阱 3）。
+private struct ThresholdSubsection: View {
+    let metric: Metric
+    @Bindable var settings: SettingsManager
+
+    // MARK: - Default Values（迁移种子）
+    // cpu/memory 的旧全局键（cpuWarningThreshold / memoryWarningThreshold 等）
+    // 仅作"迁移种子"——提供首次进入时的初始显示值。
+    // 用户改动后写入 customThresholds[metric]，旧键不再被本 UI 更新。
+    // 后续里程碑可弃用并移除旧全局键。
+    private var defaultWarning: Double {
+        switch metric {
+        case .cpu:    return settings.cpuWarningThreshold
+        case .memory: return settings.memoryWarningThreshold
+        case .gpu:    return 60.0
+        default:      return 60.0
+        }
+    }
+
+    private var defaultCritical: Double {
+        switch metric {
+        case .cpu:    return settings.cpuCriticalThreshold
+        case .memory: return settings.memoryCriticalThreshold
+        case .gpu:    return 80.0
+        default:      return 80.0
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(metric.displayName)
+                .font(.caption.weight(.semibold))
+
+            // Warning Slider
+            Text("\(metric.displayName) 警告：\(Int(warningBinding.wrappedValue))%")
+            Slider(value: warningBinding, in: 30...90, step: 5)
+                .onChange(of: warningBinding.wrappedValue) { _, newWarning in
+                    // 约束：warning < critical（调高 warning 时推高 critical）
+                    if newWarning >= criticalBinding.wrappedValue {
+                        criticalBinding.wrappedValue = min(newWarning + 5, 95)
+                    }
+                }
+
+            // Critical Slider
+            Text("\(metric.displayName) 严重：\(Int(criticalBinding.wrappedValue))%")
+            Slider(value: criticalBinding, in: 50...95, step: 5)
+                .onChange(of: criticalBinding.wrappedValue) { _, newCritical in
+                    // 约束：critical > warning（调低 critical 时拉低 warning）
+                    if newCritical <= warningBinding.wrappedValue {
+                        warningBinding.wrappedValue = max(newCritical - 5, 30)
+                    }
+                }
+
+            HStack {
+                Spacer()
+                Button("恢复默认") {
+                    resetThresholds()
+                }
+                .buttonStyle(.borderless)
+                .foregroundColor(.accentColor)
+            }
+        }
+    }
+
+    // MARK: - Computed Bindings（定义为计算属性，不在 body 内构造，避免无限重渲染）
+
+    private var warningBinding: Binding<Double> {
+        thresholdBinding(for: "warning", default: defaultWarning)
+    }
+
+    private var criticalBinding: Binding<Double> {
+        thresholdBinding(for: "critical", default: defaultCritical)
+    }
+
+    private func thresholdBinding(for level: String, default defaultValue: Double) -> Binding<Double> {
+        Binding {
+            settings.customThresholds[metric.rawValue]?[level] ?? defaultValue
+        } set: { newValue in
+            var updated = settings.customThresholds
+            var levels = updated[metric.rawValue] ?? [:]
+            levels[level] = newValue
+            updated[metric.rawValue] = levels
+            settings.customThresholds = updated  // setter: clamp 0...100 + postChange + applyNow
+        }
+    }
+
+    private func resetThresholds() {
+        // 移除整个 metric key → StatusBarManager.colorForUsage 自动回退到内置默认阈值
+        var updated = settings.customThresholds
+        updated.removeValue(forKey: metric.rawValue)
+        settings.customThresholds = updated
+    }
+}
+
+// MARK: - ColorSubsection（内嵌私有 struct，避免 pbxproj 变更）
+
+/// 单个指标的配色编辑区：warning ColorPicker + critical ColorPicker + 恢复默认按钮。
+/// 所有计算 Binding 定义为 struct 计算属性（非 body 内局部），防止无限重渲染（Research 陷阱 3）。
+/// 颜色经 NSColor(hex:)/NSColor.hexString/Color(nsColor:)/NSColor(_ color:) 双向转换。
+private struct ColorSubsection: View {
+    let metric: Metric
+    @Bindable var settings: SettingsManager
+
+    // 默认颜色与 StatusBarManager.colorForUsage 内置默认色对齐
+    private let defaultWarningHex = "#FF9500"   // 系统橙
+    private let defaultCriticalHex = "#FF3B30"  // 系统红
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(metric.displayName)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Text("警告色")
+                Spacer()
+                ColorPicker("警告色", selection: warningColorBinding, supportsOpacity: false)
+                    .labelsHidden()
+                    .frame(width: 44)
+            }
+
+            HStack {
+                Text("严重色")
+                Spacer()
+                ColorPicker("严重色", selection: criticalColorBinding, supportsOpacity: false)
+                    .labelsHidden()
+                    .frame(width: 44)
+            }
+
+            HStack {
+                Spacer()
+                Button("恢复默认") {
+                    resetColors()
+                }
+                .buttonStyle(.borderless)
+                .foregroundColor(.accentColor)
+            }
+        }
+    }
+
+    // MARK: - Computed Bindings（定义为计算属性，不在 body 内构造，避免无限重渲染）
+
+    private var warningColorBinding: Binding<Color> {
+        colorBinding(for: "warning", defaultHex: defaultWarningHex)
+    }
+
+    private var criticalColorBinding: Binding<Color> {
+        colorBinding(for: "critical", defaultHex: defaultCriticalHex)
+    }
+
+    private func colorBinding(for level: String, defaultHex: String) -> Binding<Color> {
+        Binding {
+            // 读：hex string → NSColor → SwiftUI Color（macOS 12+）
+            let hex = settings.customColors[metric.rawValue]?[level] ?? defaultHex
+            let ns = NSColor(hex: hex) ?? NSColor(hex: defaultHex)!
+            return Color(nsColor: ns)
+        } set: { newColor in
+            // 写：SwiftUI Color → NSColor（macOS 11+）→ hex string → customColors
+            let ns = NSColor(newColor)
+            let hex = ns.hexString
+            var updated = settings.customColors
+            var levels = updated[metric.rawValue] ?? [:]
+            levels[level] = hex
+            updated[metric.rawValue] = levels
+            settings.customColors = updated  // setter: 过滤非 #RRGGBB + postChange
+        }
+    }
+
+    private func resetColors() {
+        // 移除整个 metric key → colorForUsage 自动回退内置默认色（橙/红）
+        var updated = settings.customColors
+        updated.removeValue(forKey: metric.rawValue)
+        settings.customColors = updated
     }
 }
 
