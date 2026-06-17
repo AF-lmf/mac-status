@@ -21,6 +21,8 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
     let dashboardState = DashboardState()
 
     private var processRefreshTask: Task<Void, Never>?
+    private var resourceSampleTask: Task<Void, Never>?
+    private let resourceReader = ProcessResourceReader()
 
     /// Global mouse monitor that dismisses the popover when the user clicks
     /// outside the app. Installed while the popover is shown, removed when it
@@ -63,6 +65,8 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // Trigger process list refresh when popover opens
             refreshProcessList()
+            // Start resource (CPU/memory) sampling loop — cancelled on close (PROC-03)
+            startResourceSampling()
             // Make the popover window key so keyboard shortcuts work
             popover.contentViewController?.view.window?.becomeKey()
             // Dismiss on clicks outside the app (`.accessory` apps don't get
@@ -102,9 +106,41 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
     /// (outside click, status-item toggle, or transient app deactivation).
     func popoverDidClose(_ notification: Notification) {
         stopOutsideClickMonitor()
+        // PROC-03: cancel sampling loop, clear snapshot, reset loading state
+        resourceSampleTask?.cancel()
+        resourceSampleTask = nil
+        resourceReader.clearSnapshot()
+        dashboardState.resourceLoading = true  // reset spinner for next open
     }
 
     // MARK: - Process List
+
+    /// Start the CPU/memory resource sampling loop (1.5s interval).
+    /// Cancels any prior loop first to prevent double-sampling if popover reopens quickly.
+    /// Must be called on @MainActor (toggle() is already on main actor).
+    func startResourceSampling() {
+        resourceSampleTask?.cancel()
+        resourceSampleTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                let (cpuTop, memTop) = await Task.detached(priority: .utility) {
+                    [reader = self.resourceReader] in
+                    reader.sample()
+                }.value
+
+                guard !Task.isCancelled else { return }
+
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    self.dashboardState.topCPUProcesses = cpuTop
+                    self.dashboardState.topMemoryProcesses = memTop
+                    self.dashboardState.resourceLoading = false
+                }
+
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+            }
+        }
+    }
 
     /// Refresh the top processes list asynchronously.
     /// nettop takes ~1s, so this runs on a background task and updates on MainActor.
