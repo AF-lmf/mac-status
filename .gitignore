@@ -11,6 +11,14 @@ xcuserdata/
 .gsd-id
 .mcp.json
 .bg-shell/
+
+# ── 项目代码无关：GSD/agent 流程产物与外部素材（不随仓库分发）──
+.agents/
+.planning/
+.claude/
+skills-lock.json
+AGENTS.md
+article-assets/
 Thumbs.db
 nul
 nul.*
