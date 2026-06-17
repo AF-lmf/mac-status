@@ -11,6 +11,12 @@ struct ProcessNetworkUsage: Sendable, Equatable {
     var totalBytesPerSec: Double {
         downloadBytesPerSec + uploadBytesPerSec
     }
+
+    /// 稳定身份标识，用于 SwiftUI ForEach。processIdentifier 为 Optional，
+    /// 使用 "\(pid ?? -1)-\(name)" 组合键保证 PID 复用时不发生视图状态错位。
+    var stableID: String {
+        "\(processIdentifier ?? -1)-\(processName)"
+    }
 }
 
 enum ProcessNetworkUsageResult: Sendable, Equatable {

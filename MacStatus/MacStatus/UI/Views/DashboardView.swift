@@ -312,7 +312,7 @@ struct ProcessResourceSectionView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
             } else {
-                ForEach(Array(items.prefix(5).enumerated()), id: \.offset) { _, proc in
+                ForEach(items.prefix(5), id: \.pid) { proc in
                     ProcessMetricRow(processName: proc.processName, pid: proc.pid) {
                         Text(trailingText(proc))
                             .font(.system(.caption2, design: .monospaced))

@@ -39,7 +39,7 @@ struct ProcessListView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
             } else {
-                ForEach(Array(processes.prefix(5).enumerated()), id: \.offset) { _, proc in
+                ForEach(processes.prefix(5), id: \.stableID) { proc in
                     ProcessMetricRow(processName: proc.processName, pid: proc.processIdentifier) {
                         Label(
                             ByteFormatting.format(proc.uploadBytesPerSec) + "/s",
