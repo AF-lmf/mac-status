@@ -75,8 +75,10 @@ created: 2026-06-17
 
 **控件实现：**
 
+> ⚠️ **研究阶段更正（以 09-RESEARCH.md 为准）**：`EditMode` 在 macOS 上**不可用**（`@available(macOS, unavailable)`，SDK 接口文件确认）。下方 `.environment(\.editMode, .constant(.active))` 在 macOS 目标**无法编译**——必须删除。macOS 的 `List { ForEach.onMove }` 本身即支持拖动重排，**无需** EditMode；拖动柄由系统在 List 行上提供（必要时配合悬停）。`List` 嵌入 grouped `Form` 时需显式 `.frame(height:)`（约 4 行 × 36pt），否则折叠为零高。执行以 RESEARCH.md 的可编译模式为准。
+
 ```swift
-// EditMode 状态由 Section 级别 @State 管理
+// 注意：macOS 无 EditMode；List.onMove 直接可拖动重排（见 RESEARCH.md）
 List {
     ForEach(settings.metricOrder) { metric in
         MetricOrderRow(metric: metric, settings: settings)
@@ -85,7 +87,7 @@ List {
         settings.metricOrder.move(fromOffsets: from, toOffset: to)
     }
 }
-.environment(\.editMode, .constant(.active))
+.frame(height: CGFloat(settings.metricOrder.count) * 36)   // List in Form 需显式高度
 ```
 
 **行解剖（`MetricOrderRow`）：**
@@ -94,7 +96,7 @@ List {
 [ 拖动柄 ]  [ 指标中文名 ]              [ Toggle ]
 ```
 
-- **拖动柄**：使用 `.moveDisabled(false)` + macOS `List` 的系统拖动柄（`onMove` 激活后系统自动渲染右侧三横线图标）；`EditMode.constant(.active)` 使拖动柄始终可见，无需用户手动进入编辑模式。
+- **拖动柄**：macOS `List` 在 `.onMove` 存在时即允许拖动整行重排（**无 EditMode**，见上方更正）；拖动行即可重排，无需进入编辑模式。
 - **指标中文名**：见下表
 
 | `Metric` rawValue | 显示名 |
@@ -347,7 +349,7 @@ Section("配色") {
 | `Slider` | 使用系统原生 `Slider`；VoiceOver 播报 label + value；live label（`Text("CPU 警告：60%")`）提供可视反馈 |
 | `ColorPicker` | 系统原生，VoiceOver 自动可用 |
 | 键盘导航 | `Form` 内原生 Tab 顺序；不需额外 `.focusable()` 处理 |
-| `EditMode` | 使用 `.constant(.active)` 让拖动柄始终显示（避免隐藏在三点菜单后）；macOS 14 List.onMove 在 `editMode = .active` 时暴露拖动柄 |
+| `EditMode` | ⚠️ **macOS 不可用**——删除任何 editMode 引用；`List { ForEach.onMove }` 在 macOS 上本身即可拖动重排（见 09-RESEARCH.md） |
 | 最小控件间距 | `VStack(spacing: 8)` 内滑块组（与现有告警阈值 section 一致） |
 
 ---
