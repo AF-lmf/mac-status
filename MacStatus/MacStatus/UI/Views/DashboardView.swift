@@ -199,10 +199,14 @@ struct BatterySectionView: View {
     }
 
     /// 充电三态（不依赖 kIOPSIsChargedKey）：
-    /// isCharging→充电中；!isCharging && isOnAC→已充满；否则→使用电池。
+    /// isCharging→充电中；!isCharging && isOnAC && chargePercent>=99→已充满；
+    /// !isCharging && isOnAC && chargePercent<99→电源接入（优化充电暂停等）；否则→使用电池。
     private var chargeStateText: String {
         if snapshot.isCharging { return "充电中" }
-        if snapshot.isOnAC { return "已充满" }
+        if snapshot.isOnAC {
+            // 优化电池充电可能在 80% 暂停充电，需区分"已充满"与"电源接入"
+            return snapshot.chargePercent >= 99 ? "已充满" : "电源接入"
+        }
         return "使用电池"
     }
 
