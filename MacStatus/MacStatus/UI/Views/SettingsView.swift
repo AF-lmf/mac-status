@@ -379,6 +379,7 @@ final class SettingsWindowManager {
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)
+        window.isReleasedWhenClosed = false  // WR-02: 阻止 AppKit 在关闭时额外 release；manager 持有强引用并复用此窗口
         window.title = "MacStatus 偏好设置"
         window.styleMask = [.titled, .closable]
         window.center()
