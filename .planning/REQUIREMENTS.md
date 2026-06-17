@@ -24,11 +24,11 @@
 ### 设置与可定制 (SET)
 
 - [ ] **SET-01**: 用户能从右键菜单打开一个独立的设置窗口
-- [ ] **SET-02**: 用户能逐个开关每个指标在状态栏的显示（启用 / 禁用）
+- [x] **SET-02**: 用户能逐个开关每个指标在状态栏的显示（启用 / 禁用）
 - [ ] **SET-03**: 用户能拖动调整状态栏各指标的显示顺序
 - [ ] **SET-04**: 用户能自定义各指标的警告 / 危险阈值
 - [ ] **SET-05**: 用户能自定义各指标的着色
-- [ ] **SET-06**: 用户能在紧凑 / 详细两种状态栏文本模式间切换
+- [x] **SET-06**: 用户能在紧凑 / 详细两种状态栏文本模式间切换
 - [x] **SET-07**: 用户的所有偏好在重启应用后保持（持久化）
 - [x] **SET-08**: 设置更改即时生效，无需重启应用（实时重应用）
 
@@ -86,11 +86,11 @@
 | BATT-04 | Phase 7 | Pending |
 | BATT-05 | Phase 7 | Pending |
 | SET-01 | Phase 9 | Pending |
-| SET-02 | Phase 9 | Pending |
+| SET-02 | Phase 9 | Complete |
 | SET-03 | Phase 9 | Pending |
 | SET-04 | Phase 9 | Pending |
 | SET-05 | Phase 9 | Pending |
-| SET-06 | Phase 9 | Pending |
+| SET-06 | Phase 9 | Complete |
 | SET-07 | Phase 6 | Complete |
 | SET-08 | Phase 6 | Complete |
 

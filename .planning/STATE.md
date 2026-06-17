@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: ready_to_plan
-stopped_at: Phase 08 complete (static verified; human UAT deferred 2026-06-17)
-last_updated: "2026-06-17T04:00:00.000Z"
-last_activity: 2026-06-17 -- Phase 08 complete, advancing to Phase 09 (final)
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-06-17T04:29:50.817Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 75
+  total_plans: 10
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 09 — Settings Window UI + Customization（最后一个阶段；Phase 06/07/08 已完成）
+**Current focus:** Phase 09 — Settings Window UI + Customization
 
 ## Current Position
 
-Phase: 08 (Per-Process Top-N CPU & Memory) — ✅ COMPLETE (static verified 4/4 + build + review clean; 2 并发 bug 已 actor 修复; 人工 UAT 延后)
+Phase: 09 (Settings Window UI + Customization) — EXECUTING
 Next: Phase 09 (Settings Window UI + Customization) — not started (final phase)
-Plan: —
-Status: Phase 08 complete — ready to plan Phase 09
-Last activity: 2026-06-17 -- Phase 08 complete, advancing to Phase 09
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-17
 
 **⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
 
@@ -171,7 +171,7 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-06-17T03:23:58.131Z
+Last session: 2026-06-17T04:29:50.812Z
 Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
