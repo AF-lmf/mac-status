@@ -106,11 +106,15 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
     /// (outside click, status-item toggle, or transient app deactivation).
     func popoverDidClose(_ notification: Notification) {
         stopOutsideClickMonitor()
-        // PROC-03: cancel sampling loop, clear snapshot, reset loading state
+        // PROC-03: cancel sampling loop, reset loading state
         resourceSampleTask?.cancel()
         resourceSampleTask = nil
-        resourceReader.clearSnapshot()
         dashboardState.resourceLoading = true  // reset spinner for next open
+        // Clear snapshot asynchronously — actor serialises this after any in-flight
+        // sample() completes, so there is no concurrent read-write on prevSnapshot.
+        Task { [weak self] in
+            await self?.resourceReader.clearSnapshot()
+        }
     }
 
     // MARK: - Process List
@@ -118,24 +122,24 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
     /// Start the CPU/memory resource sampling loop (1.5s interval).
     /// Cancels any prior loop first to prevent double-sampling if popover reopens quickly.
     /// Must be called on @MainActor (toggle() is already on main actor).
+    ///
+    /// `resourceReader.sample()` is an actor method — calling it with `await` hops to
+    /// the actor's executor automatically (off MainActor), so there is no need for an
+    /// extra `Task.detached` wrapper. The actor's serial executor also serialises
+    /// concurrent calls, eliminating the CR-01/CR-02 data races.
     func startResourceSampling() {
         resourceSampleTask?.cancel()
         resourceSampleTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                let (cpuTop, memTop) = await Task.detached(priority: .utility) {
-                    [reader = self.resourceReader] in
-                    reader.sample()
-                }.value
+                // Actor hop: sample() runs on ProcessResourceReader's executor (off MainActor).
+                let (cpuTop, memTop) = await self.resourceReader.sample()
 
                 guard !Task.isCancelled else { return }
 
-                await MainActor.run { [weak self] in
-                    guard let self else { return }
-                    self.dashboardState.topCPUProcesses = cpuTop
-                    self.dashboardState.topMemoryProcesses = memTop
-                    self.dashboardState.resourceLoading = false
-                }
+                self.dashboardState.topCPUProcesses = cpuTop
+                self.dashboardState.topMemoryProcesses = memTop
+                self.dashboardState.resourceLoading = false
 
                 try? await Task.sleep(nanoseconds: 1_500_000_000)
             }
