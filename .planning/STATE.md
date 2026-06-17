@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: executing
+status: verifying
 stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-17T03:18:45.215Z"
+last_updated: "2026-06-17T03:24:02.240Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 08 (Per-Process Top-N CPU & Memory) — EXECUTING
 Next: Phase 08 (Per-Process Top-N CPU & Memory) — not started
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-17
 
 **⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
@@ -76,6 +76,7 @@ Last activity: 2026-06-17
 | Phase 06 P02 | 8 | 2 tasks | 2 files |
 | Phase 06 P03 | 3 | 2 tasks | 3 files |
 | Phase 08 P01 | 3m | 2 tasks | 2 files |
+| Phase 08-per-process-top-n-cpu-memory P02 | 5m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase ?]: migrateToV1() writes directly to UserDefaults to prevent notification storm during init
 - [Phase ?]: changedKeys 使用字符串字面量 'refreshInterval'，非 SettingsManager.Keys（private enum）
 - [Phase ?]: proc_pid_rusage Swift binding 需 withMemoryRebound(to: Optional<UnsafeMutableRawPointer>.self)
+- [Phase ?]: ProcessResourceReader @unchecked Sendable — exclusive-access invariant enforced by single resourceSampleTask in PopoverManager
 
 ### v2.0 Cross-cutting Constraints (apply to every new phase)
 
@@ -168,7 +170,7 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-06-17T03:18:45.211Z
+Last session: 2026-06-17T03:23:58.131Z
 Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
