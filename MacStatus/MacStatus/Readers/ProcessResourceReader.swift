@@ -29,7 +29,11 @@ struct ProcessResourceUsage: Sendable, Equatable {
 /// }.value
 /// let (cpuTop5, memTop5) = result
 /// ```
-final class ProcessResourceReader {
+/// Sendable conformance is @unchecked: the class is exclusively accessed by one
+/// Task.detached loop at a time (invariant enforced by PopoverManager), so no
+/// concurrent mutation can occur. Swift 6 strict concurrency requires an explicit
+/// declaration for non-actor reference types crossing isolation boundaries.
+final class ProcessResourceReader: @unchecked Sendable {
 
     // MARK: - Nested Types
 

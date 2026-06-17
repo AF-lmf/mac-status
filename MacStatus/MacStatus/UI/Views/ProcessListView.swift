@@ -40,7 +40,21 @@ struct ProcessListView: View {
                     .padding(.vertical, 8)
             } else {
                 ForEach(Array(processes.prefix(5).enumerated()), id: \.offset) { _, proc in
-                    ProcessRow(process: proc)
+                    ProcessMetricRow(processName: proc.processName, pid: proc.processIdentifier) {
+                        Label(
+                            ByteFormatting.format(proc.uploadBytesPerSec) + "/s",
+                            systemImage: "arrow.up"
+                        )
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.orange)
+
+                        Label(
+                            ByteFormatting.format(proc.downloadBytesPerSec) + "/s",
+                            systemImage: "arrow.down"
+                        )
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.blue)
+                    }
                 }
             }
         }
@@ -52,39 +66,30 @@ struct ProcessListView: View {
     }
 }
 
-// MARK: - Process Row
+// MARK: - Process Metric Row
 
-private struct ProcessRow: View {
-    let process: ProcessNetworkUsage
+/// Generic process row: name + optional PID on the left; arbitrary trailing content on the right.
+/// Used by the network, CPU, and memory process sections.
+struct ProcessMetricRow<Trailing: View>: View {
+    let processName: String
+    let pid: Int32?
+    @ViewBuilder let trailing: () -> Trailing
 
     var body: some View {
         HStack(spacing: 6) {
-            Text(process.processName)
+            Text(processName)
                 .font(.caption2)
                 .lineLimit(1)
                 .truncationMode(.tail)
 
-            if let pid = process.processIdentifier {
+            if let pid {
                 Text("(\(pid))")
                     .font(.system(.caption2, design: .monospaced))
                     .foregroundStyle(.tertiary)
             }
 
             Spacer()
-
-            Label(
-                ByteFormatting.format(process.uploadBytesPerSec) + "/s",
-                systemImage: "arrow.up"
-            )
-            .font(.system(.caption2, design: .monospaced))
-            .foregroundStyle(.orange)
-
-            Label(
-                ByteFormatting.format(process.downloadBytesPerSec) + "/s",
-                systemImage: "arrow.down"
-            )
-            .font(.system(.caption2, design: .monospaced))
-            .foregroundStyle(.blue)
+            trailing()
         }
         .padding(.vertical, 1)
     }

@@ -70,6 +70,26 @@ struct DashboardView: View {
                 errorMessage: state.processError
             )
 
+            // CPU Top 5 (PROC-01)
+            ProcessResourceSectionView(
+                title: "CPU 占用 Top 5",
+                items: state.topCPUProcesses,
+                isLoading: state.resourceLoading,
+                trailingText: { proc in
+                    proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
+                }
+            )
+
+            // 内存 Top 5 (PROC-02)
+            ProcessResourceSectionView(
+                title: "内存占用 Top 5",
+                items: state.topMemoryProcesses,
+                isLoading: state.resourceLoading,
+                trailingText: { proc in
+                    ByteFormatting.format(Double(proc.memoryBytes))
+                }
+            )
+
             // Footer — self monitoring
             HStack {
                 if state.selfCpuUsage > 1.0 {
@@ -257,6 +277,57 @@ struct BatterySectionView: View {
     }
 }
 
+// MARK: - Process Resource Section View
+
+/// Reusable card section for CPU or memory Top-N process lists.
+/// Shows a spinner while the first sample is pending, "无数据" when the list is empty,
+/// and a row per process using ProcessMetricRow with a caller-supplied trailing string.
+struct ProcessResourceSectionView: View {
+    let title: String
+    let items: [ProcessResourceUsage]
+    let isLoading: Bool
+    let trailingText: (ProcessResourceUsage) -> String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 2)
+
+            if isLoading {
+                HStack {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                    Text("Sampling...")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 8)
+            } else if items.isEmpty {
+                Text("无数据")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(Array(items.prefix(5).enumerated()), id: \.offset) { _, proc in
+                    ProcessMetricRow(processName: proc.processName, pid: proc.pid) {
+                        Text(trailingText(proc))
+                            .font(.system(.caption2, design: .monospaced))
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.04))
+        )
+    }
+}
+
 // MARK: - Dashboard State
 
 @MainActor
@@ -289,6 +360,12 @@ final class DashboardState: ObservableObject {
     @Published var topProcesses: [ProcessNetworkUsage] = []
     @Published var processesLoading: Bool = false
     @Published var processError: String?
+
+    // Resource usage — CPU/memory Top-N (popover-gated, 1.5s loop)
+    @Published var topCPUProcesses: [ProcessResourceUsage] = []
+    @Published var topMemoryProcesses: [ProcessResourceUsage] = []
+    @Published var resourceLoading: Bool = true
+    @Published var resourceError: String? = nil
 
     // Self monitoring
     @Published var selfCpuUsage: Double = 0
