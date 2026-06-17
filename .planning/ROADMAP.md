@@ -23,7 +23,7 @@
 **Milestone goal:** 把 MacStatus 从"看一眼系统状态"升级为"看明白哪个进程在吃资源、看到电池全貌，并按我自己的方式配置"。
 
 - [x] **Phase 6: Settings Foundation + Live Re-apply Seam** - 单一 SettingsManager 真源、持久化与"改即生效"的实时重应用通道 — ✅ completed 2026-06-17 (3/3 plans, 验证通过)
-- [ ] **Phase 7: Battery & Power** - 弹窗内电量/充电状态/功率/剩余时间/健康度，台式机优雅降级
+- [x] **Phase 7: Battery & Power** - 弹窗内电量/充电状态/功率/剩余时间/健康度，台式机优雅降级 — ✅ completed 2026-06-17 (2/2 plans, 静态验证通过, 人工 UAT 延后)
 - [ ] **Phase 8: Per-Process Top-N CPU & Memory** - 弹窗打开时按需采样 CPU/内存占用最高的进程
 - [ ] **Phase 9: Settings Window UI + Customization** - 独立设置窗口：开关、拖动排序、阈值、配色、紧凑/详细模式
 

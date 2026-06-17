@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-17T00:40:29.999Z"
-last_activity: 2026-06-17 -- Phase 07 execution started
+status: ready_to_plan
+stopped_at: Phase 07 complete (static verified; human UAT deferred 2026-06-17)
+last_updated: "2026-06-17T01:30:00.000Z"
+last_activity: 2026-06-17 -- Phase 07 complete, advancing to Phase 08
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -21,15 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 07 — Battery & Power
+**Current focus:** Phase 08 — Per-Process Top-N CPU & Memory（Phase 06、07 已完成）
 
 ## Current Position
 
-Phase: 07 (Battery & Power) — EXECUTING
-Next: Phase 07 (Battery & Power) — not started
-Plan: 1 of 2
-Status: Executing Phase 07
-Last activity: 2026-06-17 -- Phase 07 execution started
+Phase: 07 (Battery & Power) — ✅ COMPLETE (static verified 5/5 + build + review clean; 人工 UAT 延后)
+Next: Phase 08 (Per-Process Top-N CPU & Memory) — not started
+Plan: —
+Status: Phase 07 complete — ready to plan Phase 08
+Last activity: 2026-06-17 -- Phase 07 complete, advancing to Phase 08
+
+**⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
+- Phase 7 电池区 4 项运行时验证（笔记本渲染、台式机隐藏、充放电态切换+功率符号、睡眠唤醒"计算中"）— 见 07-VERIFICATION.md human_verification
 
 **v2.0 phase map (build order — respects dependency ordering):**
 
