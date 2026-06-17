@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-06-10)
-- 🟡 **v2.0 洞察与可定制 (Insight & Customization)** — Phases 6-9 (planning)
+- ✅ **v2.0 洞察与可定制 (Insight & Customization)** — Phases 6-9 (shipped 2026-06-17)
 
 ## Phases
 
@@ -25,7 +25,9 @@
 - [x] **Phase 6: Settings Foundation + Live Re-apply Seam** - 单一 SettingsManager 真源、持久化与"改即生效"的实时重应用通道 — ✅ completed 2026-06-17 (3/3 plans, 验证通过)
 - [x] **Phase 7: Battery & Power** - 弹窗内电量/充电状态/功率/剩余时间/健康度，台式机优雅降级 — ✅ completed 2026-06-17 (2/2 plans, 静态验证通过, 人工 UAT 延后)
 - [x] **Phase 8: Per-Process Top-N CPU & Memory** - 弹窗打开时按需采样 CPU/内存占用最高的进程 — ✅ completed 2026-06-17 (2/2 plans, 静态验证通过, 人工 UAT 延后)
-- [ ] **Phase 9: Settings Window UI + Customization** - 独立设置窗口：开关、拖动排序、阈值、配色、紧凑/详细模式
+- [x] **Phase 9: Settings Window UI + Customization** - 独立设置窗口：开关、拖动排序、阈值、配色、紧凑/详细模式 — ✅ completed 2026-06-17 (3/3 plans, 人工 UAT 通过)
+
+> **UAT 后增强 (2026-06-17):** 修复 SettingsManager `@Observable` 观察补齐（拖动排序/阈值实时刷新）、网络弹窗上下行竖排。新增 `SMCReader`（AppleSMC user-client，无需 entitlement）：弹窗电池区拆为「电池功率」（放电 SMC `PPBR` 实时 / 充电电量计真实功率）与「整机功耗」（SMC `PSTR`，接入电源亦可见）。
 
 ## Phase Details
 

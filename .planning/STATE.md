@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: verifying
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-17T04:38:03.591Z"
+status: shipped
+stopped_at: v2.0 milestone complete (人工 UAT 全部通过)
+last_updated: "2026-06-17T12:00:00.000Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 4
@@ -21,20 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 09 — Settings Window UI + Customization
+**Current focus:** v2.0 完成并发版 — 所有阶段交付、人工 UAT 通过、提交推送
 
 ## Current Position
 
-Phase: 09 (Settings Window UI + Customization) — EXECUTING
-Next: Phase 09 (Settings Window UI + Customization) — not started (final phase)
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: ALL COMPLETE — v2.0 洞察与可定制 已交付 (4/4 phases, 10/10 plans, 100%)
+Next: 里程碑收尾完成；后续可启动 v3.0 或处理 deferred 项
+Plan: —
+Status: ✅ shipped — 人工 UAT 全部通过（含 UAT 后增强）
 Last activity: 2026-06-17
 
-**⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
+**✅ 人工 UAT 全部通过（2026-06-17）：**
 
-- Phase 7 电池区 4 项运行时验证（笔记本渲染、台式机隐藏、充放电态切换+功率符号、睡眠唤醒"计算中"）— 见 07-VERIFICATION.md human_verification
-- Phase 8 进程 Top-N 3 项运行时验证（CPU/内存 Top 5 实时渲染、关闭弹窗后零后台开销、PID 动态鲁棒性）— 见 08-VERIFICATION.md human_verification
+- Phase 7 电池区：笔记本渲染、台式机隐藏、充放电态切换、健康度/循环 — 通过。
+- Phase 8 进程 Top-N：CPU/内存 Top 5 实时渲染、关闭弹窗零后台开销 — 通过。
+- Phase 9 设置窗口：指标开关、拖动排序、阈值/配色实时、文字模式、区块开关、持久化 — 通过（修复了 @Observable 观察缺失与 hover 门控拖动 bug）。
+- UAT 后增强：网络弹窗上下行竖排；新增 SMCReader（PSTR 整机功耗 + PPBR 实时电池放电功率，充电用电量计真实功率）。
 
 **v2.0 phase map (build order — respects dependency ordering):**
 
@@ -119,6 +121,10 @@ Recent decisions affecting current work:
 - [Phase ?]: changedKeys 使用字符串字面量 'refreshInterval'，非 SettingsManager.Keys（private enum）
 - [Phase ?]: proc_pid_rusage Swift binding 需 withMemoryRebound(to: Optional<UnsafeMutableRawPointer>.self)
 - [Phase ?]: ProcessResourceReader @unchecked Sendable — exclusive-access invariant enforced by single resourceSampleTask in PopoverManager
+- [Phase 9 UAT]: SettingsManager 计算属性 over @ObservationIgnored backing 必须手动 access(keyPath:)/withMutation(keyPath:)，否则 @Observable 不追踪、SwiftUI 绑定不刷新（修复拖动排序/阈值文本不更新）。
+- [Phase 9 UAT]: 菜单栏指标拖动排序去掉 hover 门控的 moveDisabled —— macOS List+onMove 原生整行可拖；hover 门控会让其它行拒绝放置。
+- [UAT 增强]: 新增 SMCReader（AppleSMC user-client，无 entitlement）。整机功耗用 SMC `PSTR`；电池功率放电用 SMC `PPBR`（实时），充电用 AppleSmartBattery Amperage×Voltage（PPBR 充电时≈0）。SMCParamStruct 必须 80 字节：KInfo 显式补 3 字节，规避 Swift 复用嵌套结构尾部填充导致塌成 76 字节。
+- [UAT 增强]: 网络弹窗上下行用 `\n` 强制竖排 + multilineTextAlignment(.trailing)，消除随数值长短在并排/换行间抖动。
 
 ### v2.0 Cross-cutting Constraints (apply to every new phase)
 
@@ -134,7 +140,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- [Phase 7] Battery Watts/health on heterogeneous hardware (MEDIUM confidence) — AppleSmartBattery sign/bit-width/key names vary by model and are absent on desktop; needs real-device matrix verification (consider /gsd-plan-phase --research-phase). Probe-and-nil, never strong-unwrap.
+- ~~[Phase 7] Battery Watts/health on heterogeneous hardware~~ — ✅ RESOLVED 2026-06-17 via real-device UAT on Apple Silicon laptop（充放电态、健康度/循环、剩余时间均正确；probe-and-nil 降级生效）。功率读数后续改用 SMC 实时传感器（见下方 SMC 决策）。
 - ~~[Phase 8] libproc under Swift 6 strict concurrency~~ — ✅ RESOLVED 2026-06-17 (研究确认 libproc 纯净，rusage_info_v4 全值类型；ProcessResourceReader 实现为 actor 串行化 prevSnapshot，无需 /bin/ps fallback)。
 - ~~[Phase 6] Latent two-sources-of-truth bug~~ — ✅ RESOLVED 2026-06-17 in Phase 6 (Option A: SettingsView 全部经 SettingsManager，@AppStorage 已消除；@MainActor @Observable 单一真源)。
 
