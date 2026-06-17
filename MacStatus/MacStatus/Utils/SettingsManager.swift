@@ -79,6 +79,10 @@ final class SettingsManager {
         static let customThresholds = "customThresholds"
         static let customColors     = "customColors"
         static let launchAtLogin    = "launchAtLogin"
+
+        // Phase 9 new keys
+        static let showBatterySection = "showBatterySection"
+        static let showProcessSection = "showProcessSection"
     }
 
     // MARK: - Init
@@ -105,6 +109,8 @@ final class SettingsManager {
     @ObservationIgnored private var _launchAtLogin: Bool = false
     @ObservationIgnored private var _customThresholds: [String: [String: Double]] = [:]
     @ObservationIgnored private var _customColors: [String: [String: String]] = [:]
+    @ObservationIgnored private var _showBatterySection: Bool = true
+    @ObservationIgnored private var _showProcessSection: Bool = true
 
     // MARK: - Public Properties
 
@@ -231,6 +237,28 @@ final class SettingsManager {
                 print("[Settings] launchAtLogin toggle failed: \(error)")
                 // 不更新 backing var，UI 绑定会自动回弹到旧值
             }
+        }
+    }
+
+    // MARK: - Popover Section Visibility
+
+    /// Whether to show the battery section in the popover. Defaults to true.
+    var showBatterySection: Bool {
+        get { _showBatterySection }
+        set {
+            _showBatterySection = newValue
+            defaults.set(newValue, forKey: Keys.showBatterySection)
+            postChange(keys: [Keys.showBatterySection])
+        }
+    }
+
+    /// Whether to show the process section in the popover. Defaults to true.
+    var showProcessSection: Bool {
+        get { _showProcessSection }
+        set {
+            _showProcessSection = newValue
+            defaults.set(newValue, forKey: Keys.showProcessSection)
+            postChange(keys: [Keys.showProcessSection])
         }
     }
 
@@ -382,6 +410,18 @@ final class SettingsManager {
         _enabledMetrics = enabled.isEmpty ? [.cpu, .gpu, .memory, .network] : enabled
 
         _launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
+
+        if defaults.object(forKey: Keys.showBatterySection) == nil {
+            _showBatterySection = true
+        } else {
+            _showBatterySection = defaults.bool(forKey: Keys.showBatterySection)
+        }
+
+        if defaults.object(forKey: Keys.showProcessSection) == nil {
+            _showProcessSection = true
+        } else {
+            _showProcessSection = defaults.bool(forKey: Keys.showProcessSection)
+        }
 
         if let data = defaults.data(forKey: Keys.customThresholds),
            let decoded = try? JSONDecoder().decode([String: [String: Double]].self, from: data) {
