@@ -116,9 +116,12 @@ final class SettingsManager {
 
     /// Polling refresh interval in seconds. Defaults to 2.0.
     var refreshInterval: TimeInterval {
-        get { _refreshInterval }
+        get {
+            access(keyPath: \.refreshInterval)
+            return _refreshInterval
+        }
         set {
-            _refreshInterval = newValue
+            withMutation(keyPath: \.refreshInterval) { _refreshInterval = newValue }
             defaults.set(newValue, forKey: Keys.refreshInterval)
             postChange(keys: [Keys.refreshInterval])
         }
@@ -126,9 +129,12 @@ final class SettingsManager {
 
     /// Menu bar display mode. Defaults to .compact.
     var displayMode: DisplayMode {
-        get { _displayMode }
+        get {
+            access(keyPath: \.displayMode)
+            return _displayMode
+        }
         set {
-            _displayMode = newValue
+            withMutation(keyPath: \.displayMode) { _displayMode = newValue }
             defaults.set(newValue.rawValue, forKey: Keys.displayMode)
             postChange(keys: [Keys.displayMode])
         }
@@ -136,9 +142,12 @@ final class SettingsManager {
 
     /// Byte display unit. Defaults to .auto.
     var displayUnit: DisplayUnit {
-        get { _displayUnit }
+        get {
+            access(keyPath: \.displayUnit)
+            return _displayUnit
+        }
         set {
-            _displayUnit = newValue
+            withMutation(keyPath: \.displayUnit) { _displayUnit = newValue }
             defaults.set(newValue.rawValue, forKey: Keys.displayUnit)
             postChange(keys: [Keys.displayUnit])
         }
@@ -146,9 +155,12 @@ final class SettingsManager {
 
     /// Whether to show SF Symbol icons in the menu bar. Defaults to false.
     var showIcons: Bool {
-        get { _showIcons }
+        get {
+            access(keyPath: \.showIcons)
+            return _showIcons
+        }
         set {
-            _showIcons = newValue
+            withMutation(keyPath: \.showIcons) { _showIcons = newValue }
             defaults.set(newValue, forKey: Keys.showIcons)
             postChange(keys: [Keys.showIcons])
         }
@@ -157,37 +169,53 @@ final class SettingsManager {
     // MARK: - Alert Thresholds (clamped 0...100)
 
     var cpuWarningThreshold: Double {
-        get { _cpuWarningThreshold }
+        get {
+            access(keyPath: \.cpuWarningThreshold)
+            return _cpuWarningThreshold
+        }
         set {
-            _cpuWarningThreshold = max(0, min(100, newValue))
-            defaults.set(_cpuWarningThreshold, forKey: Keys.cpuWarningThreshold)
+            let clamped = max(0, min(100, newValue))
+            withMutation(keyPath: \.cpuWarningThreshold) { _cpuWarningThreshold = clamped }
+            defaults.set(clamped, forKey: Keys.cpuWarningThreshold)
             postChange(keys: [Keys.cpuWarningThreshold])
         }
     }
 
     var cpuCriticalThreshold: Double {
-        get { _cpuCriticalThreshold }
+        get {
+            access(keyPath: \.cpuCriticalThreshold)
+            return _cpuCriticalThreshold
+        }
         set {
-            _cpuCriticalThreshold = max(0, min(100, newValue))
-            defaults.set(_cpuCriticalThreshold, forKey: Keys.cpuCriticalThreshold)
+            let clamped = max(0, min(100, newValue))
+            withMutation(keyPath: \.cpuCriticalThreshold) { _cpuCriticalThreshold = clamped }
+            defaults.set(clamped, forKey: Keys.cpuCriticalThreshold)
             postChange(keys: [Keys.cpuCriticalThreshold])
         }
     }
 
     var memoryWarningThreshold: Double {
-        get { _memoryWarningThreshold }
+        get {
+            access(keyPath: \.memoryWarningThreshold)
+            return _memoryWarningThreshold
+        }
         set {
-            _memoryWarningThreshold = max(0, min(100, newValue))
-            defaults.set(_memoryWarningThreshold, forKey: Keys.memoryWarningThreshold)
+            let clamped = max(0, min(100, newValue))
+            withMutation(keyPath: \.memoryWarningThreshold) { _memoryWarningThreshold = clamped }
+            defaults.set(clamped, forKey: Keys.memoryWarningThreshold)
             postChange(keys: [Keys.memoryWarningThreshold])
         }
     }
 
     var memoryCriticalThreshold: Double {
-        get { _memoryCriticalThreshold }
+        get {
+            access(keyPath: \.memoryCriticalThreshold)
+            return _memoryCriticalThreshold
+        }
         set {
-            _memoryCriticalThreshold = max(0, min(100, newValue))
-            defaults.set(_memoryCriticalThreshold, forKey: Keys.memoryCriticalThreshold)
+            let clamped = max(0, min(100, newValue))
+            withMutation(keyPath: \.memoryCriticalThreshold) { _memoryCriticalThreshold = clamped }
+            defaults.set(clamped, forKey: Keys.memoryCriticalThreshold)
             postChange(keys: [Keys.memoryCriticalThreshold])
         }
     }
@@ -196,9 +224,12 @@ final class SettingsManager {
 
     /// Display order of metrics. Default matches v1.0 compact mode: [cpu, gpu, memory, network].
     var metricOrder: [Metric] {
-        get { _metricOrder }
+        get {
+            access(keyPath: \.metricOrder)
+            return _metricOrder
+        }
         set {
-            _metricOrder = newValue
+            withMutation(keyPath: \.metricOrder) { _metricOrder = newValue }
             defaults.set(newValue.map(\.rawValue), forKey: Keys.metricOrder)
             postChange(keys: [Keys.metricOrder])
         }
@@ -207,9 +238,12 @@ final class SettingsManager {
     /// Set of enabled metrics (stored as [Metric] to preserve ordering for future use).
     /// Default: all four active metrics — does NOT include .battery (Phase 7).
     var enabledMetrics: [Metric] {
-        get { _enabledMetrics }
+        get {
+            access(keyPath: \.enabledMetrics)
+            return _enabledMetrics
+        }
         set {
-            _enabledMetrics = newValue
+            withMutation(keyPath: \.enabledMetrics) { _enabledMetrics = newValue }
             defaults.set(newValue.map(\.rawValue), forKey: Keys.enabledMetrics)
             postChange(keys: [Keys.enabledMetrics])
         }
@@ -221,7 +255,10 @@ final class SettingsManager {
     /// SMAppService 调用成功后才持久化；失败时不写 UserDefaults 也不更新 backing var，
     /// 使 UI 绑定自动回弹到旧值，保持 UI 与系统真实状态一致。
     var launchAtLogin: Bool {
-        get { _launchAtLogin }
+        get {
+            access(keyPath: \.launchAtLogin)
+            return _launchAtLogin
+        }
         set {
             do {
                 if newValue {
@@ -230,7 +267,7 @@ final class SettingsManager {
                     try SMAppService.mainApp.unregister()
                 }
                 // 仅在系统调用成功后才持久化
-                _launchAtLogin = newValue
+                withMutation(keyPath: \.launchAtLogin) { _launchAtLogin = newValue }
                 defaults.set(newValue, forKey: Keys.launchAtLogin)
                 postChange(keys: [Keys.launchAtLogin])
             } catch {
@@ -244,9 +281,12 @@ final class SettingsManager {
 
     /// Whether to show the battery section in the popover. Defaults to true.
     var showBatterySection: Bool {
-        get { _showBatterySection }
+        get {
+            access(keyPath: \.showBatterySection)
+            return _showBatterySection
+        }
         set {
-            _showBatterySection = newValue
+            withMutation(keyPath: \.showBatterySection) { _showBatterySection = newValue }
             defaults.set(newValue, forKey: Keys.showBatterySection)
             postChange(keys: [Keys.showBatterySection])
         }
@@ -254,9 +294,12 @@ final class SettingsManager {
 
     /// Whether to show the process section in the popover. Defaults to true.
     var showProcessSection: Bool {
-        get { _showProcessSection }
+        get {
+            access(keyPath: \.showProcessSection)
+            return _showProcessSection
+        }
         set {
-            _showProcessSection = newValue
+            withMutation(keyPath: \.showProcessSection) { _showProcessSection = newValue }
             defaults.set(newValue, forKey: Keys.showProcessSection)
             postChange(keys: [Keys.showProcessSection])
         }
@@ -267,14 +310,17 @@ final class SettingsManager {
     /// Per-metric custom thresholds: `[metricRawValue: ["warning": 60.0, "critical": 80.0]]`.
     /// Values clamped to 0...100 on write. Encoded as JSON Data in UserDefaults.
     var customThresholds: [String: [String: Double]] {
-        get { _customThresholds }
+        get {
+            access(keyPath: \.customThresholds)
+            return _customThresholds
+        }
         set {
             // Clamp all threshold values to 0...100
             var clamped: [String: [String: Double]] = [:]
             for (metric, levels) in newValue {
                 clamped[metric] = levels.mapValues { max(0.0, min(100.0, $0)) }
             }
-            _customThresholds = clamped
+            withMutation(keyPath: \.customThresholds) { _customThresholds = clamped }
             if let data = try? JSONEncoder().encode(clamped) {
                 defaults.set(data, forKey: Keys.customThresholds)
             }
@@ -286,7 +332,10 @@ final class SettingsManager {
     /// Values must be "#RRGGBB" format (7 chars, # prefix); invalid entries are silently dropped.
     /// Encoded as JSON Data in UserDefaults.
     var customColors: [String: [String: String]] {
-        get { _customColors }
+        get {
+            access(keyPath: \.customColors)
+            return _customColors
+        }
         set {
             // Filter invalid hex strings: must start with "#" and be exactly 7 characters
             var filtered: [String: [String: String]] = [:]
@@ -298,7 +347,7 @@ final class SettingsManager {
                     filtered[metric] = validLevels
                 }
             }
-            _customColors = filtered
+            withMutation(keyPath: \.customColors) { _customColors = filtered }
             if let data = try? JSONEncoder().encode(filtered) {
                 defaults.set(data, forKey: Keys.customColors)
             }

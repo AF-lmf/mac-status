@@ -121,18 +121,12 @@ private struct MetricOrderRow: View {
     let metric: Metric
     @Bindable var settings: SettingsManager
 
-    /// 是否悬停在拖动柄区域（控制 moveDisabled 行为）
-    @State private var isHoveringHandle = false
-
     var body: some View {
         HStack(spacing: 8) {
-            // 显式拖动柄图标
+            // 显式拖动柄图标（视觉提示；macOS List 整行可拖动重排）
             Image(systemName: "line.3.horizontal")
                 .foregroundStyle(.secondary)
                 .frame(width: 20)
-                .onHover { hovering in
-                    isHoveringHandle = hovering
-                }
 
             // 指标中文名（已禁用时灰显）
             Text(metric.displayName)
@@ -147,7 +141,6 @@ private struct MetricOrderRow: View {
                 .labelsHidden()
                 .toggleStyle(.switch)
         }
-        .moveDisabled(!isHoveringHandle)
     }
 
     /// 计算 Binding<Bool>：enabledMetrics.contains(metric) ↔ append/removeAll
