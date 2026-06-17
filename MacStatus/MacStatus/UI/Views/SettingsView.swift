@@ -229,7 +229,7 @@ private struct ThresholdSubsection: View {
                     resetThresholds()
                 }
                 .buttonStyle(.borderless)
-                .foregroundColor(.accentColor)
+                .foregroundStyle(Color.accentColor)
             }
         }
         .onAppear {
@@ -315,7 +315,7 @@ private struct ColorSubsection: View {
                     resetColors()
                 }
                 .buttonStyle(.borderless)
-                .foregroundColor(.accentColor)
+                .foregroundStyle(Color.accentColor)
             }
         }
     }
