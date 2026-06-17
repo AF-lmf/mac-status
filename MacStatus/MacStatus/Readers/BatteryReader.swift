@@ -76,7 +76,7 @@ final class BatteryReader {
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
-            queue: nil
+            queue: .main   // 确保写入与 readValue()（@MainActor tick）在同一队列，消除跨线程竞争
         ) { [weak self] _ in
             self?.postWakeSkipCount = self?.postWakeSkipTotal ?? 3
         }
