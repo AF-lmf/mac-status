@@ -8,6 +8,7 @@ struct DashboardView: View {
     @EnvironmentObject private var state: DashboardState
 
     var body: some View {
+        let settings = SettingsManager.shared  // body 内读取，建立 @Observable 追踪依赖（无需 @State）
         VStack(spacing: 8) {
             // Header
             HStack {
@@ -59,36 +60,41 @@ struct DashboardView: View {
             }
 
             // Battery section (laptops only; entire section hidden on desktop Macs)
-            if state.hasBattery, let battery = state.battery {
+            // 外层：设置门控（showBatterySection）；内层：硬件门控（hasBattery）。
+            // 在无电池机型上 hasBattery = false，Toggle 可操作但弹窗不显示（原有行为不变）。
+            if settings.showBatterySection && state.hasBattery, let battery = state.battery {
                 BatterySectionView(snapshot: battery)
             }
 
-            // Process list
-            ProcessListView(
-                processes: state.topProcesses,
-                isLoading: state.processesLoading,
-                errorMessage: state.processError
-            )
+            // 进程相关三个区块整体由 showProcessSection 门控（整体显示或整体隐藏）
+            if settings.showProcessSection {
+                // Process list
+                ProcessListView(
+                    processes: state.topProcesses,
+                    isLoading: state.processesLoading,
+                    errorMessage: state.processError
+                )
 
-            // CPU Top 5 (PROC-01)
-            ProcessResourceSectionView(
-                title: "CPU 占用 Top 5",
-                items: state.topCPUProcesses,
-                isLoading: state.resourceLoading,
-                trailingText: { proc in
-                    proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
-                }
-            )
+                // CPU Top 5 (PROC-01)
+                ProcessResourceSectionView(
+                    title: "CPU 占用 Top 5",
+                    items: state.topCPUProcesses,
+                    isLoading: state.resourceLoading,
+                    trailingText: { proc in
+                        proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
+                    }
+                )
 
-            // 内存 Top 5 (PROC-02)
-            ProcessResourceSectionView(
-                title: "内存占用 Top 5",
-                items: state.topMemoryProcesses,
-                isLoading: state.resourceLoading,
-                trailingText: { proc in
-                    ByteFormatting.format(Double(proc.memoryBytes))
-                }
-            )
+                // 内存 Top 5 (PROC-02)
+                ProcessResourceSectionView(
+                    title: "内存占用 Top 5",
+                    items: state.topMemoryProcesses,
+                    isLoading: state.resourceLoading,
+                    trailingText: { proc in
+                        ByteFormatting.format(Double(proc.memoryBytes))
+                    }
+                )
+            }
 
             // Footer — self monitoring
             HStack {
