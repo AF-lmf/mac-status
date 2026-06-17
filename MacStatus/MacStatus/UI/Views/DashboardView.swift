@@ -365,7 +365,6 @@ final class DashboardState: ObservableObject {
     @Published var topCPUProcesses: [ProcessResourceUsage] = []
     @Published var topMemoryProcesses: [ProcessResourceUsage] = []
     @Published var resourceLoading: Bool = true
-    @Published var resourceError: String? = nil
 
     // Self monitoring
     @Published var selfCpuUsage: Double = 0
