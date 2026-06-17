@@ -232,6 +232,16 @@ private struct ThresholdSubsection: View {
                 .foregroundColor(.accentColor)
             }
         }
+        .onAppear {
+            // WR-01: 修正迁移种子产生的倒置初始状态（warning >= critical）。
+            // 仅当 customThresholds 尚未为该指标写入有效值时才可能出现此状态。
+            // 将 critical 推高到 min(warning+5, 95)，非破坏性（不影响已有有效阈值）。
+            let w = warningBinding.wrappedValue
+            let c = criticalBinding.wrappedValue
+            if w >= c {
+                criticalBinding.wrappedValue = min(w + 5, 95)
+            }
+        }
     }
 
     // MARK: - Computed Bindings（定义为计算属性，不在 body 内构造，避免无限重渲染）
