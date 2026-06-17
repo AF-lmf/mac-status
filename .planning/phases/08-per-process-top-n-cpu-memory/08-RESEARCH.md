@@ -665,7 +665,7 @@ ProcessMetricRow(processName: proc.processName, pid: proc.pid) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`ri_phys_footprint` vs Activity Monitor "内存"列的精确对应**
    - 已知：`ri_phys_footprint` 是内核 `ledger` 跟踪的 phys footprint，比 RSS 更接近 AM 内存列
