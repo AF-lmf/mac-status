@@ -30,6 +30,7 @@ final class MetricCollector {
     private let memoryReader = MemoryReader()
     private let networkReader = NetworkReader()
     private let gpuReader = GPUReader()
+    private let batteryReader = BatteryReader()
 
     // Batch buffer for SQLite writes (flush every 30 seconds)
     private var pendingSamples: [MetricSample] = []
@@ -40,6 +41,9 @@ final class MetricCollector {
 
     // Last collected sample — used by applyNow() to re-push UI without a new read
     private var lastSample: MetricSample?
+
+    // Last battery snapshot — kept separately from MetricSample (no persistence, no sparkline)
+    private var lastBatterySnapshot: BatterySnapshot? = nil
 
     // Token retaining the .settingsDidChange NotificationCenter observer
     private var settingsObserver: NSObjectProtocol?
@@ -57,12 +61,14 @@ final class MetricCollector {
         memoryReader.setup()
         networkReader.setup()
         gpuReader.setup()
+        batteryReader.setup()
 
         // First read establishes baseline (network needs two reads for delta)
         _ = cpuReader.readValue()
         _ = memoryReader.readValue()
         _ = networkReader.readValue()
         _ = gpuReader.readValue()
+        _ = batteryReader.readValue()
 
         // Unified tick timer on the main run loop
         let interval = SettingsManager.shared.refreshInterval
@@ -145,6 +151,8 @@ final class MetricCollector {
         let mem = memoryReader.readValue()
         let net = networkReader.readValue()
         let gpu = gpuReader.readValue()
+        let battery = batteryReader.readValue()
+        lastBatterySnapshot = battery
 
         let sample = MetricSample(
             cpuUsage: cpu,
@@ -194,6 +202,11 @@ final class MetricCollector {
         dashboard.updateGPU(sample.gpuUsage.map {
             GPUStats(utilizationPercent: $0, pressureLevel: nil)
         })
+
+        // Battery — pushed from the separately-cached snapshot (not part of MetricSample,
+        // no persistence, no sparkline). nil on desktop → DashboardState hides the section.
+        // Reached from both tick() and applyNow(), so a settings-driven repaint keeps it live.
+        dashboard.updateBattery(lastBatterySnapshot)
 
         // Update sparkline samples from ring buffer
         let recent = ringBuffer.recentSamples(60)
