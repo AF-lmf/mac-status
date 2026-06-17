@@ -21,6 +21,8 @@ C 12%  G 34%  M OK 68%  ↓2.1M ↑512K
 
 ### 弹窗仪表盘（点击菜单栏项）
 
+![MacStatus 弹窗仪表盘](docs/images/popover-preview.png)
+
 - CPU / 内存 / 网络 / GPU 四张卡片，各带最近 60 个采样点的趋势 sparkline。
 - **电池区（笔记本）** —— 台式机无电池时整区优雅隐藏：
   - 电量百分比、充电状态（充电中 / 电源接入 / 已充满 / 使用电池）、剩余时间 / 距充满、健康度与循环数。
@@ -75,57 +77,20 @@ scripts/install-local.sh
 4. 在设置窗口里开关指标、拖动排序、调阈值与配色、切换文字模式，改动立即生效。
 5. 应用会尝试注册为登录项，之后登录 macOS 时自动启动。
 
-## 给别人使用（无证书 / 无开发者账号）
+## 下载安装
 
-**可以。** 不需要付费 Apple Developer 账号，也不需要 Developer ID 证书，就能把 app 压成 zip 发给别人。Xcode 构建时默认做 ad-hoc 签名（“Sign to Run Locally”），这让 app 能在别人的 Apple Silicon Mac 上运行。
+从 [GitHub Releases](https://github.com/AF-lmf/mac-status/releases/latest) 下载最新的 `MacStatus-2.0.zip`，解压后把 `MacStatus.app` 拖到 `/Applications`。
 
-构建并打包：
-
-```bash
-xcodebuild -project MacStatus/MacStatus.xcodeproj -scheme MacStatus \
-  -configuration Release -derivedDataPath build.noindex build
-ditto -c -k --keepParent \
-  build.noindex/Build/Products/Release/MacStatus.app \
-  MacStatus.zip
-```
-
-**代价**：因为没有 Developer ID 签名、也没经过 Apple 公证，别人下载后（尤其经浏览器 / AirDrop / 邮件传输，文件会被打上 `com.apple.quarantine` 隔离标记）首次打开会被 Gatekeeper 拦截，提示“Apple 无法验证 MacStatus 不包含恶意软件”。接收方**手动放行一次**即可，三选一：
+该包为 ad-hoc 签名（未公证），首次打开可能被 Gatekeeper 拦截并提示“Apple 无法验证 MacStatus 不包含恶意软件”。任选一种方式放行一次即可，之后正常使用：
 
 - **右键打开**：在 Finder 里右键 `MacStatus.app` → 打开 → 在弹窗里再次点“打开”。
 - **系统设置**：系统设置 → 隐私与安全性 → 下方“仍要打开”。
-- **终端**移除隔离标记：
+- **终端**：
 
   ```bash
-  xattr -dr com.apple.quarantine /path/to/MacStatus.app
-  open /path/to/MacStatus.app
+  xattr -dr com.apple.quarantine /Applications/MacStatus.app
+  open /Applications/MacStatus.app
   ```
-
-这种方式适合发给同事、朋友小范围使用。若要面向不特定用户公开分发、做到**双击即开、零警告**，则需要下面的签名 + 公证流程。
-
-## 公开分发（Developer ID 签名 + 公证）
-
-要让任意 Mac 用户下载后无障碍打开，需要 Apple Developer Program（$99/年）的 `Developer ID Application` 证书，并完成 notarization 与 staple。
-
-首次发布前，把公证凭据保存到钥匙串：
-
-```bash
-xcrun notarytool store-credentials MacStatusNotaryProfile \
-  --apple-id "you@example.com" \
-  --team-id "YOURTEAMID" \
-  --password "app-specific-password"
-```
-
-之后用发布脚本构建、签名、公证、staple 并生成最终 zip：
-
-```bash
-TEAM_ID=YOURTEAMID \
-SIGNING_IDENTITY="Developer ID Application: Your Name (YOURTEAMID)" \
-NOTARY_PROFILE=MacStatusNotaryProfile \
-VERSION=2.0 \
-scripts/package-release.sh
-```
-
-脚本输出 `dist/MacStatus-2.0.zip`，即可上传到 GitHub Releases。用户下载解压后把 `MacStatus.app` 拖进 `/Applications` 即可，不会有 Gatekeeper 提示。
 
 ## 数据来源
 
