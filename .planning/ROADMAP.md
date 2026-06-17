@@ -61,7 +61,10 @@ Plans:
   3. The popover shows real-time charge/discharge power in Watts (signed: + charging, − discharging) and battery health (max-capacity %) with cycle count, each degrading to "—" when the model's `AppleSmartBattery` keys are unreadable rather than showing a fake value.
   4. On a desktop Mac (no battery present) the entire battery section is hidden — no empty fields, no zero/placeholder values — using the proven v1.0 GPU nil-degradation pattern.
   5. The new `BatteryReader` emits only `Sendable` snapshots across actor boundaries and rejoins the v1.0 sleep/wake recovery chain (delaying trust in post-wake estimates), so readings recover correctly after sleep.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — BatterySnapshot struct + BatteryReader class（IOKit 双层读取、probe-and-nil、sleep/wake 观察器）
+- [ ] 07-02-PLAN.md — MetricCollector 接入 + DashboardState 电池字段 + DashboardView 电池区块
 
 ### Phase 8: Per-Process Top-N CPU & Memory
 **Goal**: When the user opens the popover they can see which 3-5 processes are consuming the most CPU and the most memory right now, and that sampling stops the moment the popover closes so there is no 24/7 background cost.
@@ -96,6 +99,6 @@ Plans:
 | 4. Combined Display + Formatting | v1.0 | 1/1 | Complete | 2026-05-14 |
 | 5. Launch at Login + QoL | v1.0 | 1/1 | Complete | 2026-05-14 |
 | 6. Settings Foundation + Live Re-apply Seam | v2.0 | 3/3 | Complete   | 2026-06-16 |
-| 7. Battery & Power | v2.0 | 0/? | Not started | - |
+| 7. Battery & Power | v2.0 | 0/2 | Not started | - |
 | 8. Per-Process Top-N CPU & Memory | v2.0 | 0/? | Not started | - |
 | 9. Settings Window UI + Customization | v2.0 | 0/? | Not started | - |
