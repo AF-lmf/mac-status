@@ -75,7 +75,10 @@ Plans:
   2. With the popover open, the user sees the top 3-5 processes by resident memory (process name + memory), reusing the generalized process-list row alongside the existing network Top-N.
   3. Per-process sampling runs only while the popover is visible (off-main `Task.detached`, gated like `ProcessNetworkReader`) and is cancelled on popover close — verifiable as no measurable CPU cost while the popover is shut.
   4. The sampler is `task_for_pid`-free (`libproc` only, no new entitlement), handles PID disappearance/reuse via a `(pid, start-time)` key with `max(delta,0)`, and returns only `Sendable` snapshots across the actor boundary.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — ProcessResourceReader.swift（libproc 采样引擎 + proc_pid_rusage + snapshot diff + pbxproj 注册）
+- [ ] 08-02-PLAN.md — PopoverManager 采样循环启停 + DashboardState 新字段 + DashboardView CPU/内存 Top 5 区块 + ProcessMetricRow 泛化
 
 ### Phase 9: Settings Window UI + Customization
 **Goal**: From the right-click menu the user opens a real settings window and can directly toggle which metrics show, drag to reorder them, set custom thresholds and colors, and switch between compact and verbose status-bar modes — each change visible immediately.
