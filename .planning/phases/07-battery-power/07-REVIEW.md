@@ -9,153 +9,87 @@ files_reviewed_list:
   - MacStatus/MacStatus/UI/Views/DashboardView.swift
 findings:
   critical: 0
-  warning: 2
-  info: 3
-  total: 5
-status: issues_found
+  warning: 0
+  info: 0
+  total: 0
+status: clean
 ---
 
-# Phase 07: Code Review Report
+# Phase 07: Code Review Report（迭代 2 复审）
 
-**Reviewed:** 2026-06-17  
-**Depth:** standard  
-**Files Reviewed:** 3  
-**Status:** issues_found
+**Reviewed:** 2026-06-17
+**Depth:** standard
+**Files Reviewed:** 3
+**Status:** clean
 
 ## Summary
 
-本次评审覆盖电池功能三个核心文件：`BatteryReader`（IOKit 读取层）、`MetricCollector`（集成层）、`DashboardView`（显示层，含 `BatterySectionView` 与 `DashboardState`）。
+本次为迭代 2 复审，重点验证前次两项警告（WR-01 / WR-02）的修复是否正确、无回归，并对三个文件进行完整 standard-depth 扫描。
 
-**整体评价：** IOKit 内存管理规范（CF retain 语义正确、`defer IOObjectRelease` 位置合理、probe-and-nil 贯彻）；MetricCollector 集成干净（电池数据不写入 `MetricSample`/`RingBuffer`/`HistoryStore`，`reconfigure()` 不触碰 `batteryReader`）；功率符号逻辑（sign from `isChargingPS`，非 Amperage 符号）和健康度公式（`AppleRawMaxCapacity/DesignCapacity`，非 `MaxCapacity`）均正确。
+构建结果：`BUILD SUCCEEDED`（Swift 6，`SWIFT_STRICT_CONCURRENCY = complete`，零编译警告，零并发警告）。
 
-发现 2 个警告（逻辑正确性问题）和 3 个信息条目（代码质量）。无阻断级问题。
+---
+
+## Structural Findings (fallow)
+
+无结构化预分析结果传入，跳过本节。
 
 ---
 
 ## Narrative Findings (AI reviewer)
 
-## Warnings
+### WR-01 修复验证 — `chargeStateText` 状态覆盖（已修复，无回归）
 
-### WR-01: `chargeStateText` 在"优化充电暂停"场景下显示"已充满"标签有误
+**文件：** `MacStatus/MacStatus/UI/Views/DashboardView.swift:204-210`
 
-**File:** `MacStatus/MacStatus/UI/Views/DashboardView.swift:203-207`  
-**Issue:** `chargeStateText` 的三态逻辑为：`isCharging=true` → `充电中`；`isCharging=false && isOnAC=true` → `已充满`；否则 → `使用电池`。
+修复后的四态逻辑：
 
-"已充满"在中文语义上等同于"100% charged"。然而 macOS 的优化电池充电功能（Battery Health Management）会在 80% 时暂停充电：此时 `kIOPSIsChargingKey = false`、`kIOPSPowerSourceStateKey = "AC Power"`，而 `chargePercent = 80`。结果界面显示 **"80% · 已充满"**，标签与实际电量完全矛盾，会对用户造成误导。
+| 条件 | 显示文本 |
+|------|----------|
+| `isCharging == true` | 充电中 |
+| `!isCharging && isOnAC && chargePercent >= 99` | 已充满 |
+| `!isCharging && isOnAC && chargePercent < 99` | 电源接入 |
+| `!isCharging && !isOnAC` | 使用电池 |
 
-此问题不由 `kIOPSIsChargedKey` 引入（代码已正确回避该键），而是"AC 非充电"状态的标签选择问题。
+四态完整，无缺口，无重叠。边界值 `chargePercent >= 99` 正确处理了"优化充电暂停"场景（macOS Battery Health Management 可能在 80% 停止充电，届时显示"电源接入"而非"已充满"）。修复有效，原 WR-01 问题已消除。
 
-**Fix:** 对 AC 非充电且未达满电的情形使用中性标签，例如 `电源接入`（或 `充电暂停`），将"已充满"限定于 `chargePercent >= 99`：
+额外验证的边界情形：`isCharging=true && chargePercent=99` 时仍返回"充电中"（正确，Apple 硅在接近满电时 isCharging 可为 true），`timeText` 路径对应返回 `formatTime(timeToFullMinutes)`，无矛盾。
 
-```swift
-private var chargeStateText: String {
-    if snapshot.isCharging { return "充电中" }
-    if snapshot.isOnAC {
-        // 优化充电可能在 80% 暂停，不能直接用"已充满"
-        return snapshot.chargePercent >= 99 ? "已充满" : "电源接入"
-    }
-    return "使用电池"
-}
-```
+### WR-02 修复验证 — wake observer `queue: .main`（已修复，无回归）
 
----
+**文件：** `MacStatus/MacStatus/Readers/BatteryReader.swift:76-82`
 
-### WR-02: `postWakeSkipCount` 存在跨线程数据竞争（与 NetworkReader 同模式）
+`NSWorkspace.didWakeNotification` 观察者改为 `queue: .main`（`OperationQueue.main`）。在 Swift 6 中，`OperationQueue.main` 与 `DispatchQueue.main` 均被 Swift 运行时桥接至 MainActor 执行器（SE-0338 / SE-0394），因此闭包内对 `postWakeSkipCount` 的写入与 `MetricCollector`（`@MainActor`）调用 `readValue()` 的读写处于同一串行执行上下文，数据竞争已消除。
 
-**File:** `MacStatus/MacStatus/Readers/BatteryReader.swift:76-83`  
-**Issue:** `NSWorkspace.didWakeNotification` 观察者以 `queue: nil` 注册，通知回调在**未指定线程**（通常是后台线程）执行，直接写入 `self?.postWakeSkipCount`。而 `readValue()` 由 `@MainActor` 的 tick 调用，在主线程读写同一属性。`BatteryReader` 无任何 actor 隔离，`postWakeSkipCount` 是普通 `var Int`，这在 Swift 6（`SWIFT_STRICT_CONCURRENCY = complete`）下构成可检测的数据竞争。
+唤醒语义未改变：`didWakeNotification` 依然在系统唤醒后单次触发，`postWakeSkipCount` 被重置为 3，随后 3 次 tick 将时间估算抑制为"计算中"（`nil`）。观察者闭包为单向赋值，不持有任何锁，无死锁风险。修复有效，原 WR-02 问题已消除。
 
-```swift
-// 写入：任意后台线程
-self?.postWakeSkipCount = self?.postWakeSkipTotal ?? 3
+### 其余扫描结论
 
-// 读写：@MainActor 主线程
-if postWakeSkipCount > 0 {
-    postWakeSkipCount -= 1
-```
+**BatteryReader：**
+- IOKit 内存管理正确：`takeRetainedValue` 用于 `IOPSCopyPowerSourcesInfo` / `IOPSCopyPowerSourcesList` 的拥有型指针；`takeUnretainedValue` 用于 `IOPSGetPowerSourceDescription` 的借用型指针；`defer IOObjectRelease(service)` 覆盖 Layer 2 的所有代码路径（含两个 guard 的 early-return 均在 `defer` 注册后，故均正确释放）。
+- probe-and-nil 贯彻，无强解包。
+- `postWakeSkipCount` 的递减用 `> 0` 守卫，不会下溢。
 
-项目已确认以 Swift 6 + `SWIFT_STRICT_CONCURRENCY = complete` 编译，`NetworkReader` 中存在相同模式（`previousBytes`/`previousTime` 在 wake 回调写入，在 `.utility` 后台 queue 读写，竞争更严重），均在 v1.0 中随同发布。本条目记录该风险，供后续修正参考。
+**MetricCollector：**
+- Battery 数据流路径正确：`lastBatterySnapshot` 独立缓存，不写入 `MetricSample` / `RingBuffer` / `HistoryStore`；`applyNow()` 通过 `updateUI` 复用快照，settings 驱动的重渲染可正常带出电池数据。
+- `reconfigure()` 不触碰 `batteryReader`，保留 wake 观察者和计数状态，符合设计意图。
 
-**Fix（可选，与 NetworkReader 对齐修复）：** 将 wake 观察者 `queue` 改为 `.main`，消除跨线程写入：
+**DashboardView / DashboardState：**
+- `formatTime` 对 `nil`（post-wake 抑制）、`-1`（Apple PMU 哨兵值）、`0`（不适用）、正数均有覆盖。
+- `wattsText` 符号逻辑正确（`snapshot.watts` 的符号已由 `BatteryReader` 在写入时根据 `isChargingPS` 决定，显示层仅判断 `>= 0` 取符号字符）。
+- `healthText` 的 `Int(h.rounded())` 正确避免了截断误差。
+- `appendSample` 正确将样本数限制于 `maxSamples=60`。
 
-```swift
-wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
-    forName: NSWorkspace.didWakeNotification,
-    object: nil,
-    queue: .main   // <-- 确保与 readValue() 在同一队列
-) { [weak self] _ in
-    self?.postWakeSkipCount = self?.postWakeSkipTotal ?? 3
-}
-```
+### 已知 INFO 条目（明确置于本次复审范围外，不计入 findings）
+
+- **IN-01**：`hasBattery` 与 `battery != nil` 冗余
+- **IN-02**：AC 待机时 `timeLabel` 显示"剩余时间"行语义歧义
+- **IN-03**：`updateUI` 内 `NetworkStats` 对象重复构造
+
+All reviewed files meet quality standards. No new or remaining critical/warning issues found.
 
 ---
 
-## Info
-
-### IN-01: `hasBattery` 是冗余的 `@Published` 属性
-
-**File:** `MacStatus/MacStatus/UI/Views/DashboardView.swift:62-64` 及 `DashboardState:282,362`  
-**Issue:** `DashboardState` 维护两个并行属性 `battery: BatterySnapshot?` 和 `hasBattery: Bool`，`updateBattery(_:)` 将两者同步赋值。`DashboardView` 使用双重条件 `if state.hasBattery, let battery = state.battery`。
-
-`hasBattery` 完全派生自 `battery != nil`，不提供任何独立信息，却引入了两个 `@Published` 更新（两次 `objectWillChange` 触发两次可能的 SwiftUI 重渲染）和视图中冗余的双重判断。
-
-**Fix:** 移除 `hasBattery`，视图直接使用 `if let battery = state.battery`：
-
-```swift
-// DashboardView.swift
-if let battery = state.battery {
-    BatterySectionView(snapshot: battery)
-}
-
-// DashboardState.swift — 删除 hasBattery 属性和对应赋值
-func updateBattery(_ snapshot: BatterySnapshot?) {
-    battery = snapshot
-}
-```
-
----
-
-### IN-02: `timeLabel` 在 AC 待机状态下显示"剩余时间"行语义歧义
-
-**File:** `MacStatus/MacStatus/UI/Views/DashboardView.swift:210-222`  
-**Issue:** `timeLabel` 的计算逻辑为 `snapshot.isCharging ? "距充满" : "剩余时间"`，未处理 AC 待机（`isOnAC=true`，`!isCharging`）情形。在"已充满/电源接入"状态下，界面展示一行 `"剩余时间 ···  —"`。该行既没有实际意义（WR-01 的场景下更是与 "已充满" 标签同时可见），不如在 AC 待机时完全隐藏此行。
-
-**Fix:** AC 待机时不渲染时间行：
-
-```swift
-// 仅在"使用电池"或"充电中"时显示时间行
-if snapshot.isCharging || !snapshot.isOnAC {
-    row(timeLabel, timeText)
-}
-```
-
----
-
-### IN-03: `updateUI` 中 `NetworkStats` 对象重复构造
-
-**File:** `MacStatus/MacStatus/Collectors/MetricCollector.swift:196-199,222-225`  
-**Issue:** `updateUI(sample:)` 方法内，`netStats`（用于 `dashboard.updateNetwork`）和 `netStats2`（用于 `StatusBarManager.shared.updateTitle`）使用完全相同的逻辑分别构造，是重复代码。此问题存在于本次 Phase 前，但 battery 集成未修复它，留存于本次 diff 范围内。
-
-**Fix:**
-
-```swift
-let netStats: NetworkStats? = (sample.networkUploadBps != nil || sample.networkDownloadBps != nil)
-    ? NetworkStats(downloadBytesPerSec: sample.networkDownloadBps ?? 0,
-                   uploadBytesPerSec: sample.networkUploadBps ?? 0)
-    : nil
-
-dashboard.updateNetwork(netStats)
-// ...
-StatusBarManager.shared.updateTitle(
-    cpuUsage: sample.cpuUsage,
-    memoryStats: memStats,
-    networkStats: netStats,   // 复用同一实例
-    gpuStats: sample.gpuUsage.map { GPUStats(utilizationPercent: $0, pressureLevel: nil) }
-)
-```
-
----
-
-_Reviewed: 2026-06-17_  
-_Reviewer: Claude (gsd-code-reviewer)_  
+_Reviewed: 2026-06-17_
+_Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
