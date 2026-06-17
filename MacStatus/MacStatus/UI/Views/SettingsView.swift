@@ -369,7 +369,10 @@ final class SettingsWindowManager {
 
     /// Show the settings window, creating it if needed.
     func showSettings() {
-        if let window, window.isVisible {
+        if let window {
+            // WR-02-REGR: 复用已有窗口实例（无论是否可见），直接唤起前台。
+            // isReleasedWhenClosed=false 的正确模式：整个生命周期复用同一 NSWindow，
+            // 不重建。移除 isVisible 检查以避免关闭后再打开时创建新实例导致旧窗口泄漏。
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
