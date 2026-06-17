@@ -64,7 +64,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 07-01-PLAN.md — BatterySnapshot struct + BatteryReader class（IOKit 双层读取、probe-and-nil、sleep/wake 观察器）
-- [ ] 07-02-PLAN.md — MetricCollector 接入 + DashboardState 电池字段 + DashboardView 电池区块
+- [x] 07-02-PLAN.md — MetricCollector 接入 + DashboardState 电池字段 + DashboardView 电池区块
 
 ### Phase 8: Per-Process Top-N CPU & Memory
 **Goal**: When the user opens the popover they can see which 3-5 processes are consuming the most CPU and the most memory right now, and that sampling stops the moment the popover closes so there is no 24/7 background cost.
