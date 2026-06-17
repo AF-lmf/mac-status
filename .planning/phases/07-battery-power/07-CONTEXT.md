@@ -33,6 +33,14 @@
 - sleep/wake：**`BatteryReader` 观察 `NSWorkspace.didWakeNotification`**（沿用 `NetworkReader.swift` 已有的唤醒观察范式）；唤醒后剩余时间估计先显示"计算中"，直到取得一次稳定读数（延迟信任 —— macOS 唤醒瞬间常报 `-1`），保证 sleep/wake 后读数正确恢复。
 - 作用域：**Phase 7 仅 popover**。不把 `.battery` 加入状态栏 `enabledMetrics`/`metricOrder`；`StatusBarManager.updateTitle` 的 `case .battery: break` 保持不变。状态栏电池显示留待 Phase 9 定制决定。
 
+### 研究阶段澄清 (resolved post-research, HIGH 置信度 — 对照真机 SDK 验证)
+- **健康度公式**：用 `AppleRawMaxCapacity / DesignCapacity × 100`（**不要**用 `MaxCapacity`——Apple Silicon 上它=100 是百分比而非 mAh 容量，会算出错误的 100%）。Intel/AS 通用。
+- **Watts 符号权威源**：用 `kIOPSIsChargingKey` + `kIOPSPowerSourceStateKey` 判定充/放方向，取 `abs(watts)` 作幅值（**不要**单信 `Amperage` 符号——跨机型不一致）。watts = `Amperage`(mA, `as? Int`) × `Voltage`(mV, `as? Int`) / 1_000_000。
+- **充电三态规则**（`kIOPSIsChargedKey` 在优化充电下不可靠，97% 仍报 false）：`isCharging → 充电中`；`!isCharging && state == "AC Power" → 已充满`；`state == "Battery Power" → 使用电池`。
+- **CF 内存管理**：`IOPSGetPowerSourceDescription` 用 `takeUnretainedValue()`（info blob 拥有该字典，过释放会崩溃）；`IOPSCopyPowerSourcesInfo`/`IOPSCopyPowerSourcesList` 用 `takeRetainedValue()`；`IORegistryEntryCreateCFProperties` 后 `IOObjectRelease`。
+- **时间哨兵**：仅 `-1` = 计算中；`0` = 当前状态不适用（非错误，按"计算中"或不显示处理，勿当错误）。单位为分钟。
+- **Watts ≈ 0 边缘**（AC 待机不充电时 Amperage=0）：`|watts| < 0.1` 时显示 **"—"**，避免误导性的 `+0.0W`/`−0.0W`（与"不可读→—"一致；Claude 已据研究员建议定稿，未单独打断用户）。
+
 ### Claude's Discretion
 - `BatteryReader` 是否继承 `TimerReader<BatterySnapshot>`（如 GPUReader）还是仅实现一个同步 `readValue()`：由 Claude 依 MetricCollector 接入方式裁定；MetricCollector 当前只调用各 reader 的 `readValue()`，故至少需提供同步 `readValue() -> BatterySnapshot?`。
 - 瓦数计算的具体键名与单位换算（Amperage 可能为有符号 mA、Voltage 为 mV）、健康度分母用 DesignCapacity 还是 NominalChargeCapacity：交由研究阶段在真机/文档核实后定稿（见下方 deferred 的硬件矩阵关切）。
