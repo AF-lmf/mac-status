@@ -36,7 +36,7 @@ struct SettingsView: View {
                         settings.metricOrder.move(fromOffsets: from, toOffset: to)
                     }
                 }
-                .frame(height: CGFloat(settings.metricOrder.count) * 36)
+                .frame(height: CGFloat(settings.metricOrder.count) * 44)  // WR-04: 44pt/行适配辅助功能大字体（Dynamic Type）
                 .listStyle(.plain)
             }
 
