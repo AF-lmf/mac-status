@@ -618,7 +618,7 @@ dashboard.updateBattery(battery)          // nil on desktop → section hidden
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Watts display when `isOnAC && !isCharging` (optimized charging pause)**
    - What we know: `Amperage = 0`, `watts = 0.0W`
