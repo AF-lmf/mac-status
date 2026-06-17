@@ -29,8 +29,10 @@ struct BatterySnapshot: Sendable, Equatable {
     /// Only meaningful when `isCharging == true`.
     let timeToFullMinutes: Int?
 
-    /// Net power draw in Watts. Positive = charging, negative = discharging.
-    /// `nil` if Amperage/Voltage key is missing OR |watts| < 0.1 (idle noise → "—").
+    /// Battery-terminal power in Watts. Positive = charging, negative = discharging.
+    /// Sourced from the real-time SMC `PPBR` sensor, falling back to AppleSmartBattery
+    /// |Amperage×Voltage| (slow gas-gauge) when PPBR is unavailable.
+    /// `nil` when neither source is readable OR |watts| < 0.1 (idle noise → "—").
     let watts: Double?
 
     /// Battery health 0–100% = `AppleRawMaxCapacity / DesignCapacity × 100`.
@@ -39,6 +41,12 @@ struct BatterySnapshot: Sendable, Equatable {
 
     /// Lifetime charge cycles. `nil` if `CycleCount` key is missing.
     let cycleCount: Int?
+
+    /// Whole-system total power draw in Watts, from SMC `PSTR`. Always positive
+    /// (the entire machine's instantaneous consumption, independent of power source).
+    /// `nil` when the SMC key/connection is unavailable on this hardware → UI shows "—".
+    /// Unlike `watts` (battery-terminal power), this is visible while on AC.
+    let systemPowerWatts: Double?
 }
 
 // MARK: - Battery Reader
@@ -69,10 +77,17 @@ final class BatteryReader {
     /// Grace period length: 3 ticks × 2s ≈ 6s for the PMU to recompute post-wake.
     private let postWakeSkipTotal = 3
 
+    // MARK: - SMC (whole-system power)
+
+    /// Read-only SMC client for whole-system power (`PSTR`). Owned here so the read
+    /// happens on the same @MainActor tick; closes itself on deinit.
+    private let smcReader = SMCReader()
+
     // MARK: - Lifecycle
 
-    /// Register the wake observer. Called once before the first read.
+    /// Register the wake observer and open the SMC connection. Called once before the first read.
     func setup() {
+        smcReader.open()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
@@ -129,6 +144,22 @@ final class BatteryReader {
             timeToFull = nil
         }
 
+        // Whole-system power (SMC PSTR) — independent of charge state, so it is read
+        // once here and attached to every return path. nil → UI shows "—".
+        let systemPowerWatts = smcReader.readValue(key: "PSTR")
+
+        // Discharge power — the SMC PPBR sensor is real-time (sub-second refresh) but it
+        // measures battery OUTPUT only: it reads ~0 while charging (verified: 0.5W during
+        // a 46W charge). So trust PPBR ONLY when discharging; charging power must come from
+        // AppleSmartBattery |Amperage×Voltage| (Layer 2) instead. Returns a negative value
+        // (discharging, − sign) or nil; |w| < 0.1 → nil ("—").
+        let smcDischargeWatts: Double? = {
+            guard !isChargingPS, let ppbr = smcReader.readValue(key: "PPBR") else { return nil }
+            let magnitude = abs(ppbr)
+            if magnitude < 0.1 { return nil }
+            return -magnitude
+        }()
+
         // ── Layer 2: AppleSmartBattery (watts, health, cycles) ─────────────────
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
@@ -143,9 +174,10 @@ final class BatteryReader {
                 isOnAC: isOnAC,
                 timeToEmptyMinutes: timeToEmpty,
                 timeToFullMinutes: timeToFull,
-                watts: nil,
+                watts: smcDischargeWatts,
                 healthPercent: nil,
-                cycleCount: nil
+                cycleCount: nil,
+                systemPowerWatts: systemPowerWatts
             )
         }
         defer { IOObjectRelease(service) }
@@ -161,22 +193,27 @@ final class BatteryReader {
                 isOnAC: isOnAC,
                 timeToEmptyMinutes: timeToEmpty,
                 timeToFullMinutes: timeToFull,
-                watts: nil,
+                watts: smcDischargeWatts,
                 healthPercent: nil,
-                cycleCount: nil
+                cycleCount: nil,
+                systemPowerWatts: systemPowerWatts
             )
         }
 
-        // Watts — probe-and-nil; magnitude from |Amperage×Voltage|, SIGN from IOPS charging
-        // state (NOT the Amperage sign, which is not guaranteed across models).
-        // |watts| < 0.1 → nil so the UI shows "—" instead of a misleading "+0.0W".
-        let watts: Double? = {
+        // AppleSmartBattery |Amperage×Voltage| (gas-gauge). This is the CHARGING power
+        // source (PPBR can't see it) and the discharge fallback when PPBR is unavailable.
+        // Slow to update (~tens of seconds), but charging power changes gradually anyway.
+        // SIGN from IOPS charging state (NOT the Amperage sign, not guaranteed across
+        // models). |watts| < 0.1 → nil so the UI shows "—" instead of a misleading "+0.0W".
+        let amperageWatts: Double? = {
             guard let amp = props["Amperage"] as? Int,
                   let volt = props["Voltage"] as? Int else { return nil }
             let magnitude = abs(Double(amp)) / 1000.0 * Double(volt) / 1000.0
             if magnitude < 0.1 { return nil }
             return isChargingPS ? +magnitude : -magnitude
         }()
+        // Discharge → real-time PPBR; charge (or PPBR missing) → AppleSmartBattery.
+        let watts = smcDischargeWatts ?? amperageWatts
 
         // Health % — AppleRawMaxCapacity / DesignCapacity (correct on Apple Silicon AND Intel).
         // NEVER use MaxCapacity: it is 100 (a percentage) on Apple Silicon.
@@ -197,7 +234,8 @@ final class BatteryReader {
             timeToFullMinutes: timeToFull,
             watts: watts,
             healthPercent: healthPercent,
-            cycleCount: cycleCount
+            cycleCount: cycleCount,
+            systemPowerWatts: systemPowerWatts
         )
     }
 }

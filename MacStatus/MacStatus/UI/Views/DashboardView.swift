@@ -147,6 +147,8 @@ struct MetricCardWithSparkline: View {
                     .font(.system(.body, design: .monospaced))
                     .fontWeight(.medium)
                     .foregroundStyle(color)
+                    .multilineTextAlignment(.trailing)  // 多行数值（如网络 ↑/↓）右对齐竖排
+                    .fixedSize(horizontal: false, vertical: true)  // 允许纵向扩展，杜绝因宽度受限被压回一行
             }
 
             // Progress bar
@@ -202,7 +204,8 @@ struct BatterySectionView: View {
             }
 
             row(timeLabel, timeText)
-            row("功率", wattsText)
+            row("电池功率", wattsText)
+            row("整机功耗", systemPowerText)
             row("健康度", healthText)
         }
         .padding(10)
@@ -265,11 +268,18 @@ struct BatterySectionView: View {
         }
     }
 
-    /// 带符号瓦数：充电 +18.5W、放电 −12.3W；nil（键缺失或 <0.1W）→ —。
+    /// 带语义瓦数：充电 → "充电 18.5W"；放电 → "耗电 12.3W"；
+    /// nil（电池键缺失，或接入电源未充放电使净功率 <0.1W）→ —。
     private var wattsText: String {
         guard let w = snapshot.watts else { return "—" }
-        let sign = w >= 0 ? "+" : "−"
-        return "\(sign)\(String(format: "%.1f", abs(w)))W"
+        let verb = w >= 0 ? "充电" : "耗电"
+        return "\(verb) \(String(format: "%.1f", abs(w)))W"
+    }
+
+    /// 整机实时功耗（SMC PSTR），接入电源时也有意义；键不可用 → —。
+    private var systemPowerText: String {
+        guard let p = snapshot.systemPowerWatts else { return "—" }
+        return "\(String(format: "%.1f", p))W"
     }
 
     /// "92%（320 次循环）"；健康度缺失 → —；循环数缺失则仅显示百分比。
@@ -422,7 +432,9 @@ final class DashboardState: ObservableObject {
         }
         let up = ByteFormatting.format(stats.uploadBytesPerSec)
         let down = ByteFormatting.format(stats.downloadBytesPerSec)
-        networkText = "↑\(up) ↓\(down)"
+        // 用换行分隔上/下行，强制始终竖排（↑ 在上、↓ 在下），
+        // 避免随数值长短在"并排一行"与"折成两行"之间来回抖动。
+        networkText = "↑\(up)\n↓\(down)"
 
         let maxBytesPerSec: Double = 100 * 1_000_000 // 100 MB/s
         let total = stats.uploadBytesPerSec + stats.downloadBytesPerSec
