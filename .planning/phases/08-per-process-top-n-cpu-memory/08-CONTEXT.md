@@ -32,6 +32,14 @@
 - 状态：CPU% 首帧显示 **"—"**（尚无差值）随后转实时%；加载用现有 `ProgressView` spinner（"Sampling…"）；空 → "无数据"。内存即时可得（无需差值）。
 - 条数：各 **Top 5**（匹配既有 `prefix(5)` 与"3-5"需求；少于 5 则显示实际数量）。
 
+### 研究阶段澄清 (resolved post-research, HIGH 置信度 — 直读 macOS SDK 头文件)
+- **CPU 时间单位修正**：`ri_user_time`/`ri_system_time` 是 **Mach absolute time ticks，不是纳秒**（AS 上 1 tick≈41.7ns，Intel 上=1ns——历史 bug 根源）。正确做法：用 `mach_absolute_time()` 取壁钟时间戳作为 Δwall，与 cpu ticks **同单位**，`CPU% = max(Δcpu_ticks,0)/Δwall_ticks×100` 中单位天然抵消，**无需 `mach_timebase_info` 转换**。
+- **启动时间键免 sysctl**：`rusage_info_v4` 已含 `ri_proc_start_abstime`（Mach ticks）。`(pid, ri_proc_start_abstime)` 作复合键即可 PID 复用安全——**一次 `proc_pid_rusage` 调用取齐 CPU ticks、内存、启动时间三者**，无需单独 `sysctl(KERN_PROC_PID)`。
+- **内存字段定为 `ri_phys_footprint`**（应用独占物理内存，对应活动监视器"内存"列）；**不用** `ri_resident_size`（RSS 含共享库映射、虚高）。
+- **/bin/ps fallback 不实现**：libproc 是纯 C syscall、任意线程安全，`rusage_info_v4` 全值类型满足 Swift 6 Sendable；`ProcessResourceReader` 作普通 class 由单一 `Task.detached` 独占访问即无数据竞争，编译器不报错。STATE 的 ps fallback 关切已消解——直接用 libproc。
+- **`import Darwin` 足够**（libproc 在 Darwin.modulemap 内），无需 bridging header（与现有 MemoryReader/GPUReader 一致）。
+- 进程名用 `proc_name(pid,…)`（或 `proc_pidpath` basename，PROC_PIDPATHINFO_MAXSIZE 缓冲）；`proc_pid_rusage` 返回 -1/errno 的 PID（权限/已退出）静默跳过（probe-and-skip）。
+
 ### Claude's Discretion
 - **libproc vs /bin/ps fallback**（STATE Phase 8 关切）：优先 libproc。若 Swift 6 严格并发下 libproc 的 C struct/handle 跨 actor 边界过于棘手，已记录的 fallback 是仿 `ProcessNetworkReader` spawn `/bin/ps` 解析。由研究/执行阶段依实际并发可行性裁定，但务必先尝试 libproc。
 - `proc_pid_rusage` 的具体 `RUSAGE_INFO` 版本与内存字段（`ri_resident_size` vs `ri_phys_footprint`，后者更接近活动监视器"内存"）由研究阶段核实定稿。
