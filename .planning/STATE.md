@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 洞察与可定制
-status: ready_to_plan
-stopped_at: Phase 07 complete (static verified; human UAT deferred 2026-06-17)
-last_updated: "2026-06-17T01:30:00.000Z"
-last_activity: 2026-06-17 -- Phase 07 complete, advancing to Phase 08
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-06-17T03:18:45.215Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 50
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,17 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 08 — Per-Process Top-N CPU & Memory（Phase 06、07 已完成）
+**Current focus:** Phase 08 — Per-Process Top-N CPU & Memory
 
 ## Current Position
 
-Phase: 07 (Battery & Power) — ✅ COMPLETE (static verified 5/5 + build + review clean; 人工 UAT 延后)
+Phase: 08 (Per-Process Top-N CPU & Memory) — EXECUTING
 Next: Phase 08 (Per-Process Top-N CPU & Memory) — not started
-Plan: —
-Status: Phase 07 complete — ready to plan Phase 08
-Last activity: 2026-06-17 -- Phase 07 complete, advancing to Phase 08
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-06-17
 
 **⏳ 延后的人工 UAT（与 Phase 9 一并补测）：**
+
 - Phase 7 电池区 4 项运行时验证（笔记本渲染、台式机隐藏、充放电态切换+功率符号、睡眠唤醒"计算中"）— 见 07-VERIFICATION.md human_verification
 
 **v2.0 phase map (build order — respects dependency ordering):**
@@ -74,6 +75,7 @@ Last activity: 2026-06-17 -- Phase 07 complete, advancing to Phase 08
 | Phase 06 P01 | 20 | 2 tasks | 4 files |
 | Phase 06 P02 | 8 | 2 tasks | 2 files |
 | Phase 06 P03 | 3 | 2 tasks | 3 files |
+| Phase 08 P01 | 3m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -112,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Default metricOrder = [cpu, gpu, memory, network] — matches v1.0 compact mode order
 - [Phase ?]: migrateToV1() writes directly to UserDefaults to prevent notification storm during init
 - [Phase ?]: changedKeys 使用字符串字面量 'refreshInterval'，非 SettingsManager.Keys（private enum）
+- [Phase ?]: proc_pid_rusage Swift binding 需 withMemoryRebound(to: Optional<UnsafeMutableRawPointer>.self)
 
 ### v2.0 Cross-cutting Constraints (apply to every new phase)
 
@@ -165,7 +168,7 @@ Items acknowledged and deferred at milestone close on 2026-06-10:
 
 ## Session Continuity
 
-Last session: 2026-06-16T15:59:54.366Z
+Last session: 2026-06-17T03:18:45.211Z
 Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 

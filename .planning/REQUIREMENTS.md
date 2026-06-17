@@ -9,9 +9,9 @@
 
 ### 逐进程 (PROC)
 
-- [ ] **PROC-01**: 用户能在弹窗中看到 CPU 占用最高的 3-5 个进程（进程名 + CPU%）
-- [ ] **PROC-02**: 用户能在弹窗中看到常驻内存占用最高的 3-5 个进程（进程名 + 内存）
-- [ ] **PROC-03**: 逐进程数据仅在弹窗打开时采样，关闭弹窗即停止，不增加后台常驻开销
+- [x] **PROC-01**: 用户能在弹窗中看到 CPU 占用最高的 3-5 个进程（进程名 + CPU%）
+- [x] **PROC-02**: 用户能在弹窗中看到常驻内存占用最高的 3-5 个进程（进程名 + 内存）
+- [x] **PROC-03**: 逐进程数据仅在弹窗打开时采样，关闭弹窗即停止，不增加后台常驻开销
 
 ### 电池 (BATT)
 
@@ -77,9 +77,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROC-01 | Phase 8 | Pending |
-| PROC-02 | Phase 8 | Pending |
-| PROC-03 | Phase 8 | Pending |
+| PROC-01 | Phase 8 | Complete |
+| PROC-02 | Phase 8 | Complete |
+| PROC-03 | Phase 8 | Complete |
 | BATT-01 | Phase 7 | Pending |
 | BATT-02 | Phase 7 | Pending |
 | BATT-03 | Phase 7 | Pending |

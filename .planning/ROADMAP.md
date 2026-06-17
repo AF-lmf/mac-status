@@ -77,7 +77,7 @@ Plans:
   4. The sampler is `task_for_pid`-free (`libproc` only, no new entitlement), handles PID disappearance/reuse via a `(pid, start-time)` key with `max(delta,0)`, and returns only `Sendable` snapshots across the actor boundary.
 **Plans**: 2 plans
 Plans:
-- [ ] 08-01-PLAN.md — ProcessResourceReader.swift（libproc 采样引擎 + proc_pid_rusage + snapshot diff + pbxproj 注册）
+- [x] 08-01-PLAN.md — ProcessResourceReader.swift（libproc 采样引擎 + proc_pid_rusage + snapshot diff + pbxproj 注册）
 - [ ] 08-02-PLAN.md — PopoverManager 采样循环启停 + DashboardState 新字段 + DashboardView CPU/内存 Top 5 区块 + ProcessMetricRow 泛化
 
 ### Phase 9: Settings Window UI + Customization
@@ -103,5 +103,5 @@ Plans:
 | 5. Launch at Login + QoL | v1.0 | 1/1 | Complete | 2026-05-14 |
 | 6. Settings Foundation + Live Re-apply Seam | v2.0 | 3/3 | Complete   | 2026-06-16 |
 | 7. Battery & Power | v2.0 | 0/2 | Not started | - |
-| 8. Per-Process Top-N CPU & Memory | v2.0 | 0/? | Not started | - |
+| 8. Per-Process Top-N CPU & Memory | v2.0 | 1/2 | In Progress|  |
 | 9. Settings Window UI + Customization | v2.0 | 0/? | Not started | - |
