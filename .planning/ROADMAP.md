@@ -63,7 +63,7 @@ Plans:
   5. The new `BatteryReader` emits only `Sendable` snapshots across actor boundaries and rejoins the v1.0 sleep/wake recovery chain (delaying trust in post-wake estimates), so readings recover correctly after sleep.
 **Plans**: 2 plans
 Plans:
-- [ ] 07-01-PLAN.md — BatterySnapshot struct + BatteryReader class（IOKit 双层读取、probe-and-nil、sleep/wake 观察器）
+- [x] 07-01-PLAN.md — BatterySnapshot struct + BatteryReader class（IOKit 双层读取、probe-and-nil、sleep/wake 观察器）
 - [ ] 07-02-PLAN.md — MetricCollector 接入 + DashboardState 电池字段 + DashboardView 电池区块
 
 ### Phase 8: Per-Process Top-N CPU & Memory
