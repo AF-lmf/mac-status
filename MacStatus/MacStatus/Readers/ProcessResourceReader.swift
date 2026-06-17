@@ -96,11 +96,14 @@ final class ProcessResourceReader {
             // 跳过 pid 0（kernel_task，无法采样，也无意义）
             guard pid > 0 else { continue }
 
-            // 4. proc_pid_rusage —— 推荐写法：UnsafeMutableRawPointer 擦除类型
-            //    rusage_info_t 是 void*，proc_pid_rusage 第三参数为 rusage_info_t *（即 void **）
+            // 4. proc_pid_rusage —— rusage_info_t 是 void*（即 UnsafeMutableRawPointer?）
+            //    proc_pid_rusage 第三参数类型为 rusage_info_t *（即 UnsafeMutablePointer<rusage_info_t?>?）
+            //    通过 withMemoryRebound 将 &info 的类型视图转为 rusage_info_t?（即 UnsafeMutableRawPointer?）
             var info = rusage_info_v4()
-            let ret = withUnsafeMutablePointer(to: &info) {
-                proc_pid_rusage(pid, RUSAGE_INFO_V4, UnsafeMutableRawPointer($0))
+            let ret = withUnsafeMutablePointer(to: &info) { ptr in
+                ptr.withMemoryRebound(to: Optional<UnsafeMutableRawPointer>.self, capacity: 1) { typedPtr in
+                    proc_pid_rusage(pid, RUSAGE_INFO_V4, typedPtr)
+                }
             }
             // EPERM（权限不足）或 ESRCH（进程已退出）→ 静默跳过，绝不崩溃（Pitfall 5）
             guard ret == 0 else { continue }
