@@ -92,7 +92,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 09-01-PLAN.md — SettingsManager 新增 showBatterySection/showProcessSection bool 键
-- [ ] 09-02-PLAN.md — SettingsView 重构：状态栏指标 List.onMove + 弹窗区块 Toggles + 文字模式 Picker
+- [x] 09-02-PLAN.md — SettingsView 重构：状态栏指标 List.onMove + 弹窗区块 Toggles + 文字模式 Picker
 - [ ] 09-03-PLAN.md — SettingsView 告警阈值/配色 Section + DashboardView 可见性门控
 
 ## Progress
@@ -107,4 +107,4 @@ Plans:
 | 6. Settings Foundation + Live Re-apply Seam | v2.0 | 3/3 | Complete   | 2026-06-16 |
 | 7. Battery & Power | v2.0 | 0/2 | Not started | - |
 | 8. Per-Process Top-N CPU & Memory | v2.0 | 2/2 | Complete   | 2026-06-17 |
-| 9. Settings Window UI + Customization | v2.0 | 1/3 | In Progress|  |
+| 9. Settings Window UI + Customization | v2.0 | 2/3 | In Progress|  |
