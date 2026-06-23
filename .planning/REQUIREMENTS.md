@@ -83,33 +83,33 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THERM-01 | TBD | Pending |
-| THERM-02 | TBD | Pending |
-| THERM-03 | TBD | Pending |
-| THERM-04 | TBD | Pending |
-| FAN-01 | TBD | Pending |
-| FAN-02 | TBD | Pending |
-| FAN-03 | TBD | Pending |
-| FAN-04 | TBD | Pending |
-| LAYOUT-01 | TBD | Pending |
-| LAYOUT-02 | TBD | Pending |
-| LAYOUT-03 | TBD | Pending |
-| LAYOUT-04 | TBD | Pending |
-| FCTRL-01 | TBD | Pending |
-| FCTRL-02 | TBD | Pending |
-| FCTRL-03 | TBD | Pending |
-| FCTRL-04 | TBD | Pending |
-| FCTRL-05 | TBD | Pending |
-| FCTRL-06 | TBD | Pending |
-| UAT-01 | TBD | Pending |
-| UAT-02 | TBD | Pending |
-| UAT-03 | TBD | Pending |
-| UAT-04 | TBD | Pending |
+| THERM-01 | Phase 10 | Pending |
+| THERM-02 | Phase 10 | Pending |
+| THERM-03 | Phase 10 | Pending |
+| THERM-04 | Phase 10 | Pending |
+| FAN-01 | Phase 11 | Pending |
+| FAN-02 | Phase 11 | Pending |
+| FAN-03 | Phase 11 | Pending |
+| FAN-04 | Phase 11 | Pending |
+| LAYOUT-01 | Phase 12 | Pending |
+| LAYOUT-02 | Phase 12 | Pending |
+| LAYOUT-03 | Phase 12 | Pending |
+| LAYOUT-04 | Phase 12 | Pending |
+| FCTRL-01 | Phase 13 | Pending |
+| FCTRL-02 | Phase 13 | Pending |
+| FCTRL-03 | Phase 13 | Pending |
+| FCTRL-04 | Phase 13 | Pending |
+| FCTRL-05 | Phase 14 | Pending |
+| FCTRL-06 | Phase 13 | Pending |
+| UAT-01 | Phase 14 | Pending |
+| UAT-02 | Phase 14 | Pending |
+| UAT-03 | Phase 14 | Pending |
+| UAT-04 | Phase 12 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-23*
