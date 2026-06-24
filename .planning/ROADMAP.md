@@ -34,8 +34,12 @@ v3.0 在保持轻量菜单栏体验的前提下，加入关键温度、风扇 RP
   2. 用户能看到系统 thermal state（正常、偏热、严重、临界等语义状态），即使精确温度不可读也能理解当前热压力。
   3. GPU、电池、SSD 等次要温度只在可读且可信时显示；不可读时不会出现假值、旧值或误导标签。
   4. 传感器缺失、机型不支持或单次读取失败时，温度区块保持可用并以 `N/A`/隐藏次要行降级，不刷错误弹窗。
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+Plans:
+- [ ] 10-01-PLAN.md — 建立只读 SMC 解码、ThermalReader 快照和 Mac15,9 严格信任边界
+- [ ] 10-02-PLAN.md — 接入 MetricCollector/DashboardState 并渲染稳定 `散热` 弹窗区块
+- [ ] 10-03-PLAN.md — 添加 `散热区块` 设置开关并记录硬件探针与最终防越界验证
 
 ### Phase 11: Fan Read-Only RPM & Capability Model
 **Goal**: 用户能在支持风扇的 MacBook Pro 上看到风扇 RPM 和能力状态；不支持或 fanless 机器不会出现误导性的控制入口。
@@ -124,7 +128,7 @@ v3.0 在保持轻量菜单栏体验的前提下，加入关键温度、风扇 RP
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Thermal Read-Only Monitoring | v3.0 | 0/TBD | Not started | - |
+| 10. Thermal Read-Only Monitoring | v3.0 | 0/3 | Not started | - |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 0/TBD | Not started | - |
 | 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
