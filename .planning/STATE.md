@@ -4,12 +4,12 @@ milestone: v3.0
 milestone_name: 风扇与热状态
 status: planning
 stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-06-24T06:33:23.766Z"
-last_activity: 2026-06-24
+last_updated: "2026-06-24T07:01:16.988Z"
+last_activity: 2026-06-24 -- Phase 11 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
   percent: 20
 ---
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 11 (fan-read-only-rpm-&-capability-model) — READY
-Plan: Not planned
-Status: Phase 11 UI-SPEC approved — ready to plan Phase 11
-Last activity: 2026-06-24
+Plan: 3 plans ready to execute
+Status: Phase 11 planning complete — ready to execute Phase 11
+Last activity: 2026-06-24 -- Phase 11 planning complete
 
 Progress: [██░░░░░░░░] 20%
 
@@ -36,7 +36,7 @@ Progress: [██░░░░░░░░] 20%
 
 **Velocity:**
 
-- v3.0 plans completed: 3
+- v3.0 plans completed: 3 of 6
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -45,7 +45,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 10 | 3 | - | - |
-| 11 | TBD | - | - |
+| 11 | 3 | - | - |
 | 12 | TBD | - | - |
 | 13 | TBD | - | - |
 | 14 | TBD | - | - |
