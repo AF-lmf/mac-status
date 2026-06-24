@@ -35,6 +35,8 @@
 		B10000000000000000000008 /* ProcessListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* ProcessListView.swift */; };
 		B1000000000000000000000E /* StableValueLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000D /* StableValueLayout.swift */; };
 		B12000000000000000000002 /* DashboardLayoutFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12000000000000000000001 /* DashboardLayoutFixtures.swift */; };
+		B13000000000000000000002 /* DashboardLayoutStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */; };
+		B13000000000000000000004 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B13000000000000000000003 /* XCTest.framework */; };
 		B20000000000000000000002 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* main.swift */; };
 		B1000000000000000000000A /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* SparklineView.swift */; };
 		C10000000000000000000002 /* MetricSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* MetricSample.swift */; };
@@ -75,6 +77,9 @@
 		B10000000000000000000007 /* ProcessListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessListView.swift; sourceTree = "<group>"; };
 		B1000000000000000000000D /* StableValueLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StableValueLayout.swift; sourceTree = "<group>"; };
 		B12000000000000000000001 /* DashboardLayoutFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayoutFixtures.swift; sourceTree = "<group>"; };
+		B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayoutStabilityTests.swift; sourceTree = "<group>"; };
+		B13000000000000000000003 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		B13000000000000000000005 /* MacStatusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacStatusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		B10000000000000000000009 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* MetricSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricSample.swift; sourceTree = "<group>"; };
@@ -95,6 +100,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B13000000000000000000020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B13000000000000000000004 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -102,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				08FB7793FE84155DC02AAC09 /* MacStatus */,
+				B13000000000000000000010 /* MacStatusTests */,
 				08FB7793FE84155DC02AAC0F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -222,11 +236,30 @@
 			isa = PBXGroup;
 			children = (
 				08FB7793FE84155DC02AAC13 /* MacStatus.app */,
+				B13000000000000000000005 /* MacStatusTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		B13000000000000000000010 /* MacStatusTests */ = {
+			isa = PBXGroup;
+			children = (
+				B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */,
+			);
+			path = MacStatusTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXContainerItemProxy section */
+		B13000000000000000000040 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 08FB7793FE84155DC02AAC17;
+			remoteInfo = MacStatus;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXNativeTarget section */
 		08FB7793FE84155DC02AAC17 /* MacStatus */ = {
@@ -246,6 +279,24 @@
 			productReference = 08FB7793FE84155DC02AAC13 /* MacStatus.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B13000000000000000000017 /* MacStatusTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1300000000000000000001F /* Build configuration list for PBXNativeTarget "MacStatusTests" */;
+			buildPhases = (
+				B13000000000000000000018 /* Sources */,
+				B13000000000000000000020 /* Frameworks */,
+				B13000000000000000000019 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B13000000000000000000041 /* PBXTargetDependency */,
+			);
+			name = MacStatusTests;
+			productName = MacStatusTests;
+			productReference = B13000000000000000000005 /* MacStatusTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -258,6 +309,10 @@
 				TargetAttributes = {
 					08FB7793FE84155DC02AAC17 = {
 						CreatedOnToolsVersion = 26.5;
+					};
+					B13000000000000000000017 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 08FB7793FE84155DC02AAC17;
 					};
 				};
 			};
@@ -276,6 +331,7 @@
 			projectRoot = "";
 			targets = (
 				08FB7793FE84155DC02AAC17 /* MacStatus */,
+				B13000000000000000000017 /* MacStatusTests */,
 			);
 		};
 /* End PBXProject section */
@@ -286,6 +342,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				08FB7793FE84155DC02AAC16 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B13000000000000000000019 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,7 +393,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B13000000000000000000018 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B13000000000000000000002 /* DashboardLayoutStabilityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B13000000000000000000041 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 08FB7793FE84155DC02AAC17 /* MacStatus */;
+			targetProxy = B13000000000000000000040 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		08FB7793FE84155DC02AAC1A /* Debug */ = {
@@ -495,6 +574,54 @@
 			};
 			name = Release;
 		};
+		B1300000000000000000001A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aflmf.macstatus.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacStatus.app/Contents/MacOS/MacStatus";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		B1300000000000000000001B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aflmf.macstatus.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacStatus.app/Contents/MacOS/MacStatus";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -512,6 +639,15 @@
 			buildConfigurations = (
 				08FB7793FE84155DC02AAC1C /* Debug */,
 				08FB7793FE84155DC02AAC1D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1300000000000000000001F /* Build configuration list for PBXNativeTarget "MacStatusTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1300000000000000000001A /* Debug */,
+				B1300000000000000000001B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
