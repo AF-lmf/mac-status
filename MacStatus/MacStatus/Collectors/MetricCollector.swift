@@ -50,6 +50,11 @@ final class MetricCollector {
     // Last thermal snapshot — popover-only current read, outside history/status bar schemas
     private var lastThermalSnapshot: ThermalSnapshot = .unavailable()
 
+    private let fanReader = FanReader()
+
+    // Last fan snapshot — popover-only current read, outside history/status bar schemas
+    private var lastFanSnapshot: FanSnapshot = .unavailable()
+
     // Token retaining the .settingsDidChange NotificationCenter observer
     private var settingsObserver: NSObjectProtocol?
 
@@ -68,6 +73,7 @@ final class MetricCollector {
         gpuReader.setup()
         batteryReader.setup()
         thermalReader.setup()
+        fanReader.setup()
 
         // First read establishes baseline (network needs two reads for delta)
         _ = cpuReader.readValue()
@@ -76,6 +82,7 @@ final class MetricCollector {
         _ = gpuReader.readValue()
         _ = batteryReader.readValue()
         lastThermalSnapshot = thermalReader.readValue()
+        lastFanSnapshot = fanReader.readValue()
 
         // Unified tick timer on the main run loop
         let interval = SettingsManager.shared.refreshInterval
@@ -171,6 +178,8 @@ final class MetricCollector {
 
         let thermal = thermalReader.readValue()
         lastThermalSnapshot = thermal
+        let fan = fanReader.readValue()
+        lastFanSnapshot = fan
 
         // Cache last sample for applyNow()
         lastSample = sample
@@ -221,6 +230,10 @@ final class MetricCollector {
         // Thermal — current snapshot only. Kept out of MetricSample/history/status bar and
         // reused by applyNow() so appearance/settings repaint does not force a fresh SMC read.
         dashboard.updateThermal(lastThermalSnapshot)
+
+        // Fan — current snapshot only. Kept out of MetricSample/history/status bar and
+        // reused by applyNow() so settings repaint does not force a fresh SMC read.
+        dashboard.updateFans(lastFanSnapshot)
 
         // Update sparkline samples from ring buffer
         let recent = ringBuffer.recentSamples(60)

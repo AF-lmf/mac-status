@@ -476,6 +476,9 @@ final class DashboardState: ObservableObject {
     // Thermal (popover-only current snapshot; stable unavailable values render inline)
     @Published var thermal: ThermalSnapshot = .unavailable()
 
+    // Fan (popover-only current snapshot; stable unavailable values render inline when expected)
+    @Published var fan: FanSnapshot = .unavailable()
+
     // Processes
     @Published var topProcesses: [ProcessNetworkUsage] = []
     @Published var processesLoading: Bool = false
@@ -567,6 +570,11 @@ final class DashboardState: ObservableObject {
     /// Update the thermal snapshot. Unavailable values stay in the snapshot so rows remain stable.
     func updateThermal(_ snapshot: ThermalSnapshot) {
         thermal = snapshot
+    }
+
+    /// Update the fan snapshot. Unsupported/fanless machines keep an empty snapshot for quiet UI.
+    func updateFans(_ snapshot: FanSnapshot) {
+        fan = snapshot
     }
 
     func updateRefreshInterval(_ interval: Double) {
