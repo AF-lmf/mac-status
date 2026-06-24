@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
-status: verifying
+status: planning
 stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-06-24T07:33:32.702Z"
+last_updated: "2026-06-24T07:49:04.586Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 40
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 11 — fan-read-only-rpm-capability-model
+**Current focus:** Phase 12 — popover-layout-stability
 
 ## Current Position
 
-Phase: 11 (fan-read-only-rpm-capability-model) — VERIFYING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 12
+Plan: Not started
+Status: Phase 11 verified complete — ready for Phase 12 planning
 Last activity: 2026-06-24
 
 Progress: [██████████] 100%
