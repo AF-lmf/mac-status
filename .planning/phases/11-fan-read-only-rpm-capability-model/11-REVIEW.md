@@ -1,6 +1,6 @@
 ---
 phase: 11-fan-read-only-rpm-capability-model
-reviewed: 2026-06-24T07:39:03Z
+reviewed: 2026-06-24T07:41:34Z
 depth: standard
 files_reviewed: 7
 files_reviewed_list:
@@ -13,61 +13,43 @@ files_reviewed_list:
   - MacStatus/MacStatus.xcodeproj/project.pbxproj
 findings:
   critical: 0
-  warning: 1
+  warning: 0
   info: 0
-  total: 1
-status: issues_found
+  total: 0
+status: clean
 ---
 
 # Phase 11: Code Review Report
 
-**Reviewed:** 2026-06-24T07:39:03Z
+**Reviewed:** 2026-06-24T07:41:34Z
 **Depth:** standard
 **Files Reviewed:** 7
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-Reviewed the Phase 11 read-only fan RPM implementation, collector wiring, popover UI, settings toggle, and Xcode project registration. The SMC path remains read-only: no write command, helper/XPC surface, fan control UI, status-bar fan segment, MetricSample fan field, or storage fan field was found. The current build also succeeds.
+Reviewed the Phase 11 read-only fan RPM implementation, collector wiring, popover UI, settings toggle, and Xcode project registration. The previous WR-01 finding has been resolved by `46c0e83 fix(11): hide unreadable fan rows on non-target hardware`.
 
-One capability-model edge case needs correction before shipping: non-expected hardware can still surface unreadable fan rows when `FNum` is readable but per-fan RPM keys are not.
+Current `FanReader.readValue()` now returns `.unavailable` for non-target hardware when `FNum > 0` but no fan has readable current RPM. Only the expected `Mac15,9` fan surface keeps `.expectedButUnreadable` with stable numbered `N/A` rows.
 
-## Warnings
+All reviewed files meet the Phase 11 quality and safety requirements. No remaining actionable issues were found.
+
+## Resolved Findings
 
 ### WR-01: Non-expected hardware can show unreadable fan rows
 
-**File:** `MacStatus/MacStatus/Readers/FanReader.swift:89`
+**Status:** Resolved by `46c0e83`
 
-**Issue:** `FanReader.readValue()` uses `expectsFanSurface` only when `FNum` is missing or zero. If a non-`Mac15,9` machine returns a positive `FNum` but the per-fan current RPM keys are unavailable or decode to implausible values, lines 89-93 still return `.expectedButUnreadable` with numbered fan rows. `DashboardView` renders any non-`.unsupported` snapshot, so unsupported/non-target hardware can show stable `N/A` fan rows even though Phase 11's fallback model reserves that state for expected Mac15,9 fan surfaces. This weakens FAN-03's graceful unsupported behavior and makes the capability state less truthful.
-
-**Fix:** Gate the no-readable-RPM fallback by `expectsFanSurface`. Keep readable RPM telemetry supported, but hide unreadable rows on non-expected hardware:
-
-```swift
-let fans = (0..<fanCount).map { reading(for: $0) }
-let hasReadableRPM = fans.contains { $0.capabilities.rpmReadable }
-
-if hasReadableRPM {
-    return FanSnapshot(supportState: .supported, fans: fans, capturedAt: capturedAt)
-}
-
-guard expectsFanSurface else {
-    return .unavailable(capturedAt: capturedAt)
-}
-
-return FanSnapshot(
-    supportState: .expectedButUnreadable,
-    fans: fans,
-    capturedAt: capturedAt
-)
-```
+**Resolution:** The no-readable-RPM branch is now gated by `expectsFanSurface`: expected `Mac15,9` hardware returns `.expectedButUnreadable`; non-target hardware returns `.unavailable(capturedAt:)`, preventing unsupported machines from rendering misleading `N/A` fan rows.
 
 ## Verification
 
+- Re-read `MacStatus/MacStatus/Readers/FanReader.swift` and confirmed the WR-01 branch behavior at `readValue()`.
 - `xcodebuild -project MacStatus/MacStatus.xcodeproj -scheme MacStatus -configuration Debug -derivedDataPath build build` - PASS.
-- Targeted source search found no fan SMC write API, helper/XPC surface, fan controls, left/right inference, fan status-bar segment, fan MetricSample field, or fan storage field.
+- Source review remains consistent with Phase 11 boundaries: no fan SMC write API, helper/XPC surface, fan controls, left/right inference, fan status-bar segment, fan MetricSample field, or fan storage field.
 
 ---
 
-_Reviewed: 2026-06-24T07:39:03Z_
+_Reviewed: 2026-06-24T07:41:34Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
