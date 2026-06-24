@@ -88,8 +88,18 @@ final class FanReader {
 
         let fans = (0..<fanCount).map { reading(for: $0) }
         let hasReadableRPM = fans.contains { $0.capabilities.rpmReadable }
+        guard hasReadableRPM else {
+            return expectsFanSurface
+                ? FanSnapshot(
+                    supportState: .expectedButUnreadable,
+                    fans: fans,
+                    capturedAt: capturedAt
+                )
+                : .unavailable(capturedAt: capturedAt)
+        }
+
         return FanSnapshot(
-            supportState: hasReadableRPM ? .supported : .expectedButUnreadable,
+            supportState: .supported,
             fans: fans,
             capturedAt: capturedAt
         )
