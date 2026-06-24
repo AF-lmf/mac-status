@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: planning
-stopped_at: Phase 12 context gathered
-last_updated: "2026-06-24T15:35:33.276Z"
+stopped_at: Phase 12 UI-SPEC approved
+last_updated: "2026-06-24T15:55:55.721Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
@@ -104,6 +104,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T15:35:33.270Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-popover-layout-stability/12-CONTEXT.md
+Last session: 2026-06-24T15:55:55.715Z
+Stopped at: Phase 12 UI-SPEC approved
+Resume file: .planning/phases/12-popover-layout-stability/12-UI-SPEC.md
