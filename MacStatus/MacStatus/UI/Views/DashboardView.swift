@@ -91,6 +91,8 @@ struct DashboardView: View {
                     items: state.topCPUProcesses,
                     isLoading: state.resourceLoading,
                     trailingWidth: StableValueWidth.processCPU,
+                    emptyTitle: "暂无 CPU 进程采样",
+                    emptyBody: "等待 CPU 采样更新",
                     trailingText: { proc in
                         proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
                     }
@@ -102,6 +104,8 @@ struct DashboardView: View {
                     items: state.topMemoryProcesses,
                     isLoading: state.resourceLoading,
                     trailingWidth: StableValueWidth.processMemory,
+                    emptyTitle: "暂无内存进程采样",
+                    emptyBody: "等待内存采样更新",
                     trailingText: { proc in
                         ByteFormatting.format(Double(proc.memoryBytes))
                     }
@@ -514,13 +518,15 @@ struct BatterySectionView: View {
 // MARK: - Process Resource Section View
 
 /// Reusable card section for CPU or memory Top-N process lists.
-/// Shows a spinner while the first sample is pending, "无数据" when the list is empty,
+/// Shows a spinner while the first sample is pending, caller-supplied copy when the list is empty,
 /// and a row per process using ProcessMetricRow with a caller-supplied trailing string.
 struct ProcessResourceSectionView: View {
     let title: String
     let items: [ProcessResourceUsage]
     let isLoading: Bool
     let trailingWidth: CGFloat
+    let emptyTitle: String
+    let emptyBody: String
     let trailingText: (ProcessResourceUsage) -> String
 
     var body: some View {
@@ -534,18 +540,23 @@ struct ProcessResourceSectionView: View {
                 HStack {
                     ProgressView()
                         .scaleEffect(0.6)
-                    Text("Sampling...")
+                    Text("采样中...")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 8)
             } else if items.isEmpty {
-                Text("无数据")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 8)
+                VStack(spacing: 2) {
+                    Text(emptyTitle)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(emptyBody)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 8)
             } else {
                 ForEach(items.prefix(5), id: \.pid) { proc in
                     ProcessMetricRow(
