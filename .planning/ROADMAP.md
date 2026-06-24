@@ -94,7 +94,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 12-02-PLAN.md — 稳定 Top-N 进程行，并创建短值/极端值 DEBUG fixtures
+- [x] 12-02-PLAN.md — 稳定 Top-N 进程行，并创建短值/极端值 DEBUG fixtures
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -170,6 +170,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete    | 2026-06-24 |
-| 12. Popover Layout Stability | v3.0 | 1/3 | In Progress|  |
+| 12. Popover Layout Stability | v3.0 | 2/3 | In Progress|  |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |

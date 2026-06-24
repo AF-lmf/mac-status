@@ -42,7 +42,7 @@
 - [ ] **UAT-01**: 风扇控制必须在真实 MacBook Pro 上完成人工验证后才能标记完成
 - [ ] **UAT-02**: unsupported、fanless、传感器缺失、读取失败、写入失败和恢复自动失败状态都必须有可验证的 UI 表现
 - [ ] **UAT-03**: quit、sleep、wake、失败 rollback 和重新打开 app 的生命周期路径必须验证不会遗留手动风扇状态
-- [ ] **UAT-04**: 布局稳定必须用确定性快照或测试数据覆盖极端数值，不只依赖肉眼观察
+- [x] **UAT-04**: 布局稳定必须用确定性快照或测试数据覆盖极端数值，不只依赖肉眼观察
 
 ## Future Requirements
 
@@ -104,7 +104,7 @@
 | UAT-01 | Phase 14 | Pending |
 | UAT-02 | Phase 14 | Pending |
 | UAT-03 | Phase 14 | Pending |
-| UAT-04 | Phase 12 | Pending |
+| UAT-04 | Phase 12 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 22 total

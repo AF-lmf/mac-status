@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: executing
-stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-06-24T16:28:53.199Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-06-24T16:38:17.267Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 12 (Popover Layout Stability) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-24
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [████████░░] 78%
 | Phase 11 P01 | 5min | 2 tasks | 3 files |
 | Phase 11 P02 | 5min | 3 tasks | 4 files |
 | Phase 11 P03 | 5min | 2 tasks | 2 files |
+| Phase 12 P02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [Phase 11]: 11-03: Mac15,9 hardware evidence confirms two readable numbered fan rows; F0ID/F1ID are missing, so no left/right inference is made.
 - [Phase 11]: 11-03: Phase 11 remains read-only and fail-closed: safeControlAvailable is false and no control/helper/write UI or source surface exists.
 - [Phase 11]: 11-03: Broad UI forbidden greps may be narrowed to fan-specific gates when pre-existing non-fan controls match generic UI tokens.
+- [Phase 12]: Network Top Processes keep existing ByteFormatting plus /s semantics while reserving a fixed 148pt upload/download trailing block. — Preserves formatter meaning while moving stability responsibility into SwiftUI fixed-width layout.
+- [Phase 12]: DashboardLayoutFixture remains DEBUG-only and is not referenced from live app, collector, status-bar, popover, or settings paths. — Keeps deterministic layout data available for tests without changing runtime behavior.
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T16:28:53.193Z
-Stopped at: Phase 12 UI-SPEC approved
+Last session: 2026-06-24T16:38:05.962Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
