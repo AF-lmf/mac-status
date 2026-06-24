@@ -31,6 +31,7 @@ final class DashboardLayoutStabilityTests: XCTestCase {
 
     func testStableValueWidthContractMatchesUISpec() {
         XCTAssertEqual(StableValueWidth.percentage, 64)
+        XCTAssertEqual(StableValueWidth.memoryMetricCard, 96)
         XCTAssertEqual(StableValueWidth.networkCard, 76)
         XCTAssertEqual(StableValueWidth.processNetworkRate, 68)
         XCTAssertEqual(StableValueWidth.processNetworkPair, 148)
@@ -40,6 +41,12 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         XCTAssertEqual(StableValueWidth.batteryHealthTime, 112)
         XCTAssertEqual(StableValueWidth.processCPU, 52)
         XCTAssertEqual(StableValueWidth.processMemory, 68)
+    }
+
+    func testMetricCardValueStringsFitStableColumns() {
+        assertMetricCardValueFits("100%", width: StableValueWidth.percentage)
+        assertMetricCardValueFits("N/A", width: StableValueWidth.percentage)
+        assertMetricCardValueFits("100% (CRIT)", width: StableValueWidth.memoryMetricCard)
     }
 
     func testProcessRowsReserveTrailingValueColumns() {
@@ -198,5 +205,23 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         _ = controller.view.fittingSize
         controller.view.layoutSubtreeIfNeeded()
         return store.snapshot.frames[.networkProcessTrailingValue] ?? .zero
+    }
+
+    private func assertMetricCardValueFits(
+        _ text: String,
+        width: CGFloat,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .medium)
+        let measuredWidth = ceil((text as NSString).size(withAttributes: [.font: font]).width)
+
+        XCTAssertLessThanOrEqual(
+            measuredWidth,
+            width,
+            "\(text) measured \(measuredWidth)pt, which exceeds the fixed metric card width \(width)pt",
+            file: file,
+            line: line
+        )
     }
 }

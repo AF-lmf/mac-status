@@ -390,7 +390,14 @@ struct MetricCardWithSparkline: View {
     }
 
     private var valueWidth: CGFloat {
-        title == "Network" ? StableValueWidth.networkCard : StableValueWidth.percentage
+        switch title {
+        case "Network":
+            return StableValueWidth.networkCard
+        case "Memory":
+            return StableValueWidth.memoryMetricCard
+        default:
+            return StableValueWidth.percentage
+        }
     }
 
     private var metricValueProbeID: LayoutProbeID? {

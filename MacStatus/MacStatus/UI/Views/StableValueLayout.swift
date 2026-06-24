@@ -9,6 +9,7 @@ enum DashboardLayout {
 
 enum StableValueWidth {
     static let percentage = 64 as CGFloat
+    static let memoryMetricCard = 96 as CGFloat
     static let networkCard = 76 as CGFloat
     static let processNetworkRate = 68 as CGFloat
     static let processNetworkPair = 148 as CGFloat
