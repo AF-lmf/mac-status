@@ -26,6 +26,7 @@
 			A80000000000000000000002 /* ProcessResourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000000001 /* ProcessResourceReader.swift */; };
 			5C0000000000000000000002 /* SMCReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0000000000000000000001 /* SMCReader.swift */; };
 			E20000000000000000000002 /* ThermalReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* ThermalReader.swift */; };
+			F11000000000000000000002 /* FanReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11000000000000000000001 /* FanReader.swift */; };
 			C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
 		D50000000000000000000002 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D50000000000000000000001 /* ServiceManagement.framework */; };
 		B10000000000000000000002 /* PopoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* PopoverManager.swift */; };
@@ -63,6 +64,7 @@
 			A80000000000000000000001 /* ProcessResourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessResourceReader.swift; sourceTree = "<group>"; };
 			5C0000000000000000000001 /* SMCReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCReader.swift; sourceTree = "<group>"; };
 			E20000000000000000000001 /* ThermalReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalReader.swift; sourceTree = "<group>"; };
+			F11000000000000000000001 /* FanReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FanReader.swift; sourceTree = "<group>"; };
 			C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		D50000000000000000000001 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		B10000000000000000000001 /* PopoverManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverManager.swift; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 					A80000000000000000000001 /* ProcessResourceReader.swift */,
 					5C0000000000000000000001 /* SMCReader.swift */,
 					E20000000000000000000001 /* ThermalReader.swift */,
+					F11000000000000000000001 /* FanReader.swift */,
 				);
 			path = Readers;
 			sourceTree = "<group>";
@@ -297,6 +300,7 @@
 					A80000000000000000000002 /* ProcessResourceReader.swift in Sources */,
 					5C0000000000000000000002 /* SMCReader.swift in Sources */,
 					E20000000000000000000002 /* ThermalReader.swift in Sources */,
+					F11000000000000000000002 /* FanReader.swift in Sources */,
 					B10000000000000000000002 /* PopoverManager.swift in Sources */,
 				B10000000000000000000004 /* DashboardView.swift in Sources */,
 				B10000000000000000000006 /* MetricCard.swift in Sources */,
