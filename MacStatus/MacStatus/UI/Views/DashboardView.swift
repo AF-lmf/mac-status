@@ -533,7 +533,11 @@ struct ProcessResourceSectionView: View {
                     .padding(.vertical, 8)
             } else {
                 ForEach(items.prefix(5), id: \.pid) { proc in
-                    ProcessMetricRow(processName: proc.processName, pid: proc.pid) {
+                    ProcessMetricRow(
+                        processName: proc.processName,
+                        pid: proc.pid,
+                        trailingWidth: trailingWidth
+                    ) {
                         StableValueText(
                             text: trailingText(proc),
                             width: trailingWidth,
