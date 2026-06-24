@@ -405,17 +405,15 @@ private func plausibleRPM(_ rpm: Double?, min: Double?, max: Double?) -> Double?
 |---|-------|---------|---------------|
 | A1 | If planner labels `F0`/`F1` as left/right without `F{i}ID`, that index-to-position mapping is only an ecosystem convention, not verified for this Mac15,9 session. [ASSUMED] | Common Pitfalls | User may see swapped fan labels; prefer numbered labels unless verified. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Can `F0`/`F1` be confidently labeled left/right on Mac15,9?**
+1. **RESOLVED: Can `F0`/`F1` be confidently labeled left/right on Mac15,9?**
    - What we know: local probe found `F0ID` and `F1ID` absent, and Stats uses left/right fallback for two fans. [VERIFIED: local read-only probe] [CITED: https://github.com/exelban/stats/blob/master/Modules/Sensors/readers.swift]
-   - What's unclear: physical index-to-position mapping was not verified in this session. [ASSUMED]
-   - Recommendation: default to `风扇 1` / `风扇 2` unless implementation records a reliable mapping source. [VERIFIED: `.planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md`]
+   - Resolution: Phase 11 must default to `风扇 1` / `风扇 2` unless implementation records a reliable mapping source. It must not infer `左风扇` / `右风扇` from `F0` / `F1` alone. [VERIFIED: `.planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md`]
 
-2. **Should mode keys be read in Phase 11 UI?**
+2. **RESOLVED: Should mode keys be read in Phase 11 UI?**
    - What we know: local probe reads `F0Md/F1Md` raw `ui8 ` zero, while `FS!` is absent and `Ftst` is present as `ui8 ` zero. [VERIFIED: local read-only probe]
-   - What's unclear: displaying mode/control state risks implying control support. [VERIFIED: `.planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md`]
-   - Recommendation: record mode/`Ftst` in probe evidence and internal capability only; do not show constant capability copy unless needed. [VERIFIED: `.planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md`]
+   - Resolution: Phase 11 may record mode/`Ftst` keys in read-only probe evidence and internal capability diagnostics only. UI must not display mode/control state, `控制可用`, disabled controls, or constant control-capability copy. [VERIFIED: `.planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md`]
 
 ## Environment Availability
 
