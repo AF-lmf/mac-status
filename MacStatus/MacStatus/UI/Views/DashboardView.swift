@@ -66,8 +66,14 @@ struct DashboardView: View {
                 BatterySectionView(snapshot: battery)
             }
 
-            if settings.showThermalSection {
-                ThermalSectionView(snapshot: state.thermal)
+            let showsFanRows = settings.showFanSection && state.fan.supportState != .unsupported
+            if settings.showThermalSection || showsFanRows {
+                TemperatureAndFanSectionView(
+                    thermalSnapshot: state.thermal,
+                    fanSnapshot: state.fan,
+                    showsTemperature: settings.showThermalSection,
+                    showsFan: settings.showFanSection
+                )
             }
 
             // 进程相关三个区块整体由 showProcessSection 门控（整体显示或整体隐藏）
@@ -130,31 +136,46 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Thermal Section
+// MARK: - Temperature and Fan Section
 
-/// Full-width popover thermal section. Rows remain stable when sensors are unavailable.
-struct ThermalSectionView: View {
-    let snapshot: ThermalSnapshot
+/// Full-width popover section for current thermal and read-only fan telemetry.
+struct TemperatureAndFanSectionView: View {
+    let thermalSnapshot: ThermalSnapshot
+    let fanSnapshot: FanSnapshot
+    let showsTemperature: Bool
+    let showsFan: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("散热")
+                Text("温度与风扇")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("CPU/SoC \(temperatureText(snapshot.cpuSocTemperatureCelsius))")
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.trailing)
-                    .accessibilityLabel(primaryTemperatureAccessibilityText)
+                if showsTemperature {
+                    Text("CPU/SoC \(temperatureText(thermalSnapshot.cpuSocTemperatureCelsius))")
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.trailing)
+                        .accessibilityLabel(primaryTemperatureAccessibilityText)
+                }
             }
 
-            row("CPU/SoC", temperatureText(snapshot.cpuSocTemperatureCelsius))
-            row("系统状态", thermalStateText, color: thermalStateColor)
-            row("GPU", temperatureText(snapshot.gpuTemperatureCelsius))
-            row("电池", temperatureText(snapshot.batteryTemperatureCelsius))
+            if showsTemperature {
+                temperatureRow("CPU/SoC", temperatureText(thermalSnapshot.cpuSocTemperatureCelsius))
+                temperatureRow("系统状态", thermalStateText, color: thermalStateColor)
+                temperatureRow("GPU", temperatureText(thermalSnapshot.gpuTemperatureCelsius))
+                temperatureRow("电池", temperatureText(thermalSnapshot.batteryTemperatureCelsius))
+            }
+
+            if showsTemperature && !visibleFans.isEmpty {
+                Divider()
+            }
+
+            ForEach(visibleFans) { fan in
+                fanRow(fan)
+            }
         }
         .padding(8)
         .background(
@@ -162,10 +183,15 @@ struct ThermalSectionView: View {
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("散热信息")
+        .accessibilityLabel("温度与风扇信息")
     }
 
-    private func row(_ label: String, _ value: String, color: Color = .secondary) -> some View {
+    private var visibleFans: [FanReading] {
+        guard showsFan, fanSnapshot.supportState != .unsupported else { return [] }
+        return fanSnapshot.fans
+    }
+
+    private func temperatureRow(_ label: String, _ value: String, color: Color = .secondary) -> some View {
         HStack(spacing: 8) {
             Text(label)
                 .font(.caption)
@@ -180,13 +206,72 @@ struct ThermalSectionView: View {
         }
     }
 
+    private func fanRow(_ fan: FanReading) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text(fan.displayName)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(fanRPMText(fan))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(fan.currentRPM == nil ? .secondary : .primary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(minWidth: 72, alignment: .trailing)
+                    .accessibilityLabel(fanRPMAccessibilityText(fan))
+            }
+
+            if let range = fanRangeText(fan) {
+                Text(range)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(fanRangeAccessibilityText(fan))
+            }
+
+            if let target = fanTargetText(fan) {
+                Text(target)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(fanTargetAccessibilityText(fan))
+            }
+
+            if fanRangeText(fan) != nil || fanTargetText(fan) != nil {
+                Text("边界可读，控制未启用")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private func temperatureText(_ value: Double?) -> String {
         guard let value else { return "N/A" }
         return "\(Int(value.rounded()))°C"
     }
 
+    private func fanRPMText(_ fan: FanReading) -> String {
+        guard let rpm = fan.currentRPM else { return "N/A" }
+        return "\(Int(rpm.rounded())) RPM"
+    }
+
+    private func fanRangeText(_ fan: FanReading) -> String? {
+        guard fan.capabilities.boundsReadable,
+              let minRPM = fan.minRPM,
+              let maxRPM = fan.maxRPM,
+              minRPM <= maxRPM
+        else { return nil }
+
+        return "范围 \(Int(minRPM.rounded()))-\(Int(maxRPM.rounded())) RPM"
+    }
+
+    private func fanTargetText(_ fan: FanReading) -> String? {
+        guard fan.capabilities.targetReadable,
+              let targetRPM = fan.targetRPM
+        else { return nil }
+        return "目标 \(Int(targetRPM.rounded())) RPM"
+    }
+
     private var thermalStateText: String {
-        switch snapshot.systemState {
+        switch thermalSnapshot.systemState {
         case .nominal: return "正常"
         case .fair: return "偏热"
         case .serious: return "严重"
@@ -196,7 +281,7 @@ struct ThermalSectionView: View {
     }
 
     private var thermalStateColor: Color {
-        switch snapshot.systemState {
+        switch thermalSnapshot.systemState {
         case .serious: return .orange
         case .critical: return .red
         case .unknown: return .secondary
@@ -205,10 +290,31 @@ struct ThermalSectionView: View {
     }
 
     private var primaryTemperatureAccessibilityText: String {
-        guard let value = snapshot.cpuSocTemperatureCelsius else {
+        guard let value = thermalSnapshot.cpuSocTemperatureCelsius else {
             return "CPU 或 SoC 温度不可用"
         }
         return "CPU 或 SoC 温度 \(Int(value.rounded())) 摄氏度"
+    }
+
+    private func fanRPMAccessibilityText(_ fan: FanReading) -> String {
+        guard let rpm = fan.currentRPM else {
+            return "\(fan.displayName) 转速不可用"
+        }
+        return "\(fan.displayName) 当前转速 \(Int(rpm.rounded())) RPM"
+    }
+
+    private func fanRangeAccessibilityText(_ fan: FanReading) -> String {
+        guard let minRPM = fan.minRPM, let maxRPM = fan.maxRPM else {
+            return "\(fan.displayName) 范围不可用"
+        }
+        return "\(fan.displayName) 范围 \(Int(minRPM.rounded())) 到 \(Int(maxRPM.rounded())) RPM"
+    }
+
+    private func fanTargetAccessibilityText(_ fan: FanReading) -> String {
+        guard let targetRPM = fan.targetRPM else {
+            return "\(fan.displayName) 目标转速不可用"
+        }
+        return "\(fan.displayName) 目标转速 \(Int(targetRPM.rounded())) RPM"
     }
 
     private func accessibilityText(label: String, value: String) -> String {
