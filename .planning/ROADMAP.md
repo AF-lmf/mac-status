@@ -18,7 +18,7 @@ v3.0 在保持轻量菜单栏体验的前提下，加入关键温度、风扇 RP
 ## Phases
 
 - [x] **Phase 10: Thermal Read-Only Monitoring** - 弹窗显示可信 CPU/SoC 主温度、系统 thermal state 与可读次要温度，缺失时稳定降级。 (completed 2026-06-24)
-- [ ] **Phase 11: Fan Read-Only RPM & Capability Model** - 弹窗显示风扇数量、每个风扇 RPM/边界/能力状态，并区分可读、可读边界和可安全控制。
+- [x] **Phase 11: Fan Read-Only RPM & Capability Model** - 弹窗显示风扇数量、每个风扇 RPM/边界/能力状态，并区分可读、可读边界和可安全控制。 (completed 2026-06-24)
 - [ ] **Phase 12: Popover Layout Stability** - 在新增散热信息和极端网络/温度/RPM/进程值下，popover 宽度、行列和数值对齐保持稳定。
 - [ ] **Phase 13: Safe Fan Control Gate & Write Path** - 只有在能力验证通过时，用户才能显式 opt-in 使用受限、可读回验证、可恢复自动的手动风扇控制。
 - [ ] **Phase 14: Lifecycle Recovery & Hardware UAT** - quit/sleep/wake/failure 生命周期不遗留手动风扇状态，并通过真实 MacBook Pro 与降级场景 UAT 后放行。
@@ -70,7 +70,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 11-03-PLAN.md — 记录 Mac15,9 读证据并执行只读/无越界收口门
+- [x] 11-03-PLAN.md — 记录 Mac15,9 读证据并执行只读/无越界收口门
 
 ### Phase 12: Popover Layout Stability
 
@@ -157,7 +157,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
-| 11. Fan Read-Only RPM & Capability Model | v3.0 | 2/3 | In Progress|  |
+| 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |

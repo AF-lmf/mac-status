@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
-status: executing
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-06-24T07:20:15.780Z"
+status: verifying
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-06-24T07:33:32.702Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -25,18 +25,18 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 
 ## Current Position
 
-Phase: 11 (fan-read-only-rpm-capability-model) — EXECUTING
+Phase: 11 (fan-read-only-rpm-capability-model) — VERIFYING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-24
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- v3.0 plans completed: 3 of 6
+- v3.0 plans completed: 6 of 6
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -59,6 +59,7 @@ Progress: [████████░░] 83%
 | Phase 10 P03 | 3 min | 2 tasks | 4 files |
 | Phase 11 P01 | 5min | 2 tasks | 3 files |
 | Phase 11 P02 | 5min | 3 tasks | 4 files |
+| Phase 11 P03 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [Phase 10]: 10-03: Final gates preserved read-only popover-only scope with no fan, SMC write, helper/XPC, SSD, status-bar, history, alert, or notification surface.
 - [Phase 11]: 11-01: FNum uses SMCReader integer type whitespace normalization; fan reads remain read-only. — Mac15,9 FNum evidence uses ui8 with trailing whitespace, and the plan forbids widening the SMC boundary.
 - [Phase 11]: 11-01: Fan capability fields stay independent and safeControlAvailable remains false in Phase 11. — Prevents downstream UI or control work from treating readable telemetry as safe fan control.
+- [Phase 11]: 11-03: Mac15,9 hardware evidence confirms two readable numbered fan rows; F0ID/F1ID are missing, so no left/right inference is made.
+- [Phase 11]: 11-03: Phase 11 remains read-only and fail-closed: safeControlAvailable is false and no control/helper/write UI or source surface exists.
+- [Phase 11]: 11-03: Broad UI forbidden greps may be narrowed to fan-specific gates when pre-existing non-fan controls match generic UI tokens.
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T07:20:15.775Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-06-24T07:33:32.697Z
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
