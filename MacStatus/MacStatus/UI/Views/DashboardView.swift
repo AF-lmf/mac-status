@@ -90,6 +90,7 @@ struct DashboardView: View {
                     title: "CPU 占用 Top 5",
                     items: state.topCPUProcesses,
                     isLoading: state.resourceLoading,
+                    trailingWidth: StableValueWidth.processCPU,
                     trailingText: { proc in
                         proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
                     }
@@ -100,6 +101,7 @@ struct DashboardView: View {
                     title: "内存占用 Top 5",
                     items: state.topMemoryProcesses,
                     isLoading: state.resourceLoading,
+                    trailingWidth: StableValueWidth.processMemory,
                     trailingText: { proc in
                         ByteFormatting.format(Double(proc.memoryBytes))
                     }
@@ -132,7 +134,7 @@ struct DashboardView: View {
             .padding(.top, 2)
         }
         .padding(12)
-        .frame(width: 320)
+        .frame(width: DashboardLayout.popoverWidth)
     }
 }
 
@@ -153,12 +155,20 @@ struct TemperatureAndFanSectionView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 if showsTemperature {
-                    Text("CPU/SoC \(temperatureText(thermalSnapshot.cpuSocTemperatureCelsius))")
-                        .font(.system(.body, design: .monospaced))
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.trailing)
-                        .accessibilityLabel(primaryTemperatureAccessibilityText)
+                    HStack(spacing: 4) {
+                        Text("CPU/SoC")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        StableValueText(
+                            text: temperatureText(thermalSnapshot.cpuSocTemperatureCelsius),
+                            width: StableValueWidth.temperature,
+                            color: .primary,
+                            font: .system(.body, design: .monospaced),
+                            fontWeight: .medium
+                        )
+                    }
+                    .accessibilityLabel(primaryTemperatureAccessibilityText)
                 }
             }
 
@@ -192,53 +202,39 @@ struct TemperatureAndFanSectionView: View {
     }
 
     private func temperatureRow(_ label: String, _ value: String, color: Color = .secondary) -> some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(value)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(color)
-                .multilineTextAlignment(.trailing)
-                .frame(minWidth: 52, alignment: .trailing)
+        StableValueRow(label: label) {
+            StableValueText(
+                text: value,
+                width: StableValueWidth.temperature,
+                color: color
+            )
                 .accessibilityLabel(accessibilityText(label: label, value: value))
         }
     }
 
     private func fanRow(_ fan: FanReading) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(fan.displayName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(fanRPMText(fan))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(fan.currentRPM == nil ? .secondary : .primary)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 72, alignment: .trailing)
+            StableValueRow(label: fan.displayName) {
+                StableValueText(
+                    text: fanRPMText(fan),
+                    width: StableValueWidth.fanRPM,
+                    color: fan.currentRPM == nil ? .secondary : .primary
+                )
                     .accessibilityLabel(fanRPMAccessibilityText(fan))
             }
 
             if let range = fanRangeText(fan) {
-                Text(range)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                StableCaptionText(text: range)
                     .accessibilityLabel(fanRangeAccessibilityText(fan))
             }
 
             if let target = fanTargetText(fan) {
-                Text(target)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                StableCaptionText(text: target)
                     .accessibilityLabel(fanTargetAccessibilityText(fan))
             }
 
             if fanRangeText(fan) != nil || fanTargetText(fan) != nil {
-                Text("边界可读，控制未启用")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                StableCaptionText(text: "边界可读，控制未启用")
             }
         }
     }
@@ -350,12 +346,14 @@ struct MetricCardWithSparkline: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(value)
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                    .foregroundStyle(color)
-                    .multilineTextAlignment(.trailing)  // 多行数值（如网络 ↑/↓）右对齐竖排
-                    .fixedSize(horizontal: false, vertical: true)  // 允许纵向扩展，杜绝因宽度受限被压回一行
+                StableValueText(
+                    text: value,
+                    width: valueWidth,
+                    color: color,
+                    font: .system(.body, design: .monospaced),
+                    fontWeight: .medium,
+                    lineLimit: title == "Network" ? 2 : 1
+                )
             }
 
             // Progress bar
@@ -387,6 +385,10 @@ struct MetricCardWithSparkline: View {
                 .fill(Color.primary.opacity(0.04))
         )
     }
+
+    private var valueWidth: CGFloat {
+        title == "Network" ? StableValueWidth.networkCard : StableValueWidth.percentage
+    }
 }
 
 // MARK: - Battery Section
@@ -410,10 +412,10 @@ struct BatterySectionView: View {
                     .foregroundStyle(.primary)
             }
 
-            row(timeLabel, timeText)
-            row("电池功率", wattsText)
-            row("整机功耗", systemPowerText)
-            row("健康度", healthText)
+            row(timeLabel, timeText, width: StableValueWidth.batteryHealthTime)
+            row("电池功率", wattsText, width: StableValueWidth.batteryPower)
+            row("整机功耗", systemPowerText, width: StableValueWidth.batteryPower)
+            row("健康度", healthText, width: StableValueWidth.batteryHealthTime)
         }
         .padding(10)
         .background(
@@ -422,15 +424,9 @@ struct BatterySectionView: View {
         )
     }
 
-    private func row(_ label: String, _ value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(value)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.secondary)
+    private func row(_ label: String, _ value: String, width: CGFloat) -> some View {
+        StableValueRow(label: label) {
+            StableValueText(text: value, width: width)
         }
     }
 
@@ -509,6 +505,7 @@ struct ProcessResourceSectionView: View {
     let title: String
     let items: [ProcessResourceUsage]
     let isLoading: Bool
+    let trailingWidth: CGFloat
     let trailingText: (ProcessResourceUsage) -> String
 
     var body: some View {
@@ -537,8 +534,12 @@ struct ProcessResourceSectionView: View {
             } else {
                 ForEach(items.prefix(5), id: \.pid) { proc in
                     ProcessMetricRow(processName: proc.processName, pid: proc.pid) {
-                        Text(trailingText(proc))
-                            .font(.system(.caption2, design: .monospaced))
+                        StableValueText(
+                            text: trailingText(proc),
+                            width: trailingWidth,
+                            color: .primary,
+                            font: .system(.caption2, design: .monospaced)
+                        )
                     }
                 }
             }
