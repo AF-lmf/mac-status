@@ -20,6 +20,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if ProcessInfo.processInfo.environment["MACSTATUS_LAYOUT_TEST_HOST"] == "1" {
+            return
+        }
+
         // Wire up popover ↔ status bar
         let popoverManager = PopoverManager.shared
         StatusBarManager.shared.configure(popoverManager: popoverManager)
