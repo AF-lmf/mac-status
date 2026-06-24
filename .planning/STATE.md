@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
-status: planning
+status: executing
 stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-06-24T16:20:42.058Z"
-last_activity: 2026-06-24 -- Phase 12 planning complete
+last_updated: "2026-06-24T16:22:16.859Z"
+last_activity: 2026-06-24 -- Phase 12 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
+  total_plans: 9
   completed_plans: 6
   percent: 40
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 12 — popover-layout-stability
+**Current focus:** Phase 12 — Popover Layout Stability
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Phase 11 verified complete — ready for Phase 12 planning
-Last activity: 2026-06-24 -- Phase 12 planning complete
+Phase: 12 (Popover Layout Stability) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 12
+Last activity: 2026-06-24 -- Phase 12 execution started
 
 Progress: [██████████] 100%
 
