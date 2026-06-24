@@ -154,3 +154,141 @@ key=Ftst type=ui8  size=1 numericValue=0.00 rawBytes=[0x00]
 - `safeControlAvailable=false` for both fans, so readable telemetry does not imply control availability.
 - `F0ID` and `F1ID` were unavailable. There is no reliable position evidence, so the app keeps numbered labels (`风扇 1`, `风扇 2`) and does not infer `左风扇` / `右风扇`.
 - `FS! ` was unavailable in read-only diagnostics, and the probe did not attempt any write or control operation.
+
+## Final Source Gates
+
+All gates below ran against `MacStatus/MacStatus` source files, not against planning text.
+
+### no SMC write / no helper / no XPC / no target-write path
+
+Command:
+
+```bash
+! rg -n "cmdWriteBytes|writeBytes|writeValue|writeRaw|FanControl|helper|XPC|FS!.*write|F[0-9]Tg.*write" MacStatus/MacStatus
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### broad UI control/raw-key gate adjustment
+
+Command:
+
+```bash
+! rg -n "控制可用|手动|恢复自动|静音|风扇控制|即将支持|F0Ac|FNum|FS!|F0Tg|Slider\(|Stepper\(|Button\(\".*风扇" MacStatus/MacStatus/UI/Views/DashboardView.swift MacStatus/MacStatus/UI/Views/SettingsView.swift
+```
+
+Output:
+
+```text
+MacStatus/MacStatus/UI/Views/SettingsView.swift:203:            Slider(value: warningBinding, in: 30...90, step: 5)
+MacStatus/MacStatus/UI/Views/SettingsView.swift:213:            Slider(value: criticalBinding, in: 50...95, step: 5)
+shell exit=1
+```
+
+The only matches are pre-existing non-fan threshold sliders in `SettingsView.swift`. They are not fan controls, do not reference `风扇`, and were intentionally preserved. The narrower fan-specific gates below keep the no-control acceptance intent without deleting unrelated settings UI.
+
+### no fan-control UI strings / no raw fan keys / no fan button
+
+Command:
+
+```bash
+! rg -n "控制可用|手动|恢复自动|静音|风扇控制|即将支持|F0Ac|FNum|FS!|F0Tg|Button\(\".*风扇" MacStatus/MacStatus/UI/Views/DashboardView.swift MacStatus/MacStatus/UI/Views/SettingsView.swift
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### no fan slider/stepper in Dashboard
+
+Command:
+
+```bash
+! rg -n "Slider\(|Stepper\(" MacStatus/MacStatus/UI/Views/DashboardView.swift
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### Settings fan surface is visibility-only
+
+Command:
+
+```bash
+rg -n "风扇|showFanSection" MacStatus/MacStatus/UI/Views/SettingsView.swift
+```
+
+Output:
+
+```text
+47:                Toggle("风扇区块", isOn: $settings.showFanSection)
+```
+
+### no raw SMC browser / no end-user raw fan keys
+
+Command:
+
+```bash
+! rg -n "raw SMC|SMC.*browser|browser.*SMC|FNum|F0Ac|FS!|F0Tg" MacStatus/MacStatus/UI/Views/DashboardView.swift MacStatus/MacStatus/UI/Views/SettingsView.swift
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### no left/right fan inference
+
+Command:
+
+```bash
+! rg -n "左风扇|右风扇" MacStatus/MacStatus/UI/Views/DashboardView.swift MacStatus/MacStatus/Readers/FanReader.swift
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### no status-bar fan / no Metric fan / no fan history or storage fields
+
+Command:
+
+```bash
+! rg -n "fan|Fan|RPM|风扇" MacStatus/MacStatus/Storage MacStatus/MacStatus/UI/StatusBarManager.swift MacStatus/MacStatus/Utils/Metric.swift
+```
+
+Output:
+
+```text
+no matches (rg exit=1 before shell negation; shell exit=0)
+```
+
+### Dashboard width unchanged
+
+Command:
+
+```bash
+rg -n "\.frame\(width: 320\)" MacStatus/MacStatus/UI/Views/DashboardView.swift
+```
+
+Output:
+
+```text
+135:        .frame(width: 320)
+```
+
+## Conclusion
+
+Phase 11 closes with read-only, current-snapshot-only, popover-only fan RPM monitoring on `Mac15,9`. The probe confirms `FNum`, `F0Ac`, `F1Ac`, min/max/target keys, missing `F0ID/F1ID`, numbered labels, and fail-closed `safeControlAvailable=false`. Final source gates show no SMC write API, no helper/XPC, no fan-control UI, no `控制可用` user-facing promise, no status-bar fan segment, no Metric fan item, no fan history/storage fields, no raw SMC browser, no left/right inference, and preserved `.frame(width: 320)`.
