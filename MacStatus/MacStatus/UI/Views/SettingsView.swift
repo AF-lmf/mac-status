@@ -44,6 +44,7 @@ struct SettingsView: View {
             Section("弹窗区块") {
                 Toggle("电池区块", isOn: $settings.showBatterySection)
                 Toggle("散热区块", isOn: $settings.showThermalSection)
+                Toggle("风扇区块", isOn: $settings.showFanSection)
                 Toggle("进程区块", isOn: $settings.showProcessSection)
             }
 

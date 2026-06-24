@@ -84,6 +84,7 @@ final class SettingsManager {
         static let showBatterySection = "showBatterySection"
         static let showProcessSection = "showProcessSection"
         static let showThermalSection = "showThermalSection"
+        static let showFanSection     = "showFanSection"
     }
 
     // MARK: - Init
@@ -113,6 +114,7 @@ final class SettingsManager {
     @ObservationIgnored private var _showBatterySection: Bool = true
     @ObservationIgnored private var _showProcessSection: Bool = true
     @ObservationIgnored private var _showThermalSection: Bool = true
+    @ObservationIgnored private var _showFanSection: Bool = true
 
     // MARK: - Public Properties
 
@@ -320,6 +322,19 @@ final class SettingsManager {
         }
     }
 
+    /// Whether to show the fan section in the popover. Defaults to true.
+    var showFanSection: Bool {
+        get {
+            access(keyPath: \.showFanSection)
+            return _showFanSection
+        }
+        set {
+            withMutation(keyPath: \.showFanSection) { _showFanSection = newValue }
+            defaults.set(newValue, forKey: Keys.showFanSection)
+            postChange(keys: [Keys.showFanSection])
+        }
+    }
+
     // MARK: - Custom Thresholds & Colors
 
     /// Per-metric custom thresholds: `[metricRawValue: ["warning": 60.0, "critical": 80.0]]`.
@@ -491,6 +506,12 @@ final class SettingsManager {
             _showThermalSection = true
         } else {
             _showThermalSection = defaults.bool(forKey: Keys.showThermalSection)
+        }
+
+        if defaults.object(forKey: Keys.showFanSection) == nil {
+            _showFanSection = true
+        } else {
+            _showFanSection = defaults.bool(forKey: Keys.showFanSection)
         }
 
         if let data = defaults.data(forKey: Keys.customThresholds),
