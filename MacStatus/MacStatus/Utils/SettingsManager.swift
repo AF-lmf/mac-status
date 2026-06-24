@@ -83,6 +83,7 @@ final class SettingsManager {
         // Phase 9 new keys
         static let showBatterySection = "showBatterySection"
         static let showProcessSection = "showProcessSection"
+        static let showThermalSection = "showThermalSection"
     }
 
     // MARK: - Init
@@ -111,6 +112,7 @@ final class SettingsManager {
     @ObservationIgnored private var _customColors: [String: [String: String]] = [:]
     @ObservationIgnored private var _showBatterySection: Bool = true
     @ObservationIgnored private var _showProcessSection: Bool = true
+    @ObservationIgnored private var _showThermalSection: Bool = true
 
     // MARK: - Public Properties
 
@@ -305,6 +307,19 @@ final class SettingsManager {
         }
     }
 
+    /// Whether to show the thermal section in the popover. Defaults to true.
+    var showThermalSection: Bool {
+        get {
+            access(keyPath: \.showThermalSection)
+            return _showThermalSection
+        }
+        set {
+            withMutation(keyPath: \.showThermalSection) { _showThermalSection = newValue }
+            defaults.set(newValue, forKey: Keys.showThermalSection)
+            postChange(keys: [Keys.showThermalSection])
+        }
+    }
+
     // MARK: - Custom Thresholds & Colors
 
     /// Per-metric custom thresholds: `[metricRawValue: ["warning": 60.0, "critical": 80.0]]`.
@@ -470,6 +485,12 @@ final class SettingsManager {
             _showProcessSection = true
         } else {
             _showProcessSection = defaults.bool(forKey: Keys.showProcessSection)
+        }
+
+        if defaults.object(forKey: Keys.showThermalSection) == nil {
+            _showThermalSection = true
+        } else {
+            _showThermalSection = defaults.bool(forKey: Keys.showThermalSection)
         }
 
         if let data = defaults.data(forKey: Keys.customThresholds),

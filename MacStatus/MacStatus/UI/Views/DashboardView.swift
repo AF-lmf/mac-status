@@ -66,7 +66,9 @@ struct DashboardView: View {
                 BatterySectionView(snapshot: battery)
             }
 
-            ThermalSectionView(snapshot: state.thermal)
+            if settings.showThermalSection {
+                ThermalSectionView(snapshot: state.thermal)
+            }
 
             // 进程相关三个区块整体由 showProcessSection 门控（整体显示或整体隐藏）
             if settings.showProcessSection {

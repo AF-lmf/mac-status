@@ -40,9 +40,10 @@ struct SettingsView: View {
                 .listStyle(.plain)
             }
 
-            // ── Section 3: 弹窗区块（电池 + 进程区块开关）
+            // ── Section 3: 弹窗区块（电池 + 散热 + 进程区块开关）
             Section("弹窗区块") {
                 Toggle("电池区块", isOn: $settings.showBatterySection)
+                Toggle("散热区块", isOn: $settings.showThermalSection)
                 Toggle("进程区块", isOn: $settings.showProcessSection)
             }
 
