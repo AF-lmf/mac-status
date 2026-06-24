@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: executing
-stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-06-24T07:02:52.936Z"
-last_activity: 2026-06-24 -- Phase 11 execution started
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-06-24T07:10:55.838Z"
+last_activity: 2026-06-24
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
-  percent: 20
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 11 (fan-read-only-rpm-capability-model) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 11
-Last activity: 2026-06-24 -- Phase 11 execution started
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-24
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 10 P01 | 3 min | 2 tasks | 3 files |
 | Phase 10 P02 | 3 min | 2 tasks | 2 files |
 | Phase 10 P03 | 3 min | 2 tasks | 4 files |
+| Phase 11 P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [Phase 10]: 10-03: Thermal popover visibility defaults on and is controlled live by SettingsManager.showThermalSection / 散热区块.
 - [Phase 10]: 10-03: Mac15,9 probe confirmed trusted CPU/SoC and GPU catalog candidates; untrusted or unsupported reads remain N/A.
 - [Phase 10]: 10-03: Final gates preserved read-only popover-only scope with no fan, SMC write, helper/XPC, SSD, status-bar, history, alert, or notification surface.
+- [Phase 11]: 11-01: FNum uses SMCReader integer type whitespace normalization; fan reads remain read-only. — Mac15,9 FNum evidence uses ui8 with trailing whitespace, and the plan forbids widening the SMC boundary.
+- [Phase 11]: 11-01: Fan capability fields stay independent and safeControlAvailable remains false in Phase 11. — Prevents downstream UI or control work from treating readable telemetry as safe fan control.
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T06:33:23.760Z
-Stopped at: Phase 11 UI-SPEC approved
-Resume file: .planning/phases/11-fan-read-only-rpm-capability-model/11-UI-SPEC.md
+Last session: 2026-06-24T07:10:55.662Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
