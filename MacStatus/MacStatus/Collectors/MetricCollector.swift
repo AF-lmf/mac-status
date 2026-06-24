@@ -132,9 +132,9 @@ final class MetricCollector {
             forName: .settingsDidChange,
             object: nil,
             queue: .main
-        ) { [weak self] notification in
+        ) { [weak self] event in
             guard let self,
-                  let changedKeys = notification.userInfo?[SettingsManager.changedKeysUserInfoKey] as? Set<String>
+                  let changedKeys = event.userInfo?[SettingsManager.changedKeysUserInfoKey] as? Set<String>
             else { return }
             // 显式 hop 回 MainActor，与 Timer 闭包的处理方式保持一致
             Task { @MainActor [weak self] in
