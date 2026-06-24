@@ -22,10 +22,11 @@
  		070E522B-D90C-4C7E-8172-FD4BC1F05CE6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */; };
 		A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */; };
 		C30000000000000000000002 /* GPUReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000001 /* GPUReader.swift */; };
-		F70000000000000000000002 /* BatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000001 /* BatteryReader.swift */; };
-		A80000000000000000000002 /* ProcessResourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000000001 /* ProcessResourceReader.swift */; };
-		5C0000000000000000000002 /* SMCReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0000000000000000000001 /* SMCReader.swift */; };
-		C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
+			F70000000000000000000002 /* BatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000001 /* BatteryReader.swift */; };
+			A80000000000000000000002 /* ProcessResourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000000001 /* ProcessResourceReader.swift */; };
+			5C0000000000000000000002 /* SMCReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0000000000000000000001 /* SMCReader.swift */; };
+			E20000000000000000000002 /* ThermalReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* ThermalReader.swift */; };
+			C30000000000000000000004 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30000000000000000000003 /* IOKit.framework */; };
 		D50000000000000000000002 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D50000000000000000000001 /* ServiceManagement.framework */; };
 		B10000000000000000000002 /* PopoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* PopoverManager.swift */; };
 		B10000000000000000000004 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* DashboardView.swift */; };
@@ -58,10 +59,11 @@
 		BA50C43C-6E4B-4C6B-B6BE-7AD33409093A /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryReader.swift; sourceTree = "<group>"; };
 		C30000000000000000000001 /* GPUReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUReader.swift; sourceTree = "<group>"; };
-		F70000000000000000000001 /* BatteryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryReader.swift; sourceTree = "<group>"; };
-		A80000000000000000000001 /* ProcessResourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessResourceReader.swift; sourceTree = "<group>"; };
-		5C0000000000000000000001 /* SMCReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCReader.swift; sourceTree = "<group>"; };
-		C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+			F70000000000000000000001 /* BatteryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryReader.swift; sourceTree = "<group>"; };
+			A80000000000000000000001 /* ProcessResourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessResourceReader.swift; sourceTree = "<group>"; };
+			5C0000000000000000000001 /* SMCReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCReader.swift; sourceTree = "<group>"; };
+			E20000000000000000000001 /* ThermalReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalReader.swift; sourceTree = "<group>"; };
+			C30000000000000000000003 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		D50000000000000000000001 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		B10000000000000000000001 /* PopoverManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverManager.swift; sourceTree = "<group>"; };
 		B10000000000000000000003 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -132,10 +134,11 @@
 				E10000000000000000000001 /* ProcessNetworkReader.swift */,
 				BB26C8CE-7E94-423C-A253-BC1FCE810BC5 /* MemoryReader.swift */,
 				C30000000000000000000001 /* GPUReader.swift */,
-				F70000000000000000000001 /* BatteryReader.swift */,
-				A80000000000000000000001 /* ProcessResourceReader.swift */,
-				5C0000000000000000000001 /* SMCReader.swift */,
-			);
+					F70000000000000000000001 /* BatteryReader.swift */,
+					A80000000000000000000001 /* ProcessResourceReader.swift */,
+					5C0000000000000000000001 /* SMCReader.swift */,
+					E20000000000000000000001 /* ThermalReader.swift */,
+				);
 			path = Readers;
 			sourceTree = "<group>";
 		};
@@ -290,10 +293,11 @@
 				4581A136-AF1D-44B9-97DD-BD1BC6078D30 /* ByteFormatting.swift in Sources */,
 				A7DDCE1C-11EC-49D1-84E1-1535B7D5F496 /* MemoryReader.swift in Sources */,
 				C30000000000000000000002 /* GPUReader.swift in Sources */,
-				F70000000000000000000002 /* BatteryReader.swift in Sources */,
-				A80000000000000000000002 /* ProcessResourceReader.swift in Sources */,
-				5C0000000000000000000002 /* SMCReader.swift in Sources */,
-				B10000000000000000000002 /* PopoverManager.swift in Sources */,
+					F70000000000000000000002 /* BatteryReader.swift in Sources */,
+					A80000000000000000000002 /* ProcessResourceReader.swift in Sources */,
+					5C0000000000000000000002 /* SMCReader.swift in Sources */,
+					E20000000000000000000002 /* ThermalReader.swift in Sources */,
+					B10000000000000000000002 /* PopoverManager.swift in Sources */,
 				B10000000000000000000004 /* DashboardView.swift in Sources */,
 				B10000000000000000000006 /* MetricCard.swift in Sources */,
 				B10000000000000000000008 /* ProcessListView.swift in Sources */,
