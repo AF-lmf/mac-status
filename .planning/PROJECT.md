@@ -44,12 +44,12 @@
 - ✓ 弹窗 CPU/内存 Top-N 进程按需采样 — v2.0 (Phase 8)
 - ✓ 设置窗口：指标开关、拖动排序、阈值/配色与文字模式 — v2.0 (Phase 9)
 - ✓ 网络弹窗上下行竖排与 SMC 整机功耗/电池功率增强 — v2.0 UAT 后增强
+- ✓ 重要温度监控：可信 CPU/SoC 主温度、系统 thermal state、GPU/电池次要温度与不可用 N/A 降级 — v3.0 (Phase 10；SSD 传感器按决策 deferred)
 
 ### Active
 
 <!-- v3.0 风扇与热状态 — building toward these -->
 
-- [ ] 重要温度监控：整机 CPU/SoC 温度为核心，尽量显示 GPU、电池、SSD 等可读传感器。
 - [ ] MacBook Pro 风扇 RPM 监控：多风扇识别、当前转速、不可用状态和非支持机型优雅降级。
 - [ ] 风扇安全控制：受限手动控制、明确开关、失败恢复、一键恢复系统自动控制。
 - [ ] 下拉窗布局稳定：网络数值长度变化时 popover 不再抖动，行列保持稳定宽度。
@@ -68,7 +68,7 @@
 
 ## Context
 
-- **已交付**: v1.0 MVP（2026-06-10）；v2.0 洞察与可定制（2026-06-23 归档）
+- **已交付**: v1.0 MVP（2026-06-10）；v2.0 洞察与可定制（2026-06-23 归档）；v3.0 Phase 10 温度只读监控（2026-06-24）
 - **代码量**: ~3000 行 Swift
 - **技术栈**: Swift 6 + AppKit (NSStatusBar) + IOKit + Mach kernel APIs
 - **零外部依赖**: 所有系统监控通过原生 C/Mach API 实现
@@ -99,12 +99,14 @@
 | SCDynamicStoreCopyValue 动态检测主接口 | 即时处理 Wi-Fi/Ethernet/VPN 切换 | ✓ Good |
 | 值级着色（非字符串解析） | 防止降级后残留错误颜色，标签保持默认色 | ✓ Good |
 | SMAppService 开机自启 | 单行 API，无需 Helper App，macOS 13+ 即可用 | ✓ Good |
+| Phase 10 温度监控保持只读且 Mac15,9 白名单信任 | Apple Silicon 传感器命名不稳定，不能把未验证 key 或 thermalState 当作 CPU/SoC 温度 | ✓ Phase 10 |
+| Phase 10 暂不实现 SSD 温度和风扇/控制入口 | 先关闭温度只读闭环，SSD 与风扇控制留给后续阶段按安全门推进 | ✓ Phase 10 |
 | 风扇控制必须先研究再落地 | SMC 写入涉及硬件安全和机型差异，不能直接按猜测写值 | — Pending |
 | v3.0 控制边界为安全控制而非完整自动曲线 | 先交付可恢复、可限制、可验证的用户控制闭环 | — Pending |
 
 ---
 
-*Last updated: 2026-06-23 after v3.0 milestone start*
+*Last updated: 2026-06-24 after Phase 10 verification*
 
 ## Evolution
 
