@@ -7,7 +7,7 @@ import IOKit
 ///
 /// Opens an `AppleSMC` IOKit user-client connection and reads numeric keys such as
 /// `PSTR` (whole-system total power, in Watts). Reading SMC keys needs **no special
-/// entitlement** (the same technique used by iStat Menus / stats / smcFanControl).
+/// entitlement** (the same technique used by other native system monitors).
 ///
 /// Every read degrades to `nil` when the connection is unavailable or the key/type
 /// is unknown on this hardware, so callers render "—" rather than a fake value —
@@ -216,15 +216,17 @@ final class SMCReader {
             return Double(Float(bitPattern: bits))
         }
 
-        if value.dataType == "ui8", raw.count >= 1 {
+        let integerType = value.dataType.trimmingCharacters(in: .whitespaces)
+
+        if integerType == "ui8", raw.count >= 1 {
             return Double(raw[0])
         }
 
-        if value.dataType == "ui16", raw.count >= 2 {
+        if integerType == "ui16", raw.count >= 2 {
             return Double(UInt16(raw[0]) << 8 | UInt16(raw[1]))
         }
 
-        if value.dataType == "ui32", raw.count >= 4 {
+        if integerType == "ui32", raw.count >= 4 {
             let integer = UInt32(raw[0]) << 24
                         | UInt32(raw[1]) << 16
                         | UInt32(raw[2]) << 8
