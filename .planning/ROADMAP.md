@@ -170,6 +170,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete    | 2026-06-24 |
-| 12. Popover Layout Stability | v3.0 | 3/3 | Complete   | 2026-06-24 |
+| 12. Popover Layout Stability | v3.0 | 3/3 | Complete    | 2026-06-24 |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |

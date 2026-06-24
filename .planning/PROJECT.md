@@ -46,13 +46,13 @@
 - ✓ 网络弹窗上下行竖排与 SMC 整机功耗/电池功率增强 — v2.0 UAT 后增强
 - ✓ 重要温度监控：可信 CPU/SoC 主温度、系统 thermal state、GPU/电池次要温度与不可用 N/A 降级 — v3.0 (Phase 10；SSD 传感器按决策 deferred)
 - ✓ MacBook Pro 风扇 RPM 监控：多风扇识别、当前 RPM、min/max/target、能力模型与非支持机型优雅降级 — v3.0 (Phase 11；控制能力保持 fail-closed)
+- ✓ 下拉窗布局稳定：网络、温度、RPM、功率与进程数值变化时 popover 固定 372pt，关键值列固定宽度、右对齐并使用 monospaced digits — v3.0 (Phase 12)
 
 ### Active
 
 <!-- v3.0 风扇与热状态 — building toward these -->
 
 - [ ] 风扇安全控制：受限手动控制、明确开关、失败恢复、一键恢复系统自动控制。
-- [ ] 下拉窗布局稳定：网络数值长度变化时 popover 不再抖动，行列保持稳定宽度。
 
 ### Out of Scope
 
@@ -68,7 +68,7 @@
 
 ## Context
 
-- **已交付**: v1.0 MVP（2026-06-10）；v2.0 洞察与可定制（2026-06-23 归档）；v3.0 Phase 10 温度只读监控与 Phase 11 风扇只读 RPM/能力模型（2026-06-24）
+- **已交付**: v1.0 MVP（2026-06-10）；v2.0 洞察与可定制（2026-06-23 归档）；v3.0 Phase 10 温度只读监控、Phase 11 风扇只读 RPM/能力模型与 Phase 12 弹窗布局稳定（2026-06-24）
 - **代码量**: ~3000 行 Swift
 - **技术栈**: Swift 6 + AppKit (NSStatusBar) + IOKit + Mach kernel APIs
 - **零外部依赖**: 所有系统监控通过原生 C/Mach API 实现
@@ -103,12 +103,14 @@
 | Phase 10 暂不实现 SSD 温度和风扇/控制入口 | 先关闭温度只读闭环，SSD 与风扇控制留给后续阶段按安全门推进 | ✓ Phase 10 |
 | Phase 11 风扇监控保持只读、弹窗内当前快照 | Mac15,9 probe 已确认 `FNum=2`、两把风扇 RPM/bounds/target 可读，但 `F0ID/F1ID` 缺失且安全控制未验证 | ✓ Phase 11 |
 | Phase 11 不推断左右风扇，不展示控制承诺 | 缺少可靠位置证据，且读取能力不能等同安全控制；非目标硬件无可读 RPM 时隐藏风扇行 | ✓ Phase 11 |
+| Phase 12 popover 固定为 372pt | 用户允许从约 320pt 扩展到 360-380pt；单一根宽度加固定数值列能消除网络/温度/RPM/功率长值造成的抖动 | ✓ Phase 12 |
+| Phase 12 布局验证使用 DEBUG fixtures + hosted XCTest probes | 短值/极端值状态可确定性复现，避免只靠肉眼观察或真实传感器瞬时读数判断布局稳定性 | ✓ Phase 12 |
 | 风扇控制必须先研究再落地 | SMC 写入涉及硬件安全和机型差异，不能直接按猜测写值 | — Pending |
 | v3.0 控制边界为安全控制而非完整自动曲线 | 先交付可恢复、可限制、可验证的用户控制闭环 | — Pending |
 
 ---
 
-*Last updated: 2026-06-24 after Phase 11 verification*
+*Last updated: 2026-06-24 after Phase 12 verification*
 
 ## Evolution
 
