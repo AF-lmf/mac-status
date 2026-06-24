@@ -18,7 +18,7 @@
 
 - [x] **FAN-01**: 用户能在 MacBook Pro 弹窗中看到风扇数量和每个风扇当前 RPM
 - [x] **FAN-02**: 用户能看到每个风扇的 min/max/target 或控制能力状态；不可读字段显示为稳定的 `N/A`
-- [ ] **FAN-03**: fanless、非 MacBook Pro 或不支持读取的机型优雅降级，不显示误导性的风扇控制入口
+- [x] **FAN-03**: fanless、非 MacBook Pro 或不支持读取的机型优雅降级，不显示误导性的风扇控制入口
 - [x] **FAN-04**: 风扇能力模型能区分“可读取 RPM”“可读取边界”“可安全控制”，避免把可读误判为可控
 
 ### 弹窗布局稳定 (LAYOUT)
@@ -89,7 +89,7 @@
 | THERM-04 | Phase 10 | Complete |
 | FAN-01 | Phase 11 | Complete |
 | FAN-02 | Phase 11 | Complete |
-| FAN-03 | Phase 11 | Pending |
+| FAN-03 | Phase 11 | Complete |
 | FAN-04 | Phase 11 | Complete |
 | LAYOUT-01 | Phase 12 | Pending |
 | LAYOUT-02 | Phase 12 | Pending |

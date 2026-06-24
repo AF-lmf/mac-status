@@ -66,7 +66,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 11-02-PLAN.md — 接入采集、设置并渲染 `温度与风扇` 弹窗行
+- [x] 11-02-PLAN.md — 接入采集、设置并渲染 `温度与风扇` 弹窗行
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -157,7 +157,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
-| 11. Fan Read-Only RPM & Capability Model | v3.0 | 1/3 | In Progress|  |
+| 11. Fan Read-Only RPM & Capability Model | v3.0 | 2/3 | In Progress|  |
 | 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |
