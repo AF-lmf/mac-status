@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // MARK: - Stable Dashboard Layout
@@ -84,3 +85,102 @@ struct StableCaptionText: View {
             .layoutPriority(0)
     }
 }
+
+// MARK: - Layout Probe
+
+enum LayoutProbeID: String, Hashable, CaseIterable {
+    case networkMetricCardValue
+    case temperatureValueColumn
+    case fanRPMValueColumn
+    case batteryPowerValueColumn
+    case systemPowerValueColumn
+    case networkProcessTrailingValue
+    case cpuProcessTrailingValue
+    case memoryProcessTrailingValue
+}
+
+struct LayoutProbeFrameSnapshot {
+    let frames: [LayoutProbeID: CGRect]
+}
+
+struct LayoutProbeKey: PreferenceKey {
+    static let defaultValue: [LayoutProbeID: Anchor<CGRect>] = [:]
+
+    static func reduce(
+        value: inout [LayoutProbeID: Anchor<CGRect>],
+        nextValue: () -> [LayoutProbeID: Anchor<CGRect>]
+    ) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
+@MainActor
+final class LayoutProbeFrameStore {
+    private(set) var snapshot = LayoutProbeFrameSnapshot(frames: [:])
+
+    func update(_ snapshot: LayoutProbeFrameSnapshot) {
+        self.snapshot = snapshot
+    }
+}
+
+extension View {
+    func layoutProbe(_ id: LayoutProbeID) -> some View {
+#if DEBUG
+        anchorPreference(key: LayoutProbeKey.self, value: .bounds) { anchor in
+            [id: anchor]
+        }
+#else
+        self
+#endif
+    }
+
+    @ViewBuilder
+    func layoutProbe(_ id: LayoutProbeID?) -> some View {
+        if let id {
+            layoutProbe(id)
+        } else {
+            self
+        }
+    }
+
+    func readLayoutProbeFrames(into store: LayoutProbeFrameStore) -> some View {
+#if DEBUG
+        modifier(LayoutProbeFrameReader(store: store))
+#else
+        self
+#endif
+    }
+}
+
+#if DEBUG
+private struct LayoutProbeFrameReader: ViewModifier {
+    let store: LayoutProbeFrameStore
+
+    func body(content: Content) -> some View {
+        content.overlayPreferenceValue(LayoutProbeKey.self) { anchors in
+            GeometryReader { proxy in
+                LayoutProbeFrameUpdater(
+                    snapshot: LayoutProbeFrameSnapshot(
+                        frames: anchors.mapValues { proxy[$0] }
+                    ),
+                    store: store
+                )
+            }
+        }
+    }
+}
+
+private struct LayoutProbeFrameUpdater: NSViewRepresentable {
+    let snapshot: LayoutProbeFrameSnapshot
+    let store: LayoutProbeFrameStore
+
+    func makeNSView(context: Context) -> NSView {
+        store.update(snapshot)
+        return NSView(frame: .zero)
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        store.update(snapshot)
+    }
+}
+#endif

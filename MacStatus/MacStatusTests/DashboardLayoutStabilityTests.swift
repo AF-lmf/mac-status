@@ -4,46 +4,15 @@ import XCTest
 
 @testable import MacStatus
 
-enum LayoutProbeID: String, Hashable {
-    case networkMetricCardValue
-    case temperatureValueColumn
-    case fanRPMValueColumn
-    case batteryPowerValueColumn
-    case systemPowerValueColumn
-    case networkProcessTrailingValue
-    case cpuProcessTrailingValue
-    case memoryProcessTrailingValue
-}
-
-struct LayoutProbeFrameSnapshot {
-    let frames: [LayoutProbeID: CGRect]
-}
-
-private struct LayoutProbeReader<Content: View>: View {
-    let content: Content
-    let snapshot: LayoutProbeFrameSnapshot? = nil
-
-    var body: some View {
-        content
-    }
-}
-
-private extension View {
-    func layoutProbe(_ id: LayoutProbeID) -> some View {
-        self
-    }
-
-    func readLayoutProbeFrames() -> LayoutProbeReader<Self> {
-        LayoutProbeReader(content: self)
-    }
-}
-
 @MainActor
 final class DashboardLayoutStabilityTests: XCTestCase {
     func testPopoverWidthIsFixedForShortAndExtremeFixtures() {
         withAllPopoverSectionsVisible {
             let shortSize = measuredDashboardSize(for: .short)
             let extremeSize = measuredDashboardSize(for: .extreme)
+
+            print("DashboardLayoutSize short width=\(shortSize.width) height=\(shortSize.height)")
+            print("DashboardLayoutSize extreme width=\(extremeSize.width) height=\(extremeSize.height)")
 
             XCTAssertEqual(shortSize.width, DashboardLayout.popoverWidth, accuracy: 0.5)
             XCTAssertEqual(extremeSize.width, DashboardLayout.popoverWidth, accuracy: 0.5)
@@ -87,6 +56,9 @@ final class DashboardLayoutStabilityTests: XCTestCase {
             downloadText: "↓999T/s"
         )
 
+        print("ProcessTrailingFrame short x=\(shortFrame.origin.x) width=\(shortFrame.width)")
+        print("ProcessTrailingFrame long x=\(longFrame.origin.x) width=\(longFrame.width)")
+
         XCTAssertEqual(shortFrame.width, StableValueWidth.processNetworkPair, accuracy: 0.5)
         XCTAssertEqual(longFrame.width, StableValueWidth.processNetworkPair, accuracy: 0.5)
         XCTAssertEqual(shortFrame.origin.x, longFrame.origin.x, accuracy: 0.5)
@@ -128,20 +100,18 @@ final class DashboardLayoutStabilityTests: XCTestCase {
 
     func valueColumnFrameSnapshot(for kind: DashboardLayoutFixture.Kind) -> LayoutProbeFrameSnapshot {
         let state = DashboardLayoutFixture.make(kind)
+        let store = LayoutProbeFrameStore()
         let controller = NSHostingController(
             rootView: DashboardView()
                 .environmentObject(state)
-                .readLayoutProbeFrames()
+                .readLayoutProbeFrames(into: store)
         )
         controller.sizingOptions = [.preferredContentSize]
         controller.view.layoutSubtreeIfNeeded()
         _ = controller.view.fittingSize
         controller.view.layoutSubtreeIfNeeded()
 
-        guard let snapshot = controller.rootView.snapshot else {
-            return LayoutProbeFrameSnapshot(frames: [:])
-        }
-        return snapshot
+        return store.snapshot
     }
 
     func assertStableValueColumnFrames(
@@ -177,6 +147,10 @@ final class DashboardLayoutStabilityTests: XCTestCase {
                 file: file,
                 line: line
             )
+            print(
+                "LayoutProbeFrame \(id.rawValue) x-position short=\(shortFrame.origin.x) " +
+                    "extreme=\(extremeFrame.origin.x) width short=\(shortFrame.width) extreme=\(extremeFrame.width)"
+            )
         }
     }
 
@@ -206,6 +180,7 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         uploadText: String,
         downloadText: String
     ) -> CGRect {
+        let store = LayoutProbeFrameStore()
         let controller = NSHostingController(
             rootView: ProcessMetricRow(
                 processName: processName,
@@ -216,12 +191,12 @@ final class DashboardLayoutStabilityTests: XCTestCase {
                     .layoutProbe(.networkProcessTrailingValue)
             }
             .frame(width: DashboardLayout.popoverWidth)
-            .readLayoutProbeFrames()
+            .readLayoutProbeFrames(into: store)
         )
         controller.sizingOptions = [.preferredContentSize]
         controller.view.layoutSubtreeIfNeeded()
         _ = controller.view.fittingSize
         controller.view.layoutSubtreeIfNeeded()
-        return controller.rootView.snapshot?.frames[.networkProcessTrailingValue] ?? .zero
+        return store.snapshot.frames[.networkProcessTrailingValue] ?? .zero
     }
 }

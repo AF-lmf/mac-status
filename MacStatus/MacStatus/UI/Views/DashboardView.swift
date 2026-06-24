@@ -208,7 +208,8 @@ struct TemperatureAndFanSectionView: View {
                 width: StableValueWidth.temperature,
                 color: color
             )
-                .accessibilityLabel(accessibilityText(label: label, value: value))
+            .layoutProbe(label == "CPU/SoC" ? .temperatureValueColumn : nil)
+            .accessibilityLabel(accessibilityText(label: label, value: value))
         }
     }
 
@@ -220,7 +221,8 @@ struct TemperatureAndFanSectionView: View {
                     width: StableValueWidth.fanRPM,
                     color: fan.currentRPM == nil ? .secondary : .primary
                 )
-                    .accessibilityLabel(fanRPMAccessibilityText(fan))
+                .layoutProbe(.fanRPMValueColumn)
+                .accessibilityLabel(fanRPMAccessibilityText(fan))
             }
 
             if let range = fanRangeText(fan) {
@@ -354,6 +356,7 @@ struct MetricCardWithSparkline: View {
                     fontWeight: .medium,
                     lineLimit: title == "Network" ? 2 : 1
                 )
+                .layoutProbe(metricValueProbeID)
             }
 
             // Progress bar
@@ -389,6 +392,10 @@ struct MetricCardWithSparkline: View {
     private var valueWidth: CGFloat {
         title == "Network" ? StableValueWidth.networkCard : StableValueWidth.percentage
     }
+
+    private var metricValueProbeID: LayoutProbeID? {
+        title == "Network" ? .networkMetricCardValue : nil
+    }
 }
 
 // MARK: - Battery Section
@@ -413,8 +420,8 @@ struct BatterySectionView: View {
             }
 
             row(timeLabel, timeText, width: StableValueWidth.batteryHealthTime)
-            row("电池功率", wattsText, width: StableValueWidth.batteryPower)
-            row("整机功耗", systemPowerText, width: StableValueWidth.batteryPower)
+            row("电池功率", wattsText, width: StableValueWidth.batteryPower, probeID: .batteryPowerValueColumn)
+            row("整机功耗", systemPowerText, width: StableValueWidth.batteryPower, probeID: .systemPowerValueColumn)
             row("健康度", healthText, width: StableValueWidth.batteryHealthTime)
         }
         .padding(10)
@@ -424,9 +431,10 @@ struct BatterySectionView: View {
         )
     }
 
-    private func row(_ label: String, _ value: String, width: CGFloat) -> some View {
+    private func row(_ label: String, _ value: String, width: CGFloat, probeID: LayoutProbeID? = nil) -> some View {
         StableValueRow(label: label) {
             StableValueText(text: value, width: width)
+                .layoutProbe(probeID)
         }
     }
 
@@ -544,6 +552,7 @@ struct ProcessResourceSectionView: View {
                             color: .primary,
                             font: .system(.caption2, design: .monospaced)
                         )
+                        .layoutProbe(layoutProbeID)
                     }
                 }
             }
@@ -553,6 +562,10 @@ struct ProcessResourceSectionView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.primary.opacity(0.04))
         )
+    }
+
+    private var layoutProbeID: LayoutProbeID {
+        trailingWidth == StableValueWidth.processCPU ? .cpuProcessTrailingValue : .memoryProcessTrailingValue
     }
 }
 

@@ -54,6 +54,7 @@ struct ProcessListView: View {
                             uploadText: ByteFormatting.format(proc.uploadBytesPerSec) + "/s",
                             downloadText: ByteFormatting.format(proc.downloadBytesPerSec) + "/s"
                         )
+                        .layoutProbe(.networkProcessTrailingValue)
                     }
                 }
             }
