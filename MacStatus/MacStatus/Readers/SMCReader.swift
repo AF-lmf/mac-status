@@ -16,6 +16,13 @@ import IOKit
 /// **Concurrency:** main-actor confined in practice. Owned by `BatteryReader`, which
 /// is driven synchronously on the `MetricCollector` @MainActor tick. Not `Sendable`;
 /// only the resulting `Double` crosses actor boundaries (inside `BatterySnapshot`).
+struct SMCValue: Sendable, Equatable {
+    let key: String
+    let dataType: String
+    let dataSize: UInt32
+    let bytes: [UInt8]
+}
+
 final class SMCReader {
 
     private var connection: io_connect_t = 0
@@ -119,9 +126,8 @@ final class SMCReader {
 
     // MARK: - Read
 
-    /// Read a 4-char SMC key as a `Double`. Returns `nil` if the connection is closed,
-    /// the key is absent, or the value type is not a recognized numeric format.
-    func readValue(key: String) -> Double? {
+    /// Read a 4-char SMC key with type metadata and raw bytes.
+    func readRawValue(key: String) -> SMCValue? {
         guard isOpen else { return nil }
 
         // Step 1 — key info (data size + type)
@@ -132,7 +138,7 @@ final class SMCReader {
 
         let size = infoOut.keyInfo.dataSize
         let type = infoOut.keyInfo.dataType
-        guard size > 0 else { return nil }
+        guard size > 0, size <= 32 else { return nil }
 
         // Step 2 — read raw bytes
         var read = SMCParamStruct()
@@ -141,7 +147,29 @@ final class SMCReader {
         read.data8 = Self.cmdReadBytes
         guard let readOut = call(read), readOut.result == 0 else { return nil }
 
-        return Self.decode(type: type, size: size, bytes: readOut.bytes)
+        let raw = withUnsafeBytes(of: readOut.bytes) { Array($0.prefix(Int(size))) }
+        return SMCValue(
+            key: key,
+            dataType: Self.fourCharString(type),
+            dataSize: size,
+            bytes: raw
+        )
+    }
+
+    /// Read a 4-char SMC key as a `Double`. Returns `nil` if the connection is closed,
+    /// the key is absent, or the value type is not a recognized numeric format.
+    func readValue(key: String) -> Double? {
+        guard let value = readRawValue(key: key) else { return nil }
+        return Self.decodeNumeric(value)
+    }
+
+    /// Read a 4-char SMC key as Celsius, rejecting implausible sensor values.
+    func readTemperatureCelsius(key: String) -> Double? {
+        guard let value = readRawValue(key: key),
+              let celsius = Self.decodeNumeric(value),
+              (0...120).contains(celsius)
+        else { return nil }
+        return celsius
     }
 
     // MARK: - Private
@@ -171,21 +199,43 @@ final class SMCReader {
         return code
     }
 
-    /// Decode `size` raw bytes per the SMC value `type`.
-    /// Handles `'flt '` (LE float) and `'spXY'`/`'fpXY'` (BE signed/unsigned fixed-point).
-    private static func decode(type: UInt32, size: UInt32, bytes: SMCBytes32) -> Double? {
-        let raw = withUnsafeBytes(of: bytes) { Array($0.prefix(Int(size))) }
+    private static func fourCharString(_ code: UInt32) -> String {
+        let bytes = withUnsafeBytes(of: code.bigEndian) { Array($0) }
+        return String(bytes: bytes, encoding: .ascii) ?? ""
+    }
+
+    /// Decode raw bytes per the SMC value type.
+    /// Handles supported read-side numeric formats only.
+    private static func decodeNumeric(_ value: SMCValue) -> Double? {
+        let raw = value.bytes
 
         // 'flt ' — 32-bit float, little-endian (power keys on T2 / Apple Silicon)
-        if type == typeFLT, raw.count >= 4 {
+        if value.dataType == "flt ", raw.count >= 4 {
             let bits = UInt32(raw[0]) | (UInt32(raw[1]) << 8)
                      | (UInt32(raw[2]) << 16) | (UInt32(raw[3]) << 24)
             return Double(Float(bitPattern: bits))
         }
 
+        if value.dataType == "ui8", raw.count >= 1 {
+            return Double(raw[0])
+        }
+
+        if value.dataType == "ui16", raw.count >= 2 {
+            return Double(UInt16(raw[0]) << 8 | UInt16(raw[1]))
+        }
+
+        if value.dataType == "ui32", raw.count >= 4 {
+            let integer = UInt32(raw[0]) << 24
+                        | UInt32(raw[1]) << 16
+                        | UInt32(raw[2]) << 8
+                        | UInt32(raw[3])
+            return Double(integer)
+        }
+
         // 'spXY' / 'fpXY' — signed/unsigned fixed-point, big-endian 16-bit
-        let typeChars = withUnsafeBytes(of: type.bigEndian) { Array($0) }
+        let typeChars = Array(value.dataType.utf8)
         if raw.count >= 2,
+           typeChars.count == 4,
            typeChars[1] == UInt8(ascii: "p"),
            let fracBits = hexDigit(typeChars[3]) {
             let rawValue = UInt16(raw[0]) << 8 | UInt16(raw[1])
