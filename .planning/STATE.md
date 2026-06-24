@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
-status: ready
-stopped_at: Phase 11 context gathered
-last_updated: "2026-06-24T06:15:31.066Z"
+status: planning
+stopped_at: Phase 11 UI-SPEC approved
+last_updated: "2026-06-24T06:33:23.766Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 
 Phase: 11 (fan-read-only-rpm-&-capability-model) — READY
 Plan: Not planned
-Status: Phase 11 context gathered — ready to plan Phase 11
+Status: Phase 11 UI-SPEC approved — ready to plan Phase 11
 Last activity: 2026-06-24
 
 Progress: [██░░░░░░░░] 20%
@@ -96,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T06:15:31.060Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-fan-read-only-rpm-capability-model/11-CONTEXT.md
+Last session: 2026-06-24T06:33:23.760Z
+Stopped at: Phase 11 UI-SPEC approved
+Resume file: .planning/phases/11-fan-read-only-rpm-capability-model/11-UI-SPEC.md
