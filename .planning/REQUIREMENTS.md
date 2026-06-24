@@ -23,10 +23,10 @@
 
 ### 弹窗布局稳定 (LAYOUT)
 
-- [ ] **LAYOUT-01**: 网络上下行、温度、RPM、功率等数值长度变化时，popover 不发生横向或纵向抖动
-- [ ] **LAYOUT-02**: 关键数值列使用固定宽度、右对齐、monospaced digits，并能容纳 `9999 RPM`、`100°C`、`N/A` 和大网络值
-- [ ] **LAYOUT-03**: 长进程名、长传感器标签、能力状态文本使用稳定裁切或换行策略，不挤压相邻数值列
-- [ ] **LAYOUT-04**: popover 宽度优先保持现有约 320pt；若新增散热区块需要扩展，允许上限到 360-380pt，但必须保持稳定布局
+- [x] **LAYOUT-01**: 网络上下行、温度、RPM、功率等数值长度变化时，popover 不发生横向或纵向抖动
+- [x] **LAYOUT-02**: 关键数值列使用固定宽度、右对齐、monospaced digits，并能容纳 `9999 RPM`、`100°C`、`N/A` 和大网络值
+- [x] **LAYOUT-03**: 长进程名、长传感器标签、能力状态文本使用稳定裁切或换行策略，不挤压相邻数值列
+- [x] **LAYOUT-04**: popover 宽度优先保持现有约 320pt；若新增散热区块需要扩展，允许上限到 360-380pt，但必须保持稳定布局
 
 ### 风扇安全控制 (FCTRL)
 
@@ -91,10 +91,10 @@
 | FAN-02 | Phase 11 | Complete |
 | FAN-03 | Phase 11 | Complete |
 | FAN-04 | Phase 11 | Complete |
-| LAYOUT-01 | Phase 12 | Pending |
-| LAYOUT-02 | Phase 12 | Pending |
-| LAYOUT-03 | Phase 12 | Pending |
-| LAYOUT-04 | Phase 12 | Pending |
+| LAYOUT-01 | Phase 12 | Complete |
+| LAYOUT-02 | Phase 12 | Complete |
+| LAYOUT-03 | Phase 12 | Complete |
+| LAYOUT-04 | Phase 12 | Complete |
 | FCTRL-01 | Phase 13 | Pending |
 | FCTRL-02 | Phase 13 | Pending |
 | FCTRL-03 | Phase 13 | Pending |
