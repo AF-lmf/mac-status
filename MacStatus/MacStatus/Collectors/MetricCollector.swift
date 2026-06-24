@@ -45,6 +45,11 @@ final class MetricCollector {
     // Last battery snapshot — kept separately from MetricSample (no persistence, no sparkline)
     private var lastBatterySnapshot: BatterySnapshot? = nil
 
+    private let thermalReader = ThermalReader()
+
+    // Last thermal snapshot — popover-only current read, outside history/status bar schemas
+    private var lastThermalSnapshot: ThermalSnapshot = .unavailable()
+
     // Token retaining the .settingsDidChange NotificationCenter observer
     private var settingsObserver: NSObjectProtocol?
 
@@ -62,6 +67,7 @@ final class MetricCollector {
         networkReader.setup()
         gpuReader.setup()
         batteryReader.setup()
+        thermalReader.setup()
 
         // First read establishes baseline (network needs two reads for delta)
         _ = cpuReader.readValue()
@@ -69,6 +75,7 @@ final class MetricCollector {
         _ = networkReader.readValue()
         _ = gpuReader.readValue()
         _ = batteryReader.readValue()
+        lastThermalSnapshot = thermalReader.readValue()
 
         // Unified tick timer on the main run loop
         let interval = SettingsManager.shared.refreshInterval
@@ -162,6 +169,9 @@ final class MetricCollector {
             gpuUsage: gpu?.utilizationPercent
         )
 
+        let thermal = thermalReader.readValue()
+        lastThermalSnapshot = thermal
+
         // Cache last sample for applyNow()
         lastSample = sample
 
@@ -207,6 +217,10 @@ final class MetricCollector {
         // no persistence, no sparkline). nil on desktop → DashboardState hides the section.
         // Reached from both tick() and applyNow(), so a settings-driven repaint keeps it live.
         dashboard.updateBattery(lastBatterySnapshot)
+
+        // Thermal — current snapshot only. Kept out of MetricSample/history/status bar and
+        // reused by applyNow() so appearance/settings repaint does not force a fresh SMC read.
+        dashboard.updateThermal(lastThermalSnapshot)
 
         // Update sparkline samples from ring buffer
         let recent = ringBuffer.recentSamples(60)

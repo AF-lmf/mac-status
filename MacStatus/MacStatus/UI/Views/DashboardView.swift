@@ -372,6 +372,9 @@ final class DashboardState: ObservableObject {
     @Published var battery: BatterySnapshot? = nil
     @Published var hasBattery: Bool = false
 
+    // Thermal (popover-only current snapshot; stable unavailable values render inline)
+    @Published var thermal: ThermalSnapshot = .unavailable()
+
     // Processes
     @Published var topProcesses: [ProcessNetworkUsage] = []
     @Published var processesLoading: Bool = false
@@ -458,6 +461,11 @@ final class DashboardState: ObservableObject {
     func updateBattery(_ snapshot: BatterySnapshot?) {
         battery = snapshot
         hasBattery = snapshot != nil
+    }
+
+    /// Update the thermal snapshot. Unavailable values stay in the snapshot so rows remain stable.
+    func updateThermal(_ snapshot: ThermalSnapshot) {
+        thermal = snapshot
     }
 
     func updateRefreshInterval(_ interval: Double) {
