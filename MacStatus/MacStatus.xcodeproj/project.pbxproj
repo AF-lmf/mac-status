@@ -34,6 +34,7 @@
 		B10000000000000000000006 /* MetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* MetricCard.swift */; };
 		B10000000000000000000008 /* ProcessListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* ProcessListView.swift */; };
 		B1000000000000000000000E /* StableValueLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000D /* StableValueLayout.swift */; };
+		B12000000000000000000002 /* DashboardLayoutFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12000000000000000000001 /* DashboardLayoutFixtures.swift */; };
 		B20000000000000000000002 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* main.swift */; };
 		B1000000000000000000000A /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* SparklineView.swift */; };
 		C10000000000000000000002 /* MetricSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* MetricSample.swift */; };
@@ -73,6 +74,7 @@
 		B10000000000000000000005 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCard.swift; sourceTree = "<group>"; };
 		B10000000000000000000007 /* ProcessListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessListView.swift; sourceTree = "<group>"; };
 		B1000000000000000000000D /* StableValueLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StableValueLayout.swift; sourceTree = "<group>"; };
+		B12000000000000000000001 /* DashboardLayoutFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayoutFixtures.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		B10000000000000000000009 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* MetricSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricSample.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				A00000000000000000000003 /* StatusBarManager.swift */,
 				B10000000000000000000001 /* PopoverManager.swift */,
 				B10000000000000000000010 /* Views */,
+				B12000000000000000000010 /* Fixtures */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -168,6 +171,14 @@
 				B1000000000000000000000B /* SettingsView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		B12000000000000000000010 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				B12000000000000000000001 /* DashboardLayoutFixtures.swift */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 		08FB7793FE84155DC02AAC0D /* Utils */ = {
@@ -309,6 +320,7 @@
 				B10000000000000000000006 /* MetricCard.swift in Sources */,
 				B10000000000000000000008 /* ProcessListView.swift in Sources */,
 				B1000000000000000000000E /* StableValueLayout.swift in Sources */,
+				B12000000000000000000002 /* DashboardLayoutFixtures.swift in Sources */,
 				B1000000000000000000000A /* SparklineView.swift in Sources */,
 				C10000000000000000000002 /* MetricSample.swift in Sources */,
 				C10000000000000000000004 /* RingBuffer.swift in Sources */,
