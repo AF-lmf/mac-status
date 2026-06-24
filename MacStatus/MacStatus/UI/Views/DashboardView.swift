@@ -66,6 +66,8 @@ struct DashboardView: View {
                 BatterySectionView(snapshot: battery)
             }
 
+            ThermalSectionView(snapshot: state.thermal)
+
             // 进程相关三个区块整体由 showProcessSection 门控（整体显示或整体隐藏）
             if settings.showProcessSection {
                 // Process list
@@ -123,6 +125,103 @@ struct DashboardView: View {
         }
         .padding(12)
         .frame(width: 320)
+    }
+}
+
+// MARK: - Thermal Section
+
+/// Full-width popover thermal section. Rows remain stable when sensors are unavailable.
+struct ThermalSectionView: View {
+    let snapshot: ThermalSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("散热")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("CPU/SoC \(temperatureText(snapshot.cpuSocTemperatureCelsius))")
+                    .font(.system(.body, design: .monospaced))
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.trailing)
+                    .accessibilityLabel(primaryTemperatureAccessibilityText)
+            }
+
+            row("CPU/SoC", temperatureText(snapshot.cpuSocTemperatureCelsius))
+            row("系统状态", thermalStateText, color: thermalStateColor)
+            row("GPU", temperatureText(snapshot.gpuTemperatureCelsius))
+            row("电池", temperatureText(snapshot.batteryTemperatureCelsius))
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.04))
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("散热信息")
+    }
+
+    private func row(_ label: String, _ value: String, color: Color = .secondary) -> some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(color)
+                .multilineTextAlignment(.trailing)
+                .frame(minWidth: 52, alignment: .trailing)
+                .accessibilityLabel(accessibilityText(label: label, value: value))
+        }
+    }
+
+    private func temperatureText(_ value: Double?) -> String {
+        guard let value else { return "N/A" }
+        return "\(Int(value.rounded()))°C"
+    }
+
+    private var thermalStateText: String {
+        switch snapshot.systemState {
+        case .nominal: return "正常"
+        case .fair: return "偏热"
+        case .serious: return "严重"
+        case .critical: return "临界"
+        case .unknown: return "未知"
+        }
+    }
+
+    private var thermalStateColor: Color {
+        switch snapshot.systemState {
+        case .serious: return .orange
+        case .critical: return .red
+        case .unknown: return .secondary
+        case .nominal, .fair: return .primary
+        }
+    }
+
+    private var primaryTemperatureAccessibilityText: String {
+        guard let value = snapshot.cpuSocTemperatureCelsius else {
+            return "CPU 或 SoC 温度不可用"
+        }
+        return "CPU 或 SoC 温度 \(Int(value.rounded())) 摄氏度"
+    }
+
+    private func accessibilityText(label: String, value: String) -> String {
+        switch label {
+        case "CPU/SoC":
+            return primaryTemperatureAccessibilityText
+        case "系统状态":
+            return "系统散热状态 \(value)"
+        case "GPU":
+            return value == "N/A" ? "GPU 温度不可用" : "GPU 温度 \(value.replacingOccurrences(of: "°C", with: " 摄氏度"))"
+        case "电池":
+            return value == "N/A" ? "电池温度不可用" : "电池温度 \(value.replacingOccurrences(of: "°C", with: " 摄氏度"))"
+        default:
+            return "\(label) \(value)"
+        }
     }
 }
 
