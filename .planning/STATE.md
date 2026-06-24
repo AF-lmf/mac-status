@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: 风扇与热状态
 status: planning
 stopped_at: Phase 10 UI-SPEC approved
-last_updated: "2026-06-24T00:47:19.911Z"
+last_updated: "2026-06-24T01:09:16.924Z"
 last_activity: 2026-06-23 — v3.0 roadmap created with 5 phases and 22/22 requirements mapped
 progress:
   total_phases: 5
