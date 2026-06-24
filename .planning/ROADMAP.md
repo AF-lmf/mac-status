@@ -50,8 +50,12 @@ Plans:
   2. 每个风扇的 min/max/target 或控制能力状态在可读时可见，不可读字段以稳定 `N/A` 呈现。
   3. fanless、非 MacBook Pro 或不支持读取的机型显示普通降级状态，不显示手动风扇控制入口。
   4. UI 能区分“可读取 RPM”“可读取硬件边界”“可安全控制”，不会把可读 RPM 误判为可控。
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+Plans:
+- [ ] 11-01-PLAN.md — 建立只读风扇解码、快照和能力模型
+- [ ] 11-02-PLAN.md — 接入采集、设置并渲染 `温度与风扇` 弹窗行
+- [ ] 11-03-PLAN.md — 记录 Mac15,9 读证据并执行只读/无越界收口门
 
 ### Phase 12: Popover Layout Stability
 **Goal**: 用户打开 popover 时，网络、温度、RPM、功率和进程文本变化不会造成横向或纵向抖动。
@@ -129,7 +133,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
-| 11. Fan Read-Only RPM & Capability Model | v3.0 | 0/TBD | Not started | - |
+| 11. Fan Read-Only RPM & Capability Model | v3.0 | 0/3 | Not started | - |
 | 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |
