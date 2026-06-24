@@ -9,10 +9,10 @@
 
 ### 温度监控 (THERM)
 
-- [ ] **THERM-01**: 用户能在弹窗中看到 CPU/SoC 主温度，显示值必须来自可信传感器或明确标为 `N/A`
-- [ ] **THERM-02**: 用户能在弹窗中看到系统 thermal state，用于补充说明当前系统热压力
-- [ ] **THERM-03**: 用户能看到可信的 GPU、电池、SSD 等次要温度；不可读或不可信时不显示假值
-- [ ] **THERM-04**: 传感器缺失、机型不支持或读取失败时，温度区块优雅降级，不崩溃、不刷错误弹窗
+- [x] **THERM-01**: 用户能在弹窗中看到 CPU/SoC 主温度，显示值必须来自可信传感器或明确标为 `N/A`
+- [x] **THERM-02**: 用户能在弹窗中看到系统 thermal state，用于补充说明当前系统热压力
+- [x] **THERM-03**: 用户能看到可信的 GPU、电池、SSD 等次要温度；不可读或不可信时不显示假值
+- [x] **THERM-04**: 传感器缺失、机型不支持或读取失败时，温度区块优雅降级，不崩溃、不刷错误弹窗
 
 ### 风扇监控 (FAN)
 
@@ -83,10 +83,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THERM-01 | Phase 10 | Pending |
-| THERM-02 | Phase 10 | Pending |
-| THERM-03 | Phase 10 | Pending |
-| THERM-04 | Phase 10 | Pending |
+| THERM-01 | Phase 10 | Complete |
+| THERM-02 | Phase 10 | Complete |
+| THERM-03 | Phase 10 | Complete |
+| THERM-04 | Phase 10 | Complete |
 | FAN-01 | Phase 11 | Pending |
 | FAN-02 | Phase 11 | Pending |
 | FAN-03 | Phase 11 | Pending |

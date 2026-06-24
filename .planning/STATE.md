@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: executing
-stopped_at: Phase 10 UI-SPEC approved
-last_updated: "2026-06-24T01:10:15.096Z"
-last_activity: 2026-06-24 -- Phase 10 execution started
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-06-24T01:16:55.137Z"
+last_activity: 2026-06-24
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-23)
 ## Current Position
 
 Phase: 10 (thermal-read-only-monitoring) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 10
-Last activity: 2026-06-24 -- Phase 10 execution started
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-24
 
-Progress: [----------] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Progress: [----------] 0%
 
 - No v3.0 plans executed yet.
 
+| Phase 10 P01 | 3 min | 2 tasks | 3 files |
+
 ## Accumulated Context
 
 ### Decisions
@@ -64,6 +66,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [v3.0]: Popover layout stability is its own early phase before fan control UI.
 - [v3.0]: Fan control is fail-closed — opt-in only, bounded RPM, write/readback verification, restore-auto on lifecycle/failure.
 - [v3.0]: SMC write/control may require helper/XPC or be blocked on some Apple Silicon machines; unsafe or unverifiable control stays disabled.
+- [Phase 10]: 10-01: ThermalReader only populates CPU/SoC and GPU temperatures from explicit Mac15,9 candidate lists; unsupported models return nil.
+- [Phase 10]: 10-01: ProcessInfo thermalState is semantic SystemThermalState and never substitutes for CPU/SoC temperature.
+- [Phase 10]: 10-01: Battery temperature uses AppleSmartBattery Temperature first, with only TB1T/TB2T as SMC fallback.
 
 ### Pending Todos
 
@@ -83,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T00:47:19.907Z
-Stopped at: Phase 10 UI-SPEC approved
-Resume file: .planning/phases/10-thermal-read-only-monitoring/10-UI-SPEC.md
+Last session: 2026-06-24T01:16:33.766Z
+Stopped at: Completed 10-01-PLAN.md
+Resume file: None
