@@ -477,22 +477,25 @@ This pattern is a recommendation; the project currently lacks a test target, so 
 | A3 | XCTest view-size assertions are worth the xcodeproj cost for UAT-04. | Standard Stack, Code Examples | Planner may choose a lighter debug probe instead to avoid adding a test target. |
 | A4 | `NSHostingController.view.fittingSize` is sufficient for detecting root width regressions in this app. | Code Examples | AppKit/SwiftUI fitting behavior may require setting an explicit frame or forcing layout in the test harness. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact popover width**
+1. **Exact popover width — RESOLVED**
    - What we know: user approved a fixed width in `360-380pt`; current code is `320pt`. [VERIFIED: .planning/phases/12-popover-layout-stability/12-CONTEXT.md] [VERIFIED: MacStatus/MacStatus/UI/Views/DashboardView.swift:135]
-   - What's unclear: whether `360`, `372`, or `380` best fits all extreme fixtures. [ASSUMED]
-   - Recommendation: plan a first task that implements fixtures and validates the chosen width before finalizing helper constants. [ASSUMED]
+   - RESOLVED decision: use fixed width `372pt`, implemented as a single `DashboardLayout.popoverWidth` source and validated against deterministic short/extreme fixtures. [VERIFIED: .planning/phases/12-popover-layout-stability/12-UI-SPEC.md] [ASSUMED]
+   - Resolution rationale: `372pt` sits inside the approved `360-380pt` range, gives additional room for temperature/fan/power rows, and preserves the compact popover identity better than using the upper bound. [VERIFIED: .planning/phases/12-popover-layout-stability/12-CONTEXT.md] [ASSUMED]
+   - Planning implication: do not defer width selection to implementation; Plan 12-01 must set `DashboardLayout.popoverWidth = 372`, and Plan 12-03 must assert short/extreme measured widths equal `372pt` within `0.5pt`. [ASSUMED]
 
-2. **Automated validation vehicle**
+2. **Automated validation vehicle — RESOLVED**
    - What we know: no test target exists, and UAT-04 requires deterministic data rather than visual-only validation. [VERIFIED: local `xcodebuild -list`] [VERIFIED: .planning/REQUIREMENTS.md]
-   - What's unclear: whether the project wants to carry a permanent XCTest target now. [ASSUMED]
-   - Recommendation: use XCTest if planner accepts xcodeproj setup; otherwise add a lightweight debug layout probe that prints measured short/extreme sizes and commit the output to phase verification. [ASSUMED]
+   - RESOLVED decision: use XCTest-based deterministic validation with `NSHostingController` measurement, plus layout-probe/geometry assertions for value-column frames. [VERIFIED: .planning/phases/12-popover-layout-stability/12-UI-SPEC.md] [ASSUMED]
+   - Resolution rationale: XCTest is built into Xcode, avoids external snapshot dependencies, and gives a durable automated gate for UAT-04 rather than relying on previews or one live visual check. [VERIFIED: AGENTS.md] [ASSUMED]
+   - Planning implication: Plan 12-03 must add `MacStatusTests`, run through `xcodebuild test`, and capture root size plus per-surface value-column frame snapshots for short/extreme fixtures in `12-LAYOUT-VERIFICATION.md`. [ASSUMED]
 
-3. **Long sensor label source**
+3. **Long sensor label source — RESOLVED**
    - What we know: current fan labels default to `风扇 N`, and current thermal labels are short fixed strings. [VERIFIED: MacStatus/MacStatus/Readers/FanReader.swift:160] [VERIFIED: MacStatus/MacStatus/UI/Views/DashboardView.swift:166]
-   - What's unclear: whether Phase 12 should add fixture-only long labels without changing real reader labels. [ASSUMED]
-   - Recommendation: use fixture-only long labels for layout stress; do not add new real sensor-label semantics. [VERIFIED: .planning/phases/12-popover-layout-stability/12-CONTEXT.md] [ASSUMED]
+   - RESOLVED decision: long labels are fixture/test-only layout stress data; Phase 12 must not add user-facing raw sensor browsers, status surfaces, new reader labels, or new sensor-label semantics. [VERIFIED: .planning/phases/12-popover-layout-stability/12-CONTEXT.md] [ASSUMED]
+   - Resolution rationale: D-07 requires proving long text yields before numeric columns move, but Phase 12 is layout hardening only and must not create new monitoring or raw sensor surfaces. [VERIFIED: .planning/phases/12-popover-layout-stability/12-CONTEXT.md]
+   - Planning implication: Plan 12-02 fixtures may inject long process/fan/sensor labels only through DEBUG/test data, and Plan 12-03 must grep that fixture/probe symbols are not wired into live UI, status-bar, collector, reader, or settings paths. [ASSUMED]
 
 ## Environment Availability
 
