@@ -85,8 +85,20 @@ Plans:
   4. popover 宽度保持一个明确上限：优先约 320pt，若新增散热区块必须扩展，则固定在 360-380pt 范围内且不随刷新变化。
   5. 极端数值和长文本通过确定性快照或测试数据验证，不只依赖肉眼观察。
 
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+Plans:
+**Wave 1**
+
+- [ ] 12-01-PLAN.md — 建立稳定值列 helper，并把 Dashboard popover 固定到 372pt
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 12-02-PLAN.md — 稳定 Top-N 进程行，并创建短值/极端值 DEBUG fixtures
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 12-03-PLAN.md — 添加 XCTest 布局稳定验证并记录确定性证据
 
 ### Phase 13: Safe Fan Control Gate & Write Path
 
@@ -158,6 +170,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete    | 2026-06-24 |
-| 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
+| 12. Popover Layout Stability | v3.0 | 0/3 | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |
