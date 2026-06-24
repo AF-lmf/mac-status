@@ -4,8 +4,8 @@ milestone: v3.0
 milestone_name: 风扇与热状态
 status: planning
 stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-06-24T15:55:55.721Z"
-last_activity: 2026-06-24
+last_updated: "2026-06-24T16:20:42.058Z"
+last_activity: 2026-06-24 -- Phase 12 planning complete
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 Phase: 12
 Plan: Not started
 Status: Phase 11 verified complete — ready for Phase 12 planning
-Last activity: 2026-06-24
+Last activity: 2026-06-24 -- Phase 12 planning complete
 
 Progress: [██████████] 100%
 
