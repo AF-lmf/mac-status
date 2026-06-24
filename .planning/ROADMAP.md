@@ -38,7 +38,7 @@ v3.0 在保持轻量菜单栏体验的前提下，加入关键温度、风扇 RP
 **UI hint**: yes
 Plans:
 - [x] 10-01-PLAN.md — 建立只读 SMC 解码、ThermalReader 快照和 Mac15,9 严格信任边界
-- [ ] 10-02-PLAN.md — 接入 MetricCollector/DashboardState 并渲染稳定 `散热` 弹窗区块
+- [x] 10-02-PLAN.md — 接入 MetricCollector/DashboardState 并渲染稳定 `散热` 弹窗区块
 - [ ] 10-03-PLAN.md — 添加 `散热区块` 设置开关并记录硬件探针与最终防越界验证
 
 ### Phase 11: Fan Read-Only RPM & Capability Model
@@ -128,7 +128,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Thermal Read-Only Monitoring | v3.0 | 1/3 | In Progress|  |
+| 10. Thermal Read-Only Monitoring | v3.0 | 2/3 | In Progress|  |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 0/TBD | Not started | - |
 | 12. Popover Layout Stability | v3.0 | 0/TBD | Not started | - |
 | 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |

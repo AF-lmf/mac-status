@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-06-24T01:16:55.137Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-06-24T01:23:59.368Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-23)
 ## Current Position
 
 Phase: 10 (thermal-read-only-monitoring) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-24
 
-Progress: [███░░░░░░░] 33%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [███░░░░░░░] 33%
 - No v3.0 plans executed yet.
 
 | Phase 10 P01 | 3 min | 2 tasks | 3 files |
+| Phase 10 P02 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [Phase 10]: 10-01: ThermalReader only populates CPU/SoC and GPU temperatures from explicit Mac15,9 candidate lists; unsupported models return nil.
 - [Phase 10]: 10-01: ProcessInfo thermalState is semantic SystemThermalState and never substitutes for CPU/SoC temperature.
 - [Phase 10]: 10-01: Battery temperature uses AppleSmartBattery Temperature first, with only TB1T/TB2T as SMC fallback.
+- [Phase 10]: 10-02: Thermal snapshots are read on the existing MetricCollector tick and cached outside MetricSample/history/status-bar data. — Keeps thermal current-snapshot-only and prevents persistence/status-bar scope creep.
+- [Phase 10]: 10-02: DashboardState owns a non-optional ThermalSnapshot defaulting to unavailable for stable popover rows. — Prevents nil crashes and row churn when sensors are unsupported or temporarily unreadable.
+- [Phase 10]: 10-02: ThermalSectionView renders CPU/SoC, system state, GPU, and battery as dedicated read-only rows with N/A degradation. — Preserves the UI-SPEC copy and avoids substituting semantic thermal state or secondary sensors into CPU/SoC.
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-24T01:16:33.766Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-06-24T01:23:46.698Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
