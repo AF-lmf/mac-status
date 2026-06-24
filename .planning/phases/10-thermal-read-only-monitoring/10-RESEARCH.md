@@ -487,17 +487,15 @@ private func appleSmartBatteryTemperatureCelsius() -> Double? {
 | A1 | The Stats M3 `Te*`/`Tf*` candidate groups are good starting points for Mac15,9 CPU/GPU thermal probing, but not sufficient alone for final trust. [CITED: https://github.com/exelban/stats/blob/9a8e6e26cc0c779194fd4a2accdf0e37edf30178/Modules/Sensors/values.swift] | Standard Stack / Verification Strategy | Primary CPU/SoC may remain `N/A` until local probe confirms candidates. |
 | A2 | AppleSmartBattery `Temperature` raw value can be converted by `/100` for Celsius after type/bounds validation. [VERIFIED: local ioreg] | Code Examples | Battery temperature may show `N/A` if raw units differ on another model. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which exact Mac15,9 SMC key should be accepted as the Phase 10 primary CPU/SoC source?**
+1. **RESOLVED — Which exact Mac15,9 SMC key should be accepted as the Phase 10 primary CPU/SoC source?**
    - What we know: Stats maps M3 CPU thermal-zone candidates to `Te05`, `Te0L`, `Te0P`, `Te0S`, and `Tf04` through `Tf4E`. [CITED: https://github.com/exelban/stats/blob/9a8e6e26cc0c779194fd4a2accdf0e37edf30178/Modules/Sensors/values.swift]
-   - What's unclear: This session did not run an AppleSMC key probe against those keys because the current project exposes no raw key probe CLI yet. [VERIFIED: codebase grep]
-   - Recommendation: Make the first implementation task add read-only raw metadata support and a local verification step; keep primary `N/A` until Mac15,9 evidence is recorded. [VERIFIED: `.planning/phases/10-thermal-read-only-monitoring/10-CONTEXT.md`]
+   - Resolution: Phase 10 does not pre-accept any single Mac15,9 SMC key at planning time. The primary `CPU/SoC` value must remain `N/A` until the implementation's read-only Mac15,9 probe records candidate key/type/value evidence and the executor can justify a specific key as explicitly trusted. If no candidate can be justified during execution, shipping `CPU/SoC N/A` still satisfies the locked trust policy. [VERIFIED: `.planning/phases/10-thermal-read-only-monitoring/10-CONTEXT.md`]
 
-2. **Should Phase 10 include Apple Silicon HID/IOReport temperature sensors?**
+2. **RESOLVED — Should Phase 10 include Apple Silicon HID/IOReport temperature sensors?**
    - What we know: Stats can read Apple Silicon HID temperature sensors such as `SOC MTR Temp Sensor%`, but this project has no HID sensor bridge today. [CITED: https://github.com/exelban/stats/blob/9a8e6e26cc0c779194fd4a2accdf0e37edf30178/Modules/Sensors/readers.swift] [VERIFIED: codebase grep]
-   - What's unclear: Adding HID sensor discovery may exceed Phase 10's minimal no-dependency/read-only SMC scope. [VERIFIED: `.planning/phases/10-thermal-read-only-monitoring/10-CONTEXT.md`]
-   - Recommendation: Do not plan HID/IOReport SoC discovery for Phase 10 unless SMC candidates fail and the user explicitly accepts the added complexity; `ProcessInfo.thermalState` still covers semantic heat pressure. [CITED: https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum]
+   - Resolution: HID/IOReport temperature discovery is excluded from Phase 10. This phase stays on the existing SMC/AppleSmartBattery/`ProcessInfo.thermalState` path; adding HID/IOReport requires explicit re-planning or a later phase. If SMC candidates fail, the primary remains `N/A` and `ProcessInfo.thermalState` still provides the semantic heat-pressure row. [VERIFIED: `.planning/phases/10-thermal-read-only-monitoring/10-CONTEXT.md`] [CITED: https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum]
 
 ## Sources
 
