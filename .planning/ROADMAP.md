@@ -55,7 +55,7 @@ Plans:
   1. 支持风扇的 MacBook Pro 弹窗中显示风扇数量，并为每个风扇显示当前 RPM。
   2. 每个风扇的 min/max/target 或控制能力状态在可读时可见，不可读字段以稳定 `N/A` 呈现。
   3. fanless、非 MacBook Pro 或不支持读取的机型显示普通降级状态，不显示手动风扇控制入口。
-  4. UI 能区分“可读取 RPM”“可读取硬件边界”“可安全控制”，不会把可读 RPM 误判为可控。
+  4. UI 能区分"可读取 RPM""可读取硬件边界""可安全控制"，不会把可读 RPM 误判为可控。
 
 **Plans**: 3 plans
 **UI hint**: yes
@@ -109,13 +109,30 @@ Plans:
 
   1. 应用默认始终处于系统自动风扇控制；用户必须明确 opt-in 后才会看到或进入手动控制界面。
   2. 用户输入或拖动的手动 RPM 目标会被 clamp 到实时硬件 min/max 安全范围内，不能低于 Apple 默认下限或设置为静音/停转。
-  3. 每次手动控制写入后，界面只在 mode、target RPM 和 current RPM 读回验证通过后显示“手动已生效”。
-  4. 手动模式下用户始终能看到并点击一键“恢复系统自动控制”，恢复结果也必须读回验证后才显示成功。
+  3. 每次手动控制写入后，界面只在 mode、target RPM 和 current RPM 读回验证通过后显示"手动已生效"。
+  4. 手动模式下用户始终能看到并点击一键"恢复系统自动控制"，恢复结果也必须读回验证后才显示成功。
   5. SwiftUI 视图只能调用高层控制动作；raw SMC key 写入集中在受限控制组件或受限 helper 中。
 
 **Decision gate**: 如果 SMC 写入、helper/XPC、模式切换或读回验证在目标硬件上无法证明安全可恢复，则本阶段必须 fail closed：控制界面保持不可用，已完成的温度/风扇监控继续以只读模式工作。
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+Plans:
+**Wave 1** *(run in parallel)*
+
+- [ ] 13-01-PLAN.md — 硬件写入探针（FanControlProbe）：Mac15,9 Ftst 解锁序列验证与 fail-closed 决策门
+- [ ] 13-02-PLAN.md — 特权 helper 基础设施（FanControlHelper target、SMCWriter、FanControlProtocol、LaunchDaemon plist）
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 13-03-PLAN.md — FanControlManager 状态机（@MainActor XPC 客户端、RPM clamp、读回验证、失败关闭恢复）+ FanReader.modeValue + SettingsManager 新键
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 13-04-PLAN.md — 设置 opt-in 开关（条件渲染、首次启用风险对话框、helper 授权引导）+ StableValueWidth.fanTargetRPM
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 13-05-PLAN.md — 弹窗控制区块（FanControlAffordanceView、MetricCollector 集成、DashboardState 接线）
 
 ### Phase 14: Lifecycle Recovery & Hardware UAT
 
@@ -171,5 +188,5 @@ Plans:
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete    | 2026-06-24 |
 | 12. Popover Layout Stability | v3.0 | 3/3 | Complete    | 2026-06-24 |
-| 13. Safe Fan Control Gate & Write Path | v3.0 | 0/TBD | Not started | - |
+| 13. Safe Fan Control Gate & Write Path | v3.0 | 0/5 | Not started | - |
 | 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |
