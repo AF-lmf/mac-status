@@ -69,7 +69,18 @@ sleep 1
 rm -rf "$DEST"
 ditto "$APP_PATH" "$DEST"
 
-# 4. Relaunch -- the app re-registers its login item on launch.
+# 4. Unregister the build-tree copy from LaunchServices.
+#    Xcode's RegisterWithLaunchServices build phase force-registers the product
+#    with `lsregister -f`, even though it lives in build.noindex. The `.noindex`
+#    suffix only hides the bundle from Spotlight, NOT from that explicit
+#    registration -- so without this step the build copy shows up as a duplicate
+#    MacStatus icon in Launchpad alongside the installed /Applications one.
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
+if [[ -x "$LSREGISTER" ]]; then
+  "$LSREGISTER" -u "$APP_PATH" 2>/dev/null || true
+fi
+
+# 5. Relaunch -- the app re-registers its login item on launch.
 open "$DEST"
 
 echo "Installed and launched: $DEST"
