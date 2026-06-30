@@ -63,6 +63,9 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
             popover.performClose(nil)
         } else {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            // Pin the status item width so live menu-bar updates don't resize the
+            // anchor and jitter the popover left/right (the title keeps updating).
+            StatusBarManager.shared.pinWidthForPopover()
             // Trigger process list refresh when popover opens
             refreshProcessList()
             // Start resource (CPU/memory) sampling loop — cancelled on close (PROC-03)
@@ -106,6 +109,9 @@ final class PopoverManager: NSObject, NSPopoverDelegate {
     /// (outside click, status-item toggle, or transient app deactivation).
     func popoverDidClose(_ notification: Notification) {
         stopOutsideClickMonitor()
+        // Release the pinned status-item width so it resumes auto-sizing to fit
+        // the (continuously updated) title now that the anchor no longer matters.
+        StatusBarManager.shared.unpinWidthForPopover()
         // PROC-03: cancel sampling loop, reset loading state
         resourceSampleTask?.cancel()
         resourceSampleTask = nil

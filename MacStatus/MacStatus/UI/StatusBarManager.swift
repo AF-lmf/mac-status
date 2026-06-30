@@ -71,6 +71,27 @@ final class StatusBarManager {
         self.popoverManager = popoverManager
     }
 
+    // MARK: - Popover Anchor Width
+
+    /// Pin the status item to its current width while the popover is open.
+    ///
+    /// The popover is anchored to this item via `show(relativeTo:of:)`. The item
+    /// uses `variableLength`, so each refresh's title-width change resizes the
+    /// item, shifts the button, and drags the attached popover left/right. Pinning
+    /// the width holds the anchor still while the title text keeps updating, so the
+    /// menu-bar numbers stay live and the popover no longer jitters. A value that
+    /// grows wider than the pinned width is clipped until the popover closes.
+    func pinWidthForPopover() {
+        guard let button = statusItem.button else { return }
+        statusItem.length = button.frame.width
+    }
+
+    /// Restore automatic width sizing once the popover closes; the item snaps back
+    /// to fit the current (already up-to-date) title.
+    func unpinWidthForPopover() {
+        statusItem.length = NSStatusItem.variableLength
+    }
+
     // MARK: - Title Update
 
     /// Update the status bar button title with current metrics.
