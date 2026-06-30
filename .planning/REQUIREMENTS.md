@@ -28,20 +28,22 @@
 - [x] **LAYOUT-03**: 长进程名、长传感器标签、能力状态文本使用稳定裁切或换行策略，不挤压相邻数值列
 - [x] **LAYOUT-04**: popover 宽度优先保持现有约 320pt；若新增散热区块需要扩展，允许上限到 360-380pt，但必须保持稳定布局
 
-### 风扇安全控制 (FCTRL)
+### 风扇安全控制 (FCTRL) — Descoped 2026-06-30
 
-- [ ] **FCTRL-01**: 用户必须显式 opt-in 才能进入手动风扇控制，默认始终为系统自动控制
-- [ ] **FCTRL-02**: 手动 RPM 目标必须 clamp 到实时硬件 min/max 安全范围内，不允许低于 Apple 默认下限或设置为静音模式
-- [ ] **FCTRL-03**: 每次写入风扇控制后必须读回 mode、target RPM 和 current RPM 验证，不能只信 IOKit 返回成功
-- [ ] **FCTRL-04**: 用户可以一键恢复系统自动风扇控制，恢复结果必须读回验证
-- [ ] **FCTRL-05**: 写入失败、禁用控制、退出应用、睡眠前、唤醒后异常或能力重新探测失败时，应用必须尝试恢复系统自动控制
-- [ ] **FCTRL-06**: 风扇控制写入必须集中在受限控制组件或受限 helper 中，SwiftUI 视图不得直接读写 raw SMC key
+> 风扇硬件控制写入路径于 2026-06-30 从 v3.0 撤销（用户取消风扇硬件改动功能）。以下需求未被废弃，可在后续里程碑重新提出。原 Phase 13/14 规划产物归档于 `.planning/cancelled/`。
+
+- [~] **FCTRL-01**: ~~用户必须显式 opt-in 才能进入手动风扇控制，默认始终为系统自动控制~~ — Descoped
+- [~] **FCTRL-02**: ~~手动 RPM 目标必须 clamp 到实时硬件 min/max 安全范围内，不允许低于 Apple 默认下限或设置为静音模式~~ — Descoped
+- [~] **FCTRL-03**: ~~每次写入风扇控制后必须读回 mode、target RPM 和 current RPM 验证，不能只信 IOKit 返回成功~~ — Descoped
+- [~] **FCTRL-04**: ~~用户可以一键恢复系统自动风扇控制，恢复结果必须读回验证~~ — Descoped
+- [~] **FCTRL-05**: ~~写入失败、禁用控制、退出应用、睡眠前、唤醒后异常或能力重新探测失败时，应用必须尝试恢复系统自动控制~~ — Descoped
+- [~] **FCTRL-06**: ~~风扇控制写入必须集中在受限控制组件或受限 helper 中，SwiftUI 视图不得直接读写 raw SMC key~~ — Descoped
 
 ### 验证与发布门槛 (UAT)
 
-- [ ] **UAT-01**: 风扇控制必须在真实 MacBook Pro 上完成人工验证后才能标记完成
-- [ ] **UAT-02**: unsupported、fanless、传感器缺失、读取失败、写入失败和恢复自动失败状态都必须有可验证的 UI 表现
-- [ ] **UAT-03**: quit、sleep、wake、失败 rollback 和重新打开 app 的生命周期路径必须验证不会遗留手动风扇状态
+- [~] **UAT-01**: ~~风扇控制必须在真实 MacBook Pro 上完成人工验证后才能标记完成~~ — Descoped 2026-06-30（随风扇控制撤销）
+- [~] **UAT-02**: ~~unsupported、fanless、传感器缺失、读取失败、写入失败和恢复自动失败状态都必须有可验证的 UI 表现~~ — Descoped 2026-06-30（写入/恢复失败部分随风扇控制撤销）
+- [~] **UAT-03**: ~~quit、sleep、wake、失败 rollback 和重新打开 app 的生命周期路径必须验证不会遗留手动风扇状态~~ — Descoped 2026-06-30（随风扇控制撤销）
 - [x] **UAT-04**: 布局稳定必须用确定性快照或测试数据覆盖极端数值，不只依赖肉眼观察
 
 ## Future Requirements
@@ -95,22 +97,23 @@
 | LAYOUT-02 | Phase 12 | Complete |
 | LAYOUT-03 | Phase 12 | Complete |
 | LAYOUT-04 | Phase 12 | Complete |
-| FCTRL-01 | Phase 13 | Pending |
-| FCTRL-02 | Phase 13 | Pending |
-| FCTRL-03 | Phase 13 | Pending |
-| FCTRL-04 | Phase 13 | Pending |
-| FCTRL-05 | Phase 14 | Pending |
-| FCTRL-06 | Phase 13 | Pending |
-| UAT-01 | Phase 14 | Pending |
-| UAT-02 | Phase 14 | Pending |
-| UAT-03 | Phase 14 | Pending |
+| FCTRL-01 | ~~Phase 13~~ | Descoped 2026-06-30 |
+| FCTRL-02 | ~~Phase 13~~ | Descoped 2026-06-30 |
+| FCTRL-03 | ~~Phase 13~~ | Descoped 2026-06-30 |
+| FCTRL-04 | ~~Phase 13~~ | Descoped 2026-06-30 |
+| FCTRL-05 | ~~Phase 14~~ | Descoped 2026-06-30 |
+| FCTRL-06 | ~~Phase 13~~ | Descoped 2026-06-30 |
+| UAT-01 | ~~Phase 14~~ | Descoped 2026-06-30 |
+| UAT-02 | ~~Phase 14~~ | Descoped 2026-06-30 |
+| UAT-03 | ~~Phase 14~~ | Descoped 2026-06-30 |
 | UAT-04 | Phase 12 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 22 total
-- Mapped to phases: 22
+- Delivered (Phase 10–12): 13
+- Descoped 2026-06-30 (fan control write path): 9 — FCTRL-01..06, UAT-01/02/03
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-23*
-*Last updated: 2026-06-24 after Phase 12 verification*
+*Last updated: 2026-06-30 — fan control (FCTRL-01..06, UAT-01/02/03) descoped; v3.0 kept open*

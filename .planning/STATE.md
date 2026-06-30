@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
-status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-06-26T09:28:49.688Z"
-last_activity: 2026-06-26 -- Phase 13 planning complete
+status: open
+stopped_at: Phases 13 & 14 cancelled — fan control write path descoped
+last_updated: "2026-06-30T00:00:00.000Z"
+last_activity: 2026-06-30 -- Phases 13 & 14 cancelled (fan control descoped); v3.0 kept open
 progress:
-  total_phases: 5
+  total_phases: 3
   completed_phases: 3
-  total_plans: 14
+  total_plans: 9
   completed_plans: 9
-  percent: 64
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** 用户无需打开任何窗口，在菜单栏一眼就能看到当前系统资源的实时使用情况
-**Current focus:** Phase 13 — Safe Fan Control Gate & Write Path
+**Current focus:** 无活跃阶段 — v3.0 只读监控范围（Phase 10–12）已完成；风扇控制写入路径已撤销，里程碑保持开放
 
 ## Current Position
 
-Phase: 13 (Safe Fan Control Gate & Write Path)
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-26 -- Phase 13 planning complete
+Phase: 无活跃阶段（Phase 10–12 已完成）
+Plan: —
+Status: v3.0 保持开放 — 可新增非硬件 phase，或在准备好时收口里程碑
+Last activity: 2026-06-30 -- Phases 13 & 14 cancelled (fan control descoped)
 
-Progress: [██████░░░░] 60%
+Progress: [██████████] 100%（仅计 v3.0 现有范围 Phase 10–12）
 
 ## Performance Metrics
 
@@ -47,8 +47,8 @@ Progress: [██████░░░░] 60%
 | 10 | 3 | - | - |
 | 11 | 3 | - | - |
 | 12 | 3 | - | - |
-| 13 | TBD | - | - |
-| 14 | TBD | - | - |
+| ~~13~~ | cancelled 2026-06-30 | - | - |
+| ~~14~~ | cancelled 2026-06-30 | - | - |
 
 **Recent Trend:**
 
@@ -74,6 +74,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Current roadmap decision
 - [v3.0]: Popover layout stability is its own early phase before fan control UI.
 - [v3.0]: Fan control is fail-closed — opt-in only, bounded RPM, write/readback verification, restore-auto on lifecycle/failure.
 - [v3.0]: SMC write/control may require helper/XPC or be blocked on some Apple Silicon machines; unsafe or unverifiable control stays disabled.
+- [v3.0][2026-06-30]: 风扇硬件控制写入路径取消 — Phase 13（写入路径）与 Phase 14（生命周期/真机 UAT）一并撤销，从未执行、无代码落地；规划产物归档至 .planning/cancelled/。FCTRL-01..06、UAT-01/02/03 标为本里程碑撤销，可后续重提。v3.0 保持开放。只读温度/风扇监控（Phase 10–12）不受影响。
 - [Phase 10]: 10-01: ThermalReader only populates CPU/SoC and GPU temperatures from explicit Mac15,9 candidate lists; unsupported models return nil.
 - [Phase 10]: 10-01: ProcessInfo thermalState is semantic SystemThermalState and never substitutes for CPU/SoC temperature.
 - [Phase 10]: 10-01: Battery temperature uses AppleSmartBattery Temperature first, with only TB1T/TB2T as SMC fallback.
@@ -97,18 +98,18 @@ None.
 
 ### Blockers/Concerns
 
-- Fan control cannot be marked complete without real MacBook Pro hardware UAT.
-- Apple Silicon SMC write feasibility is a decision gate; read-only monitoring must remain useful if control is blocked.
+- None.（原风扇控制相关的硬件 UAT / SMC 写入可行性顾虑已随 Phase 13/14 撤销而移除。）
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
+| fan-control | 手动风扇控制写入路径（原 Phase 13/14） | Descoped 2026-06-30 — 可后续重提 |
 | fan-control | Full automatic fan curves / quiet mode | Future requirement |
 | thermal-history | Long-term temperature/fan history | Future requirement |
 
 ## Session Continuity
 
-Last session: 2026-06-26T05:31:08.548Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-safe-fan-control-gate-write-path/13-CONTEXT.md
+Last session: 2026-06-30
+Stopped at: Phases 13 & 14 cancelled — fan control write path descoped; v3.0 kept open
+Resume file: none (no active phase)

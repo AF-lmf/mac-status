@@ -13,15 +13,15 @@ v1.0/v2.0 已交付单一菜单栏状态项、CPU/GPU/内存/网络实时监控�
 
 ## Overview
 
-v3.0 在保持轻量菜单栏体验的前提下，加入关键温度、风扇 RPM 与安全风扇控制。交付顺序按风险递增：先完成只读温度与风扇能力，再稳定 popover 布局，最后才进入带决策门、读回验证、失败回退和真实硬件 UAT 的风扇控制。
+v3.0 在保持轻量菜单栏体验的前提下，加入关键温度与风扇 RPM 只读监控并稳定 popover 布局。原计划中的风扇硬件控制写入路径（Phase 13）及其生命周期/真机 UAT（Phase 14）已于 2026-06-30 取消，详见下方 Descoped 小节。当前里程碑保持开放。
 
 ## Phases
 
 - [x] **Phase 10: Thermal Read-Only Monitoring** - 弹窗显示可信 CPU/SoC 主温度、系统 thermal state 与可读次要温度，缺失时稳定降级。 (completed 2026-06-24)
 - [x] **Phase 11: Fan Read-Only RPM & Capability Model** - 弹窗显示风扇数量、每个风扇 RPM/边界/能力状态，并区分可读、可读边界和可安全控制。 (completed 2026-06-24)
 - [x] **Phase 12: Popover Layout Stability** - 在新增散热信息和极端网络/温度/RPM/进程值下，popover 宽度、行列和数值对齐保持稳定。 (completed 2026-06-24)
-- [ ] **Phase 13: Safe Fan Control Gate & Write Path** - 只有在能力验证通过时，用户才能显式 opt-in 使用受限、可读回验证、可恢复自动的手动风扇控制。
-- [ ] **Phase 14: Lifecycle Recovery & Hardware UAT** - quit/sleep/wake/failure 生命周期不遗留手动风扇状态，并通过真实 MacBook Pro 与降级场景 UAT 后放行。
+- ~~**Phase 13: Safe Fan Control Gate & Write Path**~~ - 取消（2026-06-30，风扇硬件改动功能撤销）。
+- ~~**Phase 14: Lifecycle Recovery & Hardware UAT**~~ - 取消（2026-06-30，随 Phase 13 一并撤销）。
 
 ## Phase Details
 
@@ -100,56 +100,14 @@ Plans:
 
 - [x] 12-03-PLAN.md — 添加 XCTest 布局稳定验证并记录确定性证据
 
-### Phase 13: Safe Fan Control Gate & Write Path
+## Descoped (v3.0)
 
-**Goal**: 用户只有明确 opt-in 后才能进入手动风扇控制；所有控制都被边界限制、写后读回验证，并能一键恢复系统自动控制。
-**Depends on**: Phase 11, Phase 12
-**Requirements**: FCTRL-01, FCTRL-02, FCTRL-03, FCTRL-04, FCTRL-06
-**Success Criteria** (what must be TRUE):
+以下阶段于 2026-06-30 取消（用户决定撤销风扇硬件改动功能）。两者均未执行、无代码落地；规划产物保留在 `.planning/cancelled/13-safe-fan-control-gate-write-path/` 以备将来恢复。
 
-  1. 应用默认始终处于系统自动风扇控制；用户必须明确 opt-in 后才会看到或进入手动控制界面。
-  2. 用户输入或拖动的手动 RPM 目标会被 clamp 到实时硬件 min/max 安全范围内，不能低于 Apple 默认下限或设置为静音/停转。
-  3. 每次手动控制写入后，界面只在 mode、target RPM 和 current RPM 读回验证通过后显示"手动已生效"。
-  4. 手动模式下用户始终能看到并点击一键"恢复系统自动控制"，恢复结果也必须读回验证后才显示成功。
-  5. SwiftUI 视图只能调用高层控制动作；raw SMC key 写入集中在受限控制组件或受限 helper 中。
+- **Phase 13: Safe Fan Control Gate & Write Path** — 手动风扇控制的硬件写入路径（opt-in 门、SMC 写入、helper/XPC、读回验证、失败回退）。撤销需求：FCTRL-01, FCTRL-02, FCTRL-03, FCTRL-04, FCTRL-06。
+- **Phase 14: Lifecycle Recovery & Hardware UAT** — 仅服务于风扇控制的生命周期恢复与真机 UAT，随 Phase 13 一并取消。撤销需求：FCTRL-05, UAT-01, UAT-02, UAT-03。
 
-**Decision gate**: 如果 SMC 写入、helper/XPC、模式切换或读回验证在目标硬件上无法证明安全可恢复，则本阶段必须 fail closed：控制界面保持不可用，已完成的温度/风扇监控继续以只读模式工作。
-**Plans**: 5 plans
-**UI hint**: yes
-Plans:
-**Wave 1** *(run in parallel)*
-
-- [ ] 13-01-PLAN.md — 硬件写入探针（FanControlProbe）：Mac15,9 Ftst 解锁序列验证与 fail-closed 决策门
-- [ ] 13-02-PLAN.md — 特权 helper 基础设施（FanControlHelper target、SMCWriter、FanControlProtocol、LaunchDaemon plist）
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [ ] 13-03-PLAN.md — FanControlManager 状态机（@MainActor XPC 客户端、RPM clamp、读回验证、失败关闭恢复）+ FanReader.modeValue + SettingsManager 新键
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [ ] 13-04-PLAN.md — 设置 opt-in 开关（条件渲染、首次启用风险对话框、helper 授权引导）+ StableValueWidth.fanTargetRPM
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [ ] 13-05-PLAN.md — 弹窗控制区块（FanControlAffordanceView、MetricCollector 集成、DashboardState 接线）
-
-### Phase 14: Lifecycle Recovery & Hardware UAT
-
-**Goal**: 用户不会因为应用退出、睡眠、唤醒、写入失败或能力重新探测失败而遗留手动风扇状态；风扇控制只在真实硬件验证后标记完成。
-**Depends on**: Phase 13
-**Requirements**: FCTRL-05, UAT-01, UAT-02, UAT-03
-**Success Criteria** (what must be TRUE):
-
-  1. 写入失败、禁用控制、退出应用、睡眠前、唤醒后异常或能力重新探测失败时，应用会尝试恢复系统自动风扇控制并显示验证结果。
-  2. 重新打开 app 或睡眠唤醒后，界面以硬件读回状态为准，不会凭旧设置假装仍处于手动或自动状态。
-  3. unsupported、fanless、传感器缺失、读取失败、写入失败和恢复自动失败都有可验证、克制且不误导的 UI 表现。
-  4. quit、sleep、wake、失败 rollback 和重新打开 app 的路径验证后，不会遗留 MacStatus 启动的手动风扇状态。
-  5. 风扇控制必须在真实 MacBook Pro 上完成人工验证后，才能把本阶段和 v3.0 风扇控制标记为完成。
-
-**Decision gate**: 如果真实硬件 UAT 未通过或不可执行，v3.0 可以保留只读温度/风扇能力，但风扇控制必须保持未完成或禁用。
-**Plans**: TBD
-**UI hint**: yes
+只读温度/风扇监控（Phase 10–12）不受影响，照常工作。撤销的需求未被废弃，可在后续里程碑重新提出。
 
 ## Coverage
 
@@ -167,18 +125,19 @@ Plans:
 | LAYOUT-02 | Phase 12 |
 | LAYOUT-03 | Phase 12 |
 | LAYOUT-04 | Phase 12 |
-| FCTRL-01 | Phase 13 |
-| FCTRL-02 | Phase 13 |
-| FCTRL-03 | Phase 13 |
-| FCTRL-04 | Phase 13 |
-| FCTRL-05 | Phase 14 |
-| FCTRL-06 | Phase 13 |
-| UAT-01 | Phase 14 |
-| UAT-02 | Phase 14 |
-| UAT-03 | Phase 14 |
+| FCTRL-01 | ~~Phase 13~~ Descoped |
+| FCTRL-02 | ~~Phase 13~~ Descoped |
+| FCTRL-03 | ~~Phase 13~~ Descoped |
+| FCTRL-04 | ~~Phase 13~~ Descoped |
+| FCTRL-05 | ~~Phase 14~~ Descoped |
+| FCTRL-06 | ~~Phase 13~~ Descoped |
+| UAT-01 | ~~Phase 14~~ Descoped |
+| UAT-02 | ~~Phase 14~~ Descoped |
+| UAT-03 | ~~Phase 14~~ Descoped |
 | UAT-04 | Phase 12 |
 
-**Mapped:** 22/22 v3.0 requirements.
+**Mapped:** 13/22 v3.0 requirements (Phase 10–12).
+**Descoped:** 9 (FCTRL-01..06, UAT-01/02/03 — fan control write path cancelled 2026-06-30).
 **Unmapped:** 0.
 
 ## Progress
@@ -188,5 +147,5 @@ Plans:
 | 10. Thermal Read-Only Monitoring | v3.0 | 3/3 | Complete   | 2026-06-24 |
 | 11. Fan Read-Only RPM & Capability Model | v3.0 | 3/3 | Complete    | 2026-06-24 |
 | 12. Popover Layout Stability | v3.0 | 3/3 | Complete    | 2026-06-24 |
-| 13. Safe Fan Control Gate & Write Path | v3.0 | 0/5 | Not started | - |
-| 14. Lifecycle Recovery & Hardware UAT | v3.0 | 0/TBD | Not started | - |
+| 13. Safe Fan Control Gate & Write Path | v3.0 | - | Cancelled 2026-06-30 | - |
+| 14. Lifecycle Recovery & Hardware UAT | v3.0 | - | Cancelled 2026-06-30 | - |
