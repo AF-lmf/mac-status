@@ -255,7 +255,11 @@ final class MetricCollector {
             cpuUsage: sample.cpuUsage,
             memoryStats: memStats,
             networkStats: netStats2,
-            gpuStats: sample.gpuUsage.map { GPUStats(utilizationPercent: $0, pressureLevel: nil) }
+            gpuStats: sample.gpuUsage.map { GPUStats(utilizationPercent: $0, pressureLevel: nil) },
+            cpuSamples: dashboard.cpuSamples,
+            memorySamples: dashboard.memorySamples,
+            gpuSamples: dashboard.gpuSamples,
+            networkSamples: dashboard.networkSamples
         )
     }
 

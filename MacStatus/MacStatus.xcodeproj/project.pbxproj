@@ -36,6 +36,7 @@
 		B1000000000000000000000E /* StableValueLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000D /* StableValueLayout.swift */; };
 		B12000000000000000000002 /* DashboardLayoutFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12000000000000000000001 /* DashboardLayoutFixtures.swift */; };
 		B13000000000000000000002 /* DashboardLayoutStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */; };
+		B13000000000000000000051 /* DesignSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13000000000000000000050 /* DesignSnapshotTests.swift */; };
 		B13000000000000000000004 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B13000000000000000000003 /* XCTest.framework */; };
 		B20000000000000000000002 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* main.swift */; };
 		B1000000000000000000000A /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* SparklineView.swift */; };
@@ -78,6 +79,7 @@
 		B1000000000000000000000D /* StableValueLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StableValueLayout.swift; sourceTree = "<group>"; };
 		B12000000000000000000001 /* DashboardLayoutFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayoutFixtures.swift; sourceTree = "<group>"; };
 		B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayoutStabilityTests.swift; sourceTree = "<group>"; };
+		B13000000000000000000050 /* DesignSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSnapshotTests.swift; sourceTree = "<group>"; };
 		B13000000000000000000003 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		B13000000000000000000005 /* MacStatusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacStatusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -245,6 +247,7 @@
 			isa = PBXGroup;
 			children = (
 				B13000000000000000000001 /* DashboardLayoutStabilityTests.swift */,
+				B13000000000000000000050 /* DesignSnapshotTests.swift */,
 			);
 			path = MacStatusTests;
 			sourceTree = "<group>";
@@ -398,6 +401,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B13000000000000000000002 /* DashboardLayoutStabilityTests.swift in Sources */,
+				B13000000000000000000051 /* DesignSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

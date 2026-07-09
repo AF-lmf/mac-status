@@ -1,24 +1,31 @@
 import SwiftUI
 
 // MARK: - Dashboard View
+//
+// 1a「原生精修 (Refined Native)」弹窗仪表盘：半透明玻璃面板内的圆角卡片群。
+// 标题栏 → 2×2 指标卡（大数字 + 小型大写标签 + 面积 sparkline）
+// → 电源概览排（电源卡 : 温度 : 风扇 = 2:1:1，详细数据默认收起可展开）
+// → 资源占用 TOP（CPU/内存 pill 切换）→ 网络进程 → 底部。
+//
+// 布局不变量：数值列一律用固定宽度，保证 .short 与 .extreme fixture 下数值列
+// x 位置与列宽不抖动（见 DashboardLayoutStabilityTests）。8 个 LayoutProbe 常驻：
+// 概览排承载 battery/systemPower/temperature/fanRPM 四个探针；资源占用卡以
+// ZStack 双渲染（未选中列表 opacity 0）保证 cpu/memory 两个探针同时存在。
 
-/// Main popover content — iStat-style card layout with sparkline trends.
-/// Shows CPU, Memory, Network, GPU cards + top processes list.
 struct DashboardView: View {
     @EnvironmentObject private var state: DashboardState
+    @State private var detailsExpanded = false
 
     var body: some View {
         let settings = SettingsManager.shared  // body 内读取，建立 @Observable 追踪依赖（无需 @State）
-        VStack(spacing: 8) {
-            // Header
-            HStack {
-                Spacer()
-                Text("Refresh: \(Int(state.refreshInterval))s")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+        let showsBattery = settings.showBatterySection && state.hasBattery
+        let showsThermal = settings.showThermalSection
+        let showsFan = settings.showFanSection && state.fan.supportState != .unsupported
 
-            // Metric cards grid (2x2) with sparklines
+        VStack(spacing: 8) {
+            DashboardHeader(refreshInterval: state.refreshInterval)
+
+            // Metric cards grid (2x2) with sparklines — 顺序对齐 mock：CPU / MEM / GPU / NET
             LazyVGrid(
                 columns: [
                     GridItem(.flexible(), spacing: 8),
@@ -28,252 +35,599 @@ struct DashboardView: View {
             ) {
                 MetricCardWithSparkline(
                     title: "CPU",
-                    value: state.cpuText,
-                    progress: state.cpuUsage / 100.0,
-                    color: Color.usageColor(state.cpuUsage),
+                    number: "\(Int(state.cpuUsage))",
+                    unit: "%",
+                    tint: .usage(state.cpuUsage),
                     samples: state.cpuSamples
                 )
 
                 MetricCardWithSparkline(
                     title: "Memory",
-                    value: state.memoryText,
-                    progress: state.memoryUsage / 100.0,
-                    color: Color.usageColor(state.memoryUsage),
+                    number: "\(Int(state.memoryUsage))",
+                    unit: "%",
+                    tint: .usage(state.memoryUsage),
                     samples: state.memorySamples
                 )
 
                 MetricCardWithSparkline(
-                    title: "Network",
-                    value: state.networkText,
-                    progress: state.networkProgress,
-                    color: .blue,
-                    samples: state.networkSamples
+                    title: "GPU",
+                    number: state.gpuText == "N/A" ? nil : "\(Int(state.gpuUsage))",
+                    unit: "%",
+                    fallbackValue: state.gpuText,
+                    tint: .usage(state.gpuUsage),
+                    samples: state.gpuSamples
                 )
 
                 MetricCardWithSparkline(
-                    title: "GPU",
-                    value: state.gpuText,
-                    progress: state.gpuUsage / 100.0,
-                    color: Color.usageColor(state.gpuUsage),
-                    samples: state.gpuSamples
+                    title: "Network",
+                    networkValue: state.networkText,
+                    tint: .network,
+                    samples: state.networkSamples
                 )
             }
 
-            // Battery section (laptops only; entire section hidden on desktop Macs)
-            // 外层：设置门控（showBatterySection）；内层：硬件门控（hasBattery）。
-            // 在无电池机型上 hasBattery = false，Toggle 可操作但弹窗不显示（原有行为不变）。
-            if settings.showBatterySection && state.hasBattery, let battery = state.battery {
-                BatterySectionView(snapshot: battery)
-            }
-
-            let showsFanRows = settings.showFanSection && state.fan.supportState != .unsupported
-            if settings.showThermalSection || showsFanRows {
-                TemperatureAndFanSectionView(
-                    thermalSnapshot: state.thermal,
-                    fanSnapshot: state.fan,
-                    showsTemperature: settings.showThermalSection,
-                    showsFan: settings.showFanSection
+            // 电源概览排（电源卡 2 : 温度 1 : 风扇 1）+ 可展开详细区
+            if showsBattery || showsThermal || showsFan {
+                OverviewStripView(
+                    battery: showsBattery ? state.battery : nil,
+                    thermal: state.thermal,
+                    fan: state.fan,
+                    showsTemperature: showsThermal,
+                    showsFan: showsFan
                 )
+
+                DetailsToggleButton(isExpanded: $detailsExpanded)
+
+                if detailsExpanded {
+                    DetailSectionView(
+                        battery: showsBattery ? state.battery : nil,
+                        thermal: state.thermal,
+                        fan: state.fan,
+                        showsTemperature: showsThermal,
+                        showsFan: showsFan
+                    )
+                }
             }
 
-            // 进程相关三个区块整体由 showProcessSection 门控（整体显示或整体隐藏）
+            // 进程相关区块整体由 showProcessSection 门控
             if settings.showProcessSection {
-                // Process list
+                ProcessResourceCard(
+                    cpuItems: state.topCPUProcesses,
+                    memoryItems: state.topMemoryProcesses,
+                    isLoading: state.resourceLoading
+                )
+
                 ProcessListView(
                     processes: state.topProcesses,
                     isLoading: state.processesLoading,
                     errorMessage: state.processError
                 )
-
-                // CPU Top 5 (PROC-01)
-                ProcessResourceSectionView(
-                    title: "CPU 占用 Top 5",
-                    items: state.topCPUProcesses,
-                    isLoading: state.resourceLoading,
-                    trailingWidth: StableValueWidth.processCPU,
-                    emptyTitle: "暂无 CPU 进程采样",
-                    emptyBody: "等待 CPU 采样更新",
-                    trailingText: { proc in
-                        proc.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "—"
-                    }
-                )
-
-                // 内存 Top 5 (PROC-02)
-                ProcessResourceSectionView(
-                    title: "内存占用 Top 5",
-                    items: state.topMemoryProcesses,
-                    isLoading: state.resourceLoading,
-                    trailingWidth: StableValueWidth.processMemory,
-                    emptyTitle: "暂无内存进程采样",
-                    emptyBody: "等待内存采样更新",
-                    trailingText: { proc in
-                        ByteFormatting.format(Double(proc.memoryBytes))
-                    }
-                )
             }
 
-            // Footer — self monitoring
-            HStack {
-                if state.selfCpuUsage > 1.0 {
-                    Label(
-                        "Self: \(String(format: "%.1f%%", state.selfCpuUsage))",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                    .font(.system(size: 9))
-                    .foregroundStyle(.orange)
-                }
-                Spacer()
-                if state.selfMemoryMB > 0 {
-                    Text("RAM: \(Int(state.selfMemoryMB))MB")
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                }
-                Spacer()
-                Button("Quit MacStatus") {
-                    NSApplication.shared.terminate(nil)
-                }
-                .font(.caption2)
-                .buttonStyle(.borderless)
-            }
-            .padding(.top, 2)
+            DashboardFooter(selfCpuUsage: state.selfCpuUsage, selfMemoryMB: state.selfMemoryMB)
         }
-        .padding(12)
+        .padding(14)
         .frame(width: DashboardLayout.popoverWidth)
     }
 }
 
-// MARK: - Temperature and Fan Section
+// MARK: - Dashboard Header
 
-/// Full-width popover section for current thermal and read-only fan telemetry.
-struct TemperatureAndFanSectionView: View {
-    let thermalSnapshot: ThermalSnapshot
-    let fanSnapshot: FanSnapshot
+/// 标题栏：app 图标方块 + "MacStatus" + 实时状态点 + 刷新节奏。
+struct DashboardHeader: View {
+    let refreshInterval: Double
+
+    var body: some View {
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "#3D9BFF"), Color(hex: "#0A6FD6")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 19, height: 19)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(.white.opacity(0.95))
+                        .frame(width: 7, height: 7)
+                )
+                .shadow(color: Color(hex: "#0A5AC8").opacity(0.45), radius: 2, x: 0, y: 1.5)
+
+            Text("MacStatus")
+                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                .foregroundStyle(.primary)
+
+            Spacer()
+
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(Color.runningGreen)
+                    .frame(width: 5, height: 5)
+                    .shadow(color: Color.runningGreen.opacity(0.9), radius: 2.5)
+                Text("\(Int(refreshInterval))s")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(Color.metricLabel)
+            }
+        }
+        .padding(.bottom, 2)
+    }
+}
+
+// MARK: - Metric Card with Sparkline
+
+/// 指标卡：小型大写标签 + 大号读数 + 底部面积 sparkline。
+/// 三种读数形态：普通百分比（number+unit）、网络（两行 ↓主色/↑弱化）、N/A 兜底。
+struct MetricCardWithSparkline: View {
+    let title: String
+    let tint: MetricTint
+    let samples: [Double]
+
+    private let number: String?
+    private let unit: String?
+    private let fallbackValue: String?
+    private let networkValue: String?
+
+    /// 百分比型（CPU/GPU/内存）：`number` 为大数字，`unit` 为小单位；N/A 用 `fallbackValue`。
+    init(
+        title: String,
+        number: String?,
+        unit: String?,
+        fallbackValue: String? = nil,
+        tint: MetricTint,
+        samples: [Double]
+    ) {
+        self.title = title
+        self.number = number
+        self.unit = unit
+        self.fallbackValue = fallbackValue
+        self.networkValue = nil
+        self.tint = tint
+        self.samples = samples
+    }
+
+    /// 网络型：两行速率文字（`↓` 主色在上、`↑` 弱化在下；保留探针与固定列宽）。
+    init(title: String, networkValue: String, tint: MetricTint, samples: [Double]) {
+        self.title = title
+        self.number = nil
+        self.unit = nil
+        self.fallbackValue = nil
+        self.networkValue = networkValue
+        self.tint = tint
+        self.samples = samples
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .top) {
+                CardLabel(text: title)
+                    .padding(.top, networkValue != nil ? 2 : 0)
+                Spacer(minLength: 4)
+                valueView
+            }
+
+            SparklineView(samples: samples, color: tint.accent)
+                .frame(height: 26)
+        }
+        .cardSurface()
+    }
+
+    @ViewBuilder private var valueView: some View {
+        if let networkValue {
+            NetworkValueBlock(text: networkValue, tint: tint)
+                .layoutProbe(.networkMetricCardValue)
+        } else if let number {
+            MetricValueText(number: number, unit: unit, color: tint.text)
+        } else {
+            Text(fallbackValue ?? "N/A")
+                .font(.system(size: 16, weight: .medium, design: .monospaced))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// 网络卡读数：第一行（↓ 下行）主色、第二行（↑ 上行）弱化色，右对齐固定列宽。
+private struct NetworkValueBlock: View {
+    let text: String
+    let tint: MetricTint
+
+    var body: some View {
+        let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        VStack(alignment: .trailing, spacing: 1) {
+            Text(lines.first ?? "--")
+                .foregroundStyle(tint.text)
+            if lines.count > 1 {
+                Text(lines[1])
+                    .foregroundStyle(Color.metricLabel)
+            }
+        }
+        .font(.system(size: 10.5, design: .monospaced))
+        .monospacedDigit()
+        .lineLimit(1)
+        .minimumScaleFactor(0.9)
+        .frame(width: StableValueWidth.networkCard, alignment: .trailing)
+        .layoutPriority(1)
+    }
+}
+
+// MARK: - Overview Strip (电源 : 温度 : 风扇 = 2 : 1 : 1)
+
+/// 概览排：电源卡（电池图标 + 电量 + 充电胶囊 + 功率两列）与温度/风扇窄卡并排。
+/// 四个数值探针（batteryPower/systemPower/temperature/fanRPM）常驻此排。
+struct OverviewStripView: View {
+    let battery: BatterySnapshot?
+    let thermal: ThermalSnapshot
+    let fan: FanSnapshot
     let showsTemperature: Bool
     let showsFan: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("温度与风扇")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if showsTemperature {
-                    HStack(spacing: 4) {
-                        Text("CPU/SoC")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                        StableValueText(
-                            text: temperatureText(thermalSnapshot.cpuSocTemperatureCelsius),
-                            width: StableValueWidth.temperature,
-                            color: .primary,
-                            font: .system(.body, design: .monospaced),
-                            fontWeight: .medium
+        // 与上方 2×2 网格同分栏：电源卡＝左列（对齐 CPU/GPU），
+        // 温度+风扇一组＝右列（对齐 MEMORY/NETWORK），组内对半分。
+        // fixedSize + maxHeight 让同排卡片等高。
+        HStack(alignment: .top, spacing: 8) {
+            if let battery {
+                PowerCard(snapshot: battery)
+                    .frame(maxWidth: .infinity)
+            }
+
+            if showsTemperature || showsFan {
+                HStack(alignment: .top, spacing: 8) {
+                    if showsTemperature {
+                        InfoTile(
+                            label: "温度",
+                            valueText: temperatureText(thermal.cpuSocTemperatureCelsius),
+                            valueUnit: "°C",
+                            caption: "SoC · \(thermalStateText)",
+                            captionColor: thermalStateColor,
+                            probe: .temperatureValueColumn
                         )
+                        .accessibilityLabel(temperatureAccessibilityText)
                     }
-                    .accessibilityLabel(primaryTemperatureAccessibilityText)
+
+                    if showsFan {
+                        InfoTile(
+                            label: "风扇",
+                            valueText: fanRPMValueText,
+                            valueUnit: nil,
+                            caption: "RPM",
+                            captionColor: nil,
+                            probe: .fanRPMValueColumn
+                        )
+                        .accessibilityLabel(fanAccessibilityText)
+                    }
                 }
+                .frame(maxWidth: .infinity)
+            } else if battery != nil {
+                // 无温度/风扇时占位，保证电源卡仍与左列等宽
+                Color.clear.frame(maxWidth: .infinity, maxHeight: 1)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func temperatureText(_ value: Double?) -> String? {
+        guard let value else { return nil }
+        return "\(Int(value.rounded()))"
+    }
+
+    /// 概览显示第一个可读风扇的当前转速；无可读值 → N/A。
+    private var fanRPMValueText: String? {
+        guard let rpm = fan.fans.compactMap(\.currentRPM).first else { return nil }
+        return "\(Int(rpm.rounded()))"
+    }
+
+    private var thermalStateText: String {
+        switch thermal.systemState {
+        case .nominal: return "正常"
+        case .fair: return "偏热"
+        case .serious: return "严重"
+        case .critical: return "临界"
+        case .unknown: return "未知"
+        }
+    }
+
+    private var thermalStateColor: Color? {
+        switch thermal.systemState {
+        case .serious: return .metricAmber
+        case .critical: return .metricRose
+        default: return nil
+        }
+    }
+
+    private var temperatureAccessibilityText: String {
+        guard let value = thermal.cpuSocTemperatureCelsius else {
+            return "CPU 或 SoC 温度不可用"
+        }
+        return "CPU 或 SoC 温度 \(Int(value.rounded())) 摄氏度，状态\(thermalStateText)"
+    }
+
+    private var fanAccessibilityText: String {
+        guard let rpm = fan.fans.compactMap(\.currentRPM).first else {
+            return "风扇转速不可用"
+        }
+        return "风扇当前转速 \(Int(rpm.rounded())) RPM"
+    }
+}
+
+/// 电源卡：上排＝电池图标 + 大号电量 + 充电状态胶囊；下排＝电池功率（带符号）/ 整机功耗两列。
+private struct PowerCard: View {
+    let snapshot: BatterySnapshot
+
+    /// 已充满：接入电源且电量 >= 99（优化充电在 80% 暂停时归"电源接入"，不算充满）。
+    private var isFull: Bool { !snapshot.isCharging && snapshot.isOnAC && snapshot.chargePercent >= 99 }
+
+    /// 绿色态 = 充电中 / 已充满（绿色在设计中保留给"运行中/充电"语义）。
+    private var isGreenState: Bool { snapshot.isCharging || isFull }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 8) {
+                BatteryGlyph(
+                    percent: snapshot.chargePercent,
+                    isCharging: snapshot.isCharging,
+                    isFull: isFull
+                )
+                MetricValueText(number: "\(snapshot.chargePercent)", unit: "%", color: .primary, size: 15)
+                Spacer(minLength: 2)
+                chargeStatePill
+            }
+
+            // 两列等宽，分隔线两侧对称 11pt（mock: margin 0 11px），垂直居中
+            HStack(alignment: .center, spacing: 0) {
+                powerColumn(
+                    label: "电池功率",
+                    value: wattsText,
+                    color: wattsColor,
+                    probe: .batteryPowerValueColumn
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Rectangle()
+                    .fill(Color.hairline)
+                    .frame(width: 0.5, height: 22)
+                    .padding(.horizontal, 11)
+
+                powerColumn(
+                    label: "整机功耗",
+                    value: systemPowerText,
+                    color: .primary,
+                    probe: .systemPowerValueColumn
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .cardSurface(padding: EdgeInsets(top: 9, leading: 11, bottom: 9, trailing: 11))
+    }
+
+    private func powerColumn(label: String, value: String, color: Color, probe: LayoutProbeID) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            CardLabel(text: label, size: 8.5)
+            Text(value)
+                .font(.system(size: 12.5, design: .monospaced))
+                .monospacedDigit()
+                .foregroundStyle(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: 58, alignment: .leading)
+                .layoutProbe(probe)
+        }
+    }
+
+    private var chargeStatePill: some View {
+        Text(chargeStateText)
+            .font(.system(size: 9, weight: .semibold))
+            .foregroundStyle(isGreenState ? Color.chargingGreenText : Color.secondary)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(
+                Capsule().fill(
+                    isGreenState ? Color.runningGreen.opacity(0.14) : Color.primary.opacity(0.06)
+                )
+            )
+            .fixedSize()
+    }
+
+    /// 充电三态（不依赖 kIOPSIsChargedKey）：
+    /// isCharging→充电中；!isCharging && isOnAC && chargePercent>=99→已充满；
+    /// !isCharging && isOnAC && chargePercent<99→电源接入（优化充电暂停等）；否则→使用电池。
+    private var chargeStateText: String {
+        if snapshot.isCharging { return "充电中" }
+        if snapshot.isOnAC {
+            return snapshot.chargePercent >= 99 ? "已充满" : "电源接入"
+        }
+        return "使用电池"
+    }
+
+    /// 带符号瓦数：充电为正 `+18.5W`（绿），放电为负 `−12.3W`（中性）；
+    /// nil（电池键缺失或净功率 <0.1W）→ —。
+    private var wattsText: String {
+        guard let w = snapshot.watts else { return "—" }
+        let sign = w >= 0 ? "+" : "−"
+        return "\(sign)\(String(format: "%.1f", abs(w)))W"
+    }
+
+    private var wattsColor: Color {
+        guard let w = snapshot.watts else { return .primary }
+        return w >= 0 ? .chargingGreenText : .primary
+    }
+
+    /// 整机实时功耗（SMC PSTR），中性色；键不可用 → —。
+    private var systemPowerText: String {
+        guard let p = snapshot.systemPowerWatts else { return "—" }
+        return "\(String(format: "%.1f", p))W"
+    }
+}
+
+/// 窄信息卡（温度/风扇）：小型大写标签 + 14pt 等宽值 + 底部弱化说明行。
+private struct InfoTile: View {
+    let label: String
+    let valueText: String?
+    let valueUnit: String?
+    let caption: String
+    let captionColor: Color?
+    let probe: LayoutProbeID
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            CardLabel(text: label)
+
+            Group {
+                if let valueText {
+                    MetricValueText(number: valueText, unit: valueUnit, color: .primary, size: 14)
+                } else {
+                    Text("N/A")
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(width: 52, alignment: .leading)
+            .layoutProbe(probe)
+
+            Spacer(minLength: 2)
+
+            Text(caption)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(captionColor ?? Color.metricLabel)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minHeight: 58, maxHeight: .infinity, alignment: .top)
+        .cardSurface(padding: EdgeInsets(top: 9, leading: 10, bottom: 9, trailing: 8))
+    }
+}
+
+// MARK: - Details Toggle & Detail Section
+
+/// 概览排下方的极弱化展开按钮："详情 ⌄ / 收起 ⌃"。
+struct DetailsToggleButton: View {
+    @Binding var isExpanded: Bool
+
+    var body: some View {
+        Button {
+            isExpanded.toggle()
+        } label: {
+            HStack(spacing: 3) {
+                Text(isExpanded ? "收起" : "详情")
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 7, weight: .semibold))
+            }
+            .font(.system(size: 9.5))
+            .foregroundStyle(Color.metricTertiary)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, -2)
+    }
+}
+
+/// 展开的详细区：电池（时间/健康度）、温度（系统状态/GPU/电池）、风扇（每风扇范围/目标）。
+/// mock 为聚焦视觉将温度/风扇简化为单值；这里保留原有丰富数据（README 数据保留要求）。
+struct DetailSectionView: View {
+    let battery: BatterySnapshot?
+    let thermal: ThermalSnapshot
+    let fan: FanSnapshot
+    let showsTemperature: Bool
+    let showsFan: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let battery {
+                detailRow(timeLabel(battery), timeText(battery), width: StableValueWidth.batteryHealthTime)
+                detailRow("健康度", healthText(battery), width: StableValueWidth.batteryHealthTime)
             }
 
             if showsTemperature {
-                temperatureRow("CPU/SoC", temperatureText(thermalSnapshot.cpuSocTemperatureCelsius))
-                temperatureRow("系统状态", thermalStateText, color: thermalStateColor)
-                temperatureRow("GPU", temperatureText(thermalSnapshot.gpuTemperatureCelsius))
-                temperatureRow("电池", temperatureText(thermalSnapshot.batteryTemperatureCelsius))
+                if battery != nil { Divider().overlay(Color.hairline) }
+                detailRow("系统状态", thermalStateText, width: StableValueWidth.temperature, color: thermalStateColor)
+                detailRow("GPU 温度", temperatureText(thermal.gpuTemperatureCelsius), width: StableValueWidth.temperature)
+                detailRow("电池温度", temperatureText(thermal.batteryTemperatureCelsius), width: StableValueWidth.temperature)
             }
 
-            if showsTemperature && !visibleFans.isEmpty {
-                Divider()
-            }
-
-            ForEach(visibleFans) { fan in
-                fanRow(fan)
+            if showsFan, !visibleFans.isEmpty {
+                if battery != nil || showsTemperature { Divider().overlay(Color.hairline) }
+                ForEach(visibleFans) { fanReading in
+                    fanRow(fanReading)
+                }
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.primary.opacity(0.04))
-        )
+        .cardSurface(padding: EdgeInsets(top: 10, leading: 11, bottom: 10, trailing: 11))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("温度与风扇信息")
+        .accessibilityLabel("电源与散热详细信息")
     }
 
     private var visibleFans: [FanReading] {
-        guard showsFan, fanSnapshot.supportState != .unsupported else { return [] }
-        return fanSnapshot.fans
+        guard fan.supportState != .unsupported else { return [] }
+        return fan.fans
     }
 
-    private func temperatureRow(_ label: String, _ value: String, color: Color = .secondary) -> some View {
+    private func detailRow(_ label: String, _ value: String, width: CGFloat, color: Color = .secondary) -> some View {
         StableValueRow(label: label) {
-            StableValueText(
-                text: value,
-                width: StableValueWidth.temperature,
-                color: color
-            )
-            .layoutProbe(label == "CPU/SoC" ? .temperatureValueColumn : nil)
-            .accessibilityLabel(accessibilityText(label: label, value: value))
+            StableValueText(text: value, width: width, color: color)
         }
     }
 
-    private func fanRow(_ fan: FanReading) -> some View {
+    private func fanRow(_ fanReading: FanReading) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            StableValueRow(label: fan.displayName) {
+            StableValueRow(label: fanReading.displayName) {
                 StableValueText(
-                    text: fanRPMText(fan),
+                    text: fanRPMText(fanReading),
                     width: StableValueWidth.fanRPM,
-                    color: fan.currentRPM == nil ? .secondary : .primary
+                    color: fanReading.currentRPM == nil ? .secondary : .primary
                 )
-                .layoutProbe(.fanRPMValueColumn)
-                .accessibilityLabel(fanRPMAccessibilityText(fan))
             }
 
-            if let range = fanRangeText(fan) {
+            if let range = fanRangeText(fanReading) {
                 StableCaptionText(text: range)
-                    .accessibilityLabel(fanRangeAccessibilityText(fan))
             }
 
-            if let target = fanTargetText(fan) {
+            if let target = fanTargetText(fanReading) {
                 StableCaptionText(text: target)
-                    .accessibilityLabel(fanTargetAccessibilityText(fan))
             }
 
-            if fanRangeText(fan) != nil || fanTargetText(fan) != nil {
+            if fanRangeText(fanReading) != nil || fanTargetText(fanReading) != nil {
                 StableCaptionText(text: "边界可读，控制未启用")
             }
         }
     }
+
+    // MARK: helpers
 
     private func temperatureText(_ value: Double?) -> String {
         guard let value else { return "N/A" }
         return "\(Int(value.rounded()))°C"
     }
 
-    private func fanRPMText(_ fan: FanReading) -> String {
-        guard let rpm = fan.currentRPM else { return "N/A" }
+    private func fanRPMText(_ fanReading: FanReading) -> String {
+        guard let rpm = fanReading.currentRPM else { return "N/A" }
         return "\(Int(rpm.rounded())) RPM"
     }
 
-    private func fanRangeText(_ fan: FanReading) -> String? {
-        guard fan.capabilities.boundsReadable,
-              let minRPM = fan.minRPM,
-              let maxRPM = fan.maxRPM,
+    private func fanRangeText(_ fanReading: FanReading) -> String? {
+        guard fanReading.capabilities.boundsReadable,
+              let minRPM = fanReading.minRPM,
+              let maxRPM = fanReading.maxRPM,
               minRPM <= maxRPM
         else { return nil }
-
         return "范围 \(Int(minRPM.rounded()))-\(Int(maxRPM.rounded())) RPM"
     }
 
-    private func fanTargetText(_ fan: FanReading) -> String? {
-        guard fan.capabilities.targetReadable,
-              let targetRPM = fan.targetRPM
+    private func fanTargetText(_ fanReading: FanReading) -> String? {
+        guard fanReading.capabilities.targetReadable,
+              let targetRPM = fanReading.targetRPM
         else { return nil }
         return "目标 \(Int(targetRPM.rounded())) RPM"
     }
 
     private var thermalStateText: String {
-        switch thermalSnapshot.systemState {
+        switch thermal.systemState {
         case .nominal: return "正常"
         case .fair: return "偏热"
         case .serious: return "严重"
@@ -283,197 +637,27 @@ struct TemperatureAndFanSectionView: View {
     }
 
     private var thermalStateColor: Color {
-        switch thermalSnapshot.systemState {
-        case .serious: return .orange
-        case .critical: return .red
+        switch thermal.systemState {
+        case .serious: return .metricAmber
+        case .critical: return .metricRose
         case .unknown: return .secondary
         case .nominal, .fair: return .primary
         }
     }
 
-    private var primaryTemperatureAccessibilityText: String {
-        guard let value = thermalSnapshot.cpuSocTemperatureCelsius else {
-            return "CPU 或 SoC 温度不可用"
-        }
-        return "CPU 或 SoC 温度 \(Int(value.rounded())) 摄氏度"
-    }
-
-    private func fanRPMAccessibilityText(_ fan: FanReading) -> String {
-        guard let rpm = fan.currentRPM else {
-            return "\(fan.displayName) 转速不可用"
-        }
-        return "\(fan.displayName) 当前转速 \(Int(rpm.rounded())) RPM"
-    }
-
-    private func fanRangeAccessibilityText(_ fan: FanReading) -> String {
-        guard let minRPM = fan.minRPM, let maxRPM = fan.maxRPM else {
-            return "\(fan.displayName) 范围不可用"
-        }
-        return "\(fan.displayName) 范围 \(Int(minRPM.rounded())) 到 \(Int(maxRPM.rounded())) RPM"
-    }
-
-    private func fanTargetAccessibilityText(_ fan: FanReading) -> String {
-        guard let targetRPM = fan.targetRPM else {
-            return "\(fan.displayName) 目标转速不可用"
-        }
-        return "\(fan.displayName) 目标转速 \(Int(targetRPM.rounded())) RPM"
-    }
-
-    private func accessibilityText(label: String, value: String) -> String {
-        switch label {
-        case "CPU/SoC":
-            return primaryTemperatureAccessibilityText
-        case "系统状态":
-            return "系统散热状态 \(value)"
-        case "GPU":
-            return value == "N/A" ? "GPU 温度不可用" : "GPU 温度 \(value.replacingOccurrences(of: "°C", with: " 摄氏度"))"
-        case "电池":
-            return value == "N/A" ? "电池温度不可用" : "电池温度 \(value.replacingOccurrences(of: "°C", with: " 摄氏度"))"
-        default:
-            return "\(label) \(value)"
-        }
-    }
-}
-
-// MARK: - Metric Card with Sparkline
-
-/// A metric card that includes a sparkline trend chart below the main value.
-struct MetricCardWithSparkline: View {
-    let title: String
-    let value: String
-    let progress: Double
-    let color: Color
-    let samples: [Double]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                StableValueText(
-                    text: value,
-                    width: valueWidth,
-                    color: color,
-                    font: .system(.body, design: .monospaced),
-                    fontWeight: .medium,
-                    lineLimit: title == "Network" ? 2 : 1
-                )
-                .layoutProbe(metricValueProbeID)
-            }
-
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.secondary.opacity(0.15))
-                        .frame(height: 4)
-
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(color)
-                        .frame(
-                            width: geo.size.width * CGFloat(min(max(progress, 0), 1)),
-                            height: 4
-                        )
-                }
-            }
-            .frame(height: 4)
-
-            // Sparkline trend (last 60 samples)
-            if !samples.isEmpty {
-                SparklineView(samples: samples, color: color)
-                    .frame(height: 24)
-            }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.primary.opacity(0.04))
-        )
-    }
-
-    private var valueWidth: CGFloat {
-        switch title {
-        case "Network":
-            return StableValueWidth.networkCard
-        case "Memory":
-            return StableValueWidth.memoryMetricCard
-        default:
-            return StableValueWidth.percentage
-        }
-    }
-
-    private var metricValueProbeID: LayoutProbeID? {
-        title == "Network" ? .networkMetricCardValue : nil
-    }
-}
-
-// MARK: - Battery Section
-
-/// Full-width popover battery section. Rendered only when a battery is present
-/// (laptops); hidden entirely on desktop Macs. Each field degrades to "—" when its
-/// underlying `AppleSmartBattery` key is unreadable.
-struct BatterySectionView: View {
-    let snapshot: BatterySnapshot
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("电池")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(snapshot.chargePercent)% · \(chargeStateText)")
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-            }
-
-            row(timeLabel, timeText, width: StableValueWidth.batteryHealthTime)
-            row("电池功率", wattsText, width: StableValueWidth.batteryPower, probeID: .batteryPowerValueColumn)
-            row("整机功耗", systemPowerText, width: StableValueWidth.batteryPower, probeID: .systemPowerValueColumn)
-            row("健康度", healthText, width: StableValueWidth.batteryHealthTime)
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.primary.opacity(0.04))
-        )
-    }
-
-    private func row(_ label: String, _ value: String, width: CGFloat, probeID: LayoutProbeID? = nil) -> some View {
-        StableValueRow(label: label) {
-            StableValueText(text: value, width: width)
-                .layoutProbe(probeID)
-        }
-    }
-
-    /// 充电三态（不依赖 kIOPSIsChargedKey）：
-    /// isCharging→充电中；!isCharging && isOnAC && chargePercent>=99→已充满；
-    /// !isCharging && isOnAC && chargePercent<99→电源接入（优化充电暂停等）；否则→使用电池。
-    private var chargeStateText: String {
-        if snapshot.isCharging { return "充电中" }
-        if snapshot.isOnAC {
-            // 优化电池充电可能在 80% 暂停充电，需区分"已充满"与"电源接入"
-            return snapshot.chargePercent >= 99 ? "已充满" : "电源接入"
-        }
-        return "使用电池"
-    }
-
     /// 充电时显示"距充满"，使用电池时显示"剩余时间"，AC 已充满时无意义。
-    private var timeLabel: String {
-        snapshot.isCharging ? "距充满" : "剩余时间"
+    private func timeLabel(_ battery: BatterySnapshot) -> String {
+        battery.isCharging ? "距充满" : "剩余时间"
     }
 
-    private var timeText: String {
-        if snapshot.isCharging {
-            return formatTime(snapshot.timeToFullMinutes)
+    private func timeText(_ battery: BatterySnapshot) -> String {
+        if battery.isCharging {
+            return formatTime(battery.timeToFullMinutes)
         }
-        if !snapshot.isOnAC {
-            return formatTime(snapshot.timeToEmptyMinutes)
+        if !battery.isOnAC {
+            return formatTime(battery.timeToEmptyMinutes)
         }
-        return "—"  // 已充满 / AC 待机：剩余时间无意义
+        return "—"
     }
 
     /// 分钟 → 显示文本。nil（含 post-wake 抑制）→ 计算中；-1（Apple 哨兵）→ 计算中；0 → —。
@@ -490,51 +674,81 @@ struct BatterySectionView: View {
         }
     }
 
-    /// 带语义瓦数：充电 → "充电 18.5W"；放电 → "耗电 12.3W"；
-    /// nil（电池键缺失，或接入电源未充放电使净功率 <0.1W）→ —。
-    private var wattsText: String {
-        guard let w = snapshot.watts else { return "—" }
-        let verb = w >= 0 ? "充电" : "耗电"
-        return "\(verb) \(String(format: "%.1f", abs(w)))W"
-    }
-
-    /// 整机实时功耗（SMC PSTR），接入电源时也有意义；键不可用 → —。
-    private var systemPowerText: String {
-        guard let p = snapshot.systemPowerWatts else { return "—" }
-        return "\(String(format: "%.1f", p))W"
-    }
-
     /// "92%（320 次循环）"；健康度缺失 → —；循环数缺失则仅显示百分比。
-    private var healthText: String {
-        guard let h = snapshot.healthPercent else { return "—" }
+    private func healthText(_ battery: BatterySnapshot) -> String {
+        guard let h = battery.healthPercent else { return "—" }
         let pct = "\(Int(h.rounded()))%"
-        if let cycles = snapshot.cycleCount {
+        if let cycles = battery.cycleCount {
             return "\(pct)（\(cycles) 次循环）"
         }
         return pct
     }
 }
 
-// MARK: - Process Resource Section View
+// MARK: - Battery Glyph
 
-/// Reusable card section for CPU or memory Top-N process lists.
-/// Shows a spinner while the first sample is pending, caller-supplied copy when the list is empty,
-/// and a row per process using ProcessMetricRow with a caller-supplied trailing string.
-struct ProcessResourceSectionView: View {
-    let title: String
-    let items: [ProcessResourceUsage]
-    let isLoading: Bool
-    let trailingWidth: CGFloat
-    let emptyTitle: String
-    let emptyBody: String
-    let trailingText: (ProcessResourceUsage) -> String
+/// 电池图标：圆角外框 + 按电量填充 + 右侧凸点；充电/已充满时填充变绿，充电中叠 ⚡。
+struct BatteryGlyph: View {
+    let percent: Int
+    let isCharging: Bool
+    var isFull: Bool = false
+
+    private var fraction: CGFloat { max(0, min(1, CGFloat(percent) / 100)) }
+
+    private var fillColor: Color {
+        if isCharging || isFull { return .runningGreen }
+        if percent <= 20 { return .metricRose }
+        return Color.primary.opacity(0.72)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 2)
+        HStack(spacing: 1) {
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3.5, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.32), lineWidth: 1.3)
+                    .frame(width: 30, height: 14)
+
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(fillColor)
+                    .frame(width: max(2, 26 * fraction), height: 10)
+                    .padding(.leading, 2)
+
+                if isCharging {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 7, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 30, height: 14)
+                }
+            }
+            Capsule()
+                .fill(Color.primary.opacity(0.32))
+                .frame(width: 2, height: 5)
+        }
+        .accessibilityLabel("电量 \(percent)%\(isCharging ? "，充电中" : "")")
+    }
+}
+
+// MARK: - Process Resource Card (资源占用 TOP · CPU/内存 pill 切换)
+
+/// mock 的单卡进程区："资源占用 TOP" 标题 + 右上角 CPU/内存 pill 分段。
+/// 两个列表以 ZStack 同时渲染（未选中 opacity 0 + 禁点击），保证
+/// cpu/memory 两个 LayoutProbe 恒存在且卡高稳定（取两列表最大高度）。
+struct ProcessResourceCard: View {
+    let cpuItems: [ProcessResourceUsage]
+    let memoryItems: [ProcessResourceUsage]
+    let isLoading: Bool
+
+    @State private var selection: Tab = .cpu
+
+    enum Tab { case cpu, memory }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack {
+                CardLabel(text: "资源占用 TOP")
+                Spacer()
+                picker
+            }
 
             if isLoading {
                 HStack {
@@ -545,24 +759,99 @@ struct ProcessResourceSectionView: View {
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 8)
-            } else if items.isEmpty {
-                VStack(spacing: 2) {
-                    Text(emptyTitle)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(emptyBody)
-                        .font(.system(size: 9))
-                        .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 8)
+                .padding(.vertical, 6)
             } else {
-                ForEach(items.prefix(5), id: \.pid) { proc in
+                ZStack(alignment: .top) {
+                    listView(
+                        items: cpuItems,
+                        trailingWidth: StableValueWidth.processCPU,
+                        emptyTitle: "暂无 CPU 进程采样",
+                        emptyBody: "等待 CPU 采样更新",
+                        ratioValue: { $0.cpuPercent },
+                        trailingText: { $0.cpuPercent.map { String(format: "%.1f", $0) } ?? "—" },
+                        probe: .cpuProcessTrailingValue
+                    )
+                    .opacity(selection == .cpu ? 1 : 0)
+                    .allowsHitTesting(selection == .cpu)
+
+                    listView(
+                        items: memoryItems,
+                        trailingWidth: StableValueWidth.processMemory,
+                        emptyTitle: "暂无内存进程采样",
+                        emptyBody: "等待内存采样更新",
+                        ratioValue: { Double($0.memoryBytes) },
+                        trailingText: { ByteFormatting.format(Double($0.memoryBytes)) },
+                        probe: .memoryProcessTrailingValue
+                    )
+                    .opacity(selection == .memory ? 1 : 0)
+                    .allowsHitTesting(selection == .memory)
+                }
+            }
+        }
+        .cardSurface(padding: EdgeInsets(top: 10, leading: 11, bottom: 10, trailing: 11))
+    }
+
+    /// CPU / 内存 pill 分段（选中态白底蓝字）。
+    private var picker: some View {
+        HStack(spacing: 0) {
+            pickerSegment("CPU", tab: .cpu)
+            pickerSegment("内存", tab: .memory)
+        }
+        .padding(1.5)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.primary.opacity(0.05))
+        )
+    }
+
+    private func pickerSegment(_ title: String, tab: Tab) -> some View {
+        let isSelected = selection == tab
+        return Text(title)
+            .font(.system(size: 9.5, weight: isSelected ? .semibold : .medium))
+            .foregroundStyle(isSelected ? Color.metricBlueText : Color.metricLabel)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(isSelected ? Color(nsColor: .textBackgroundColor) : .clear)
+                    .shadow(color: isSelected ? .black.opacity(0.12) : .clear, radius: 0.75, x: 0, y: 0.5)
+            )
+            .contentShape(Rectangle())
+            .onTapGesture { selection = tab }
+    }
+
+    @ViewBuilder
+    private func listView(
+        items: [ProcessResourceUsage],
+        trailingWidth: CGFloat,
+        emptyTitle: String,
+        emptyBody: String,
+        ratioValue: @escaping (ProcessResourceUsage) -> Double?,
+        trailingText: @escaping (ProcessResourceUsage) -> String,
+        probe: LayoutProbeID
+    ) -> some View {
+        let top = Array(items.prefix(5))
+        let maxRaw = top.compactMap(ratioValue).max() ?? 0
+
+        if top.isEmpty {
+            VStack(spacing: 2) {
+                Text(emptyTitle)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(emptyBody)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 6)
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(top, id: \.pid) { proc in
                     ProcessMetricRow(
                         processName: proc.processName,
-                        pid: proc.pid,
-                        trailingWidth: trailingWidth
+                        pid: nil,  // mock 不显示 pid，保持行干净（网络进程区仍显示）
+                        trailingWidth: trailingWidth,
+                        ratio: maxRaw > 0 ? ratioValue(proc).map { max(0, min(1, $0 / maxRaw)) } : nil
                     ) {
                         StableValueText(
                             text: trailingText(proc),
@@ -570,20 +859,47 @@ struct ProcessResourceSectionView: View {
                             color: .primary,
                             font: .system(.caption2, design: .monospaced)
                         )
-                        .layoutProbe(layoutProbeID)
+                        .layoutProbe(probe)
                     }
                 }
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.primary.opacity(0.04))
-        )
     }
+}
 
-    private var layoutProbeID: LayoutProbeID {
-        trailingWidth == StableValueWidth.processCPU ? .cpuProcessTrailingValue : .memoryProcessTrailingValue
+// MARK: - Dashboard Footer
+
+/// 底部：自身占用（弱化）+ "退出" 低调 pill。
+struct DashboardFooter: View {
+    let selfCpuUsage: Double
+    let selfMemoryMB: Double
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider().overlay(Color.hairline)
+            HStack {
+                Text("自身 \(String(format: "%.1f", selfCpuUsage))% · \(Int(selfMemoryMB))MB")
+                    .font(.system(size: 9.5, design: .monospaced))
+                    .foregroundStyle(Color.metricTertiary)
+                Spacer()
+                Button {
+                    NSApplication.shared.terminate(nil)
+                } label: {
+                    Text("退出")
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 3)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Color.primary.opacity(0.05))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.top, 8)
+        }
+        .padding(.top, 2)
     }
 }
 
@@ -681,9 +997,9 @@ final class DashboardState: ObservableObject {
         }
         let up = ByteFormatting.format(stats.uploadBytesPerSec)
         let down = ByteFormatting.format(stats.downloadBytesPerSec)
-        // 用换行分隔上/下行，强制始终竖排（↑ 在上、↓ 在下），
+        // 用换行分隔上/下行，强制始终竖排（↓ 主行在上、↑ 弱化在下，对齐 1a mock），
         // 避免随数值长短在"并排一行"与"折成两行"之间来回抖动。
-        networkText = "↑\(up)\n↓\(down)"
+        networkText = "↓\(down)\n↑\(up)"
 
         let maxBytesPerSec: Double = 100 * 1_000_000 // 100 MB/s
         let total = stats.uploadBytesPerSec + stats.downloadBytesPerSec

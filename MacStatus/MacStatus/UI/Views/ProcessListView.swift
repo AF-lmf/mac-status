@@ -10,11 +10,8 @@ struct ProcessListView: View {
     let errorMessage: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Top Processes (by network)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 2)
+        VStack(alignment: .leading, spacing: 8) {
+            CardLabel(text: "网络占用 TOP")
 
             if isLoading {
                 HStack {
@@ -59,11 +56,7 @@ struct ProcessListView: View {
                 }
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.primary.opacity(0.04))
-        )
+        .cardSurface(padding: EdgeInsets(top: 10, leading: 11, bottom: 10, trailing: 11))
     }
 }
 
@@ -75,8 +68,8 @@ struct NetworkTrafficValueBlock: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            rateLabel(uploadText, systemImage: "arrow.up", color: .orange)
-            rateLabel(downloadText, systemImage: "arrow.down", color: .blue)
+            rateLabel(uploadText, systemImage: "arrow.up", color: .metricAmber)
+            rateLabel(downloadText, systemImage: "arrow.down", color: .metricBlue)
         }
         .frame(width: StableValueWidth.processNetworkPair, alignment: .trailing)
         .layoutPriority(1)
@@ -93,18 +86,40 @@ struct NetworkTrafficValueBlock: View {
     }
 }
 
+// MARK: - Ratio Bar
+
+/// 细占比条：轨道 + 前景填充（ratio 0...1）。圆角 2，固定 52×4。
+struct RatioBar: View {
+    let ratio: Double
+    var color: Color = .metricBlue
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.trackFill)
+                Capsule()
+                    .fill(color)
+                    .frame(width: geo.size.width * CGFloat(max(0, min(1, ratio))))
+            }
+        }
+        .frame(width: 52, height: 4)
+    }
+}
+
 // MARK: - Process Metric Row
 
-/// Generic process row: name + optional PID on the left; arbitrary trailing content on the right.
-/// Used by the network, CPU, and memory process sections.
+/// Generic process row: name + optional PID on the left; optional ratio bar; arbitrary trailing content.
+/// Used by the network, CPU, and memory process sections. `ratio == nil` omits the bar (network rows).
 struct ProcessMetricRow<Trailing: View>: View {
     let processName: String
     let pid: Int32?
     let trailingWidth: CGFloat
+    var ratio: Double? = nil
+    var ratioColor: Color = .metricBlue
     @ViewBuilder let trailing: () -> Trailing
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 9) {
             HStack(spacing: 4) {
                 Text(processName)
                     .font(.caption2)
@@ -119,6 +134,12 @@ struct ProcessMetricRow<Trailing: View>: View {
                 .truncationMode(.tail)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .layoutPriority(0)
+
+            if let ratio {
+                RatioBar(ratio: ratio, color: ratioColor)
+                    .layoutPriority(1)
+            }
+
             trailing()
                 .frame(width: trailingWidth, alignment: .trailing)
                 .layoutPriority(1)

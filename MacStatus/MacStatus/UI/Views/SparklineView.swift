@@ -56,8 +56,8 @@ struct SparklineView: View {
             // Draw fill gradient
             if showFill {
                 let gradient = Gradient(colors: [
-                    color.opacity(0.3),
-                    color.opacity(0.05),
+                    color.opacity(0.30),
+                    color.opacity(0.02),
                 ])
                 context.fill(
                     fillPath,
@@ -90,6 +90,5 @@ struct SparklineView: View {
                 )
             }
         }
-        .frame(height: 30)
     }
 }

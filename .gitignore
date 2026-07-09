@@ -19,6 +19,10 @@ xcuserdata/
 skills-lock.json
 AGENTS.md
 article-assets/
+# Claude Design handoff bundle（设计参考，不随仓库分发）
+# 锚定仓库根目录：macOS 下 git 忽略大小写，裸 `ui/` 会误匹配源码目录 MacStatus/MacStatus/UI/
+/ui/
+/精美UI设计需求-handoff.zip
 Thumbs.db
 nul
 nul.*

@@ -22,6 +22,20 @@ enum DisplayMode: String, CaseIterable, Sendable {
     case percentage
 }
 
+// MARK: - Menu Bar Style
+
+/// 菜单栏呈现样式（对应设计稿 2a–2d 四种方案，取代旧的 full/compact/percentage 文字模式）。
+enum MenuBarStyle: String, CaseIterable, Sendable {
+    /// 2a 迷你趋势线：标签 + 实时微型曲线 + 数值。
+    case sparkline
+    /// 2b 环形量规：标签 + 迷你环形进度 + 数值（默认）。
+    case rings
+    /// 2c 玻璃胶囊：整组指标收进一枚半透明胶囊，彩色圆点区分。
+    case capsule
+    /// 2d 水位条：数值在上、细进度条在下的两层紧凑组合。
+    case levelBar
+}
+
 // MARK: - Display Unit
 
 /// Unit system for byte values (network, memory).
@@ -64,7 +78,7 @@ final class SettingsManager {
     private enum Keys {
         // Existing v1.0 keys
         static let refreshInterval         = "refreshInterval"
-        static let displayMode             = "displayMode"
+        static let menuBarStyle            = "menuBarStyle"
         static let displayUnit             = "displayUnit"
         static let showIcons               = "showIcons"
         static let cpuWarningThreshold     = "cpuWarningThreshold"
@@ -99,7 +113,7 @@ final class SettingsManager {
     // MARK: - Backing Storage
 
     @ObservationIgnored private var _refreshInterval: TimeInterval = 2.0
-    @ObservationIgnored private var _displayMode: DisplayMode = .compact
+    @ObservationIgnored private var _menuBarStyle: MenuBarStyle = .rings
     @ObservationIgnored private var _displayUnit: DisplayUnit = .auto
     @ObservationIgnored private var _showIcons: Bool = false
     @ObservationIgnored private var _cpuWarningThreshold: Double = 60.0
@@ -131,16 +145,16 @@ final class SettingsManager {
         }
     }
 
-    /// Menu bar display mode. Defaults to .compact.
-    var displayMode: DisplayMode {
+    /// 菜单栏呈现样式。默认 .rings（2b 环形量规）。
+    var menuBarStyle: MenuBarStyle {
         get {
-            access(keyPath: \.displayMode)
-            return _displayMode
+            access(keyPath: \.menuBarStyle)
+            return _menuBarStyle
         }
         set {
-            withMutation(keyPath: \.displayMode) { _displayMode = newValue }
-            defaults.set(newValue.rawValue, forKey: Keys.displayMode)
-            postChange(keys: [Keys.displayMode])
+            withMutation(keyPath: \.menuBarStyle) { _menuBarStyle = newValue }
+            defaults.set(newValue.rawValue, forKey: Keys.menuBarStyle)
+            postChange(keys: [Keys.menuBarStyle])
         }
     }
 
@@ -411,8 +425,8 @@ final class SettingsManager {
         if defaults.object(forKey: Keys.refreshInterval) == nil {
             defaults.set(2.0, forKey: Keys.refreshInterval)
         }
-        if defaults.object(forKey: Keys.displayMode) == nil {
-            defaults.set(DisplayMode.compact.rawValue, forKey: Keys.displayMode)
+        if defaults.object(forKey: Keys.menuBarStyle) == nil {
+            defaults.set(MenuBarStyle.rings.rawValue, forKey: Keys.menuBarStyle)
         }
         if defaults.object(forKey: Keys.displayUnit) == nil {
             defaults.set(DisplayUnit.auto.rawValue, forKey: Keys.displayUnit)
@@ -446,8 +460,8 @@ final class SettingsManager {
         let rawInterval = defaults.double(forKey: Keys.refreshInterval)
         _refreshInterval = rawInterval > 0 ? rawInterval : 2.0
 
-        let rawMode = defaults.string(forKey: Keys.displayMode) ?? ""
-        _displayMode = DisplayMode(rawValue: rawMode) ?? .compact
+        let rawStyle = defaults.string(forKey: Keys.menuBarStyle) ?? ""
+        _menuBarStyle = MenuBarStyle(rawValue: rawStyle) ?? .rings
 
         let rawUnit = defaults.string(forKey: Keys.displayUnit) ?? ""
         _displayUnit = DisplayUnit(rawValue: rawUnit) ?? .auto
