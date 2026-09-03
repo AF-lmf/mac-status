@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 风扇与热状态
 status: open
-stopped_at: Phases 13 & 14 cancelled — fan control write path descoped
-last_updated: "2026-06-30T00:00:00.000Z"
-last_activity: 2026-06-30 -- Phases 13 & 14 cancelled (fan control descoped); v3.0 kept open
+stopped_at: Quick task 260903-iki completed — status detail card rebuilt
+last_updated: "2026-09-03T05:49:36.000Z"
+last_activity: 2026-09-03 - Completed quick task 260903-iki — status detail card rebuilt
 progress:
   total_phases: 3
   completed_phases: 3
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 Phase: 无活跃阶段（Phase 10–12 已完成）
 Plan: —
 Status: v3.0 保持开放 — 可新增非硬件 phase，或在准备好时收口里程碑
-Last activity: 2026-06-30 -- Phases 13 & 14 cancelled (fan control descoped)
+Last activity: 2026-09-03 - Completed quick task 260903-iki: 按参考图改造仪表盘状态详情区
 
 Progress: [██████████] 100%（仅计 v3.0 现有范围 Phase 10–12）
 
@@ -100,6 +100,12 @@ None.
 
 - None.（原风扇控制相关的硬件 UAT / SMC 写入可行性顾虑已随 Phase 13/14 撤销而移除。）
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260903-iki | 按参考图改造仪表盘状态详情区，呈现电池、温度与状态、风扇三段表格式信息卡并保持现有数据降级行为 | 2026-09-03 | f810a53 | [260903-iki-status-detail-card](./quick/260903-iki-status-detail-card/) |
+
 ## Deferred Items
 
 | Category | Item | Status |
@@ -110,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-30
-Stopped at: Phases 13 & 14 cancelled — fan control write path descoped; v3.0 kept open
+Last session: 2026-09-03
+Stopped at: Quick task 260903-iki completed — status detail card rebuilt; v3.0 kept open
 Resume file: none (no active phase)
