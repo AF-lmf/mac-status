@@ -19,6 +19,10 @@ enum StableValueWidth {
     static let batteryHealthTime = 112 as CGFloat
     static let processCPU = 52 as CGFloat
     static let processMemory = 68 as CGFloat
+    static let detailFanLabel = 110 as CGFloat
+    static let detailFanCurrent = 52 as CGFloat
+    static let detailFanTarget = 52 as CGFloat
+    static let detailFanRange = 84 as CGFloat
 }
 
 struct StableValueText: View {
@@ -98,6 +102,12 @@ enum LayoutProbeID: String, Hashable, CaseIterable {
     case networkProcessTrailingValue
     case cpuProcessTrailingValue
     case memoryProcessTrailingValue
+    case detailBatteryValue
+    case detailSoCTemperature
+    case detailGPUTemperature
+    case detailFanCurrent
+    case detailFanTarget
+    case detailFanRange
 }
 
 struct LayoutProbeFrameSnapshot {

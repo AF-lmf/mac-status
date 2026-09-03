@@ -528,8 +528,7 @@ struct DetailsToggleButton: View {
     }
 }
 
-/// 展开的详细区：电池（时间/健康度）、温度（系统状态/GPU/电池）、风扇（每风扇范围/目标）。
-/// mock 为聚焦视觉将温度/风扇简化为单值；这里保留原有丰富数据（README 数据保留要求）。
+/// 展开的详细区：单卡内按电池、温度与状态、风扇组织只读表格。
 struct DetailSectionView: View {
     let battery: BatterySnapshot?
     let thermal: ThermalSnapshot
@@ -538,24 +537,70 @@ struct DetailSectionView: View {
     let showsFan: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
             if let battery {
-                detailRow(timeLabel(battery), timeText(battery), width: StableValueWidth.batteryHealthTime)
-                detailRow("健康度", healthText(battery), width: StableValueWidth.batteryHealthTime)
+                DetailSectionHeader(systemImage: "battery.100", title: "电池")
+                DetailHairline()
+                DetailKeyValueRow(
+                    label: "供电状态",
+                    value: powerSourceText(battery),
+                    valueWidth: StableValueWidth.batteryHealthTime,
+                    probe: .detailBatteryValue
+                )
+                DetailHairline()
+                DetailKeyValueRow(
+                    label: "健康度",
+                    value: healthText(battery),
+                    valueWidth: StableValueWidth.batteryHealthTime
+                )
+                DetailHairline()
+                DetailKeyValueRow(
+                    label: "电池温度",
+                    value: temperatureText(thermal.batteryTemperatureCelsius),
+                    valueWidth: StableValueWidth.batteryHealthTime
+                )
             }
 
             if showsTemperature {
-                if battery != nil { Divider().overlay(Color.hairline) }
-                detailRow("系统状态", thermalStateText, width: StableValueWidth.temperature, color: thermalStateColor)
-                detailRow("GPU 温度", temperatureText(thermal.gpuTemperatureCelsius), width: StableValueWidth.temperature)
-                detailRow("电池温度", temperatureText(thermal.batteryTemperatureCelsius), width: StableValueWidth.temperature)
+                if battery != nil { DetailSectionDivider() }
+                DetailSectionHeader(systemImage: "thermometer.medium", title: "温度与状态")
+                DetailHairline()
+                DetailKeyValueRow(
+                    label: "系统状态",
+                    value: thermalStateText,
+                    valueWidth: StableValueWidth.temperature,
+                    color: thermalStateColor
+                )
+                DetailHairline()
+                DetailTemperaturePairRow(
+                    socText: temperatureText(thermal.cpuSocTemperatureCelsius),
+                    gpuText: temperatureText(thermal.gpuTemperatureCelsius)
+                )
             }
 
             if showsFan, !visibleFans.isEmpty {
-                if battery != nil || showsTemperature { Divider().overlay(Color.hairline) }
-                ForEach(visibleFans) { fanReading in
-                    fanRow(fanReading)
+                if battery != nil || showsTemperature { DetailSectionDivider() }
+                DetailSectionHeader(systemImage: "fan", title: "风扇", showsFanColumns: true)
+                DetailHairline()
+                ForEach(Array(visibleFans.enumerated()), id: \.element.id) { index, fanReading in
+                    if index > 0 { DetailHairline() }
+                    DetailFanTableRow(
+                        name: fanReading.displayName,
+                        current: fanCurrentText(fanReading),
+                        target: fanTargetText(fanReading),
+                        range: fanRangeText(fanReading),
+                        probes: index == 0
+                            ? (.detailFanCurrent, .detailFanTarget, .detailFanRange)
+                            : (nil, nil, nil)
+                    )
                 }
+                DetailHairline()
+                Text(fanCapabilityText)
+                    .font(.caption2)
+                    .foregroundStyle(Color.metricLabel)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 6)
             }
         }
         .cardSurface(padding: EdgeInsets(top: 10, leading: 11, bottom: 10, trailing: 11))
@@ -568,62 +613,47 @@ struct DetailSectionView: View {
         return fan.fans
     }
 
-    private func detailRow(_ label: String, _ value: String, width: CGFloat, color: Color = .secondary) -> some View {
-        StableValueRow(label: label) {
-            StableValueText(text: value, width: width, color: color)
-        }
-    }
-
-    private func fanRow(_ fanReading: FanReading) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            StableValueRow(label: fanReading.displayName) {
-                StableValueText(
-                    text: fanRPMText(fanReading),
-                    width: StableValueWidth.fanRPM,
-                    color: fanReading.currentRPM == nil ? .secondary : .primary
-                )
-            }
-
-            if let range = fanRangeText(fanReading) {
-                StableCaptionText(text: range)
-            }
-
-            if let target = fanTargetText(fanReading) {
-                StableCaptionText(text: target)
-            }
-
-            if fanRangeText(fanReading) != nil || fanTargetText(fanReading) != nil {
-                StableCaptionText(text: "边界可读，控制未启用")
-            }
-        }
+    private var fanCapabilityText: String {
+        let boundsText = visibleFans.allSatisfy { fanRangeText($0) != "N/A" }
+            ? "边界可读"
+            : "边界不可用"
+        let hasSafeControl = visibleFans.contains { $0.capabilities.safeControlAvailable }
+        return hasSafeControl ? boundsText : "\(boundsText) · 控制未启用"
     }
 
     // MARK: helpers
 
     private func temperatureText(_ value: Double?) -> String {
-        guard let value else { return "N/A" }
+        guard let value, value.isFinite else { return "N/A" }
         return "\(Int(value.rounded()))°C"
     }
 
-    private func fanRPMText(_ fanReading: FanReading) -> String {
-        guard let rpm = fanReading.currentRPM else { return "N/A" }
-        return "\(Int(rpm.rounded())) RPM"
+    private func fanCurrentText(_ fanReading: FanReading) -> String {
+        guard fanReading.capabilities.rpmReadable,
+              let rpm = validRPM(fanReading.currentRPM)
+        else { return "N/A" }
+        return "\(rpm)"
     }
 
-    private func fanRangeText(_ fanReading: FanReading) -> String? {
+    private func fanRangeText(_ fanReading: FanReading) -> String {
         guard fanReading.capabilities.boundsReadable,
-              let minRPM = fanReading.minRPM,
-              let maxRPM = fanReading.maxRPM,
+              let minRPM = validRPM(fanReading.minRPM),
+              let maxRPM = validRPM(fanReading.maxRPM),
               minRPM <= maxRPM
-        else { return nil }
-        return "范围 \(Int(minRPM.rounded()))-\(Int(maxRPM.rounded())) RPM"
+        else { return "N/A" }
+        return "\(minRPM)–\(maxRPM) RPM"
     }
 
-    private func fanTargetText(_ fanReading: FanReading) -> String? {
+    private func fanTargetText(_ fanReading: FanReading) -> String {
         guard fanReading.capabilities.targetReadable,
-              let targetRPM = fanReading.targetRPM
-        else { return nil }
-        return "目标 \(Int(targetRPM.rounded())) RPM"
+              let targetValue = validRPM(fanReading.targetRPM)
+        else { return "N/A" }
+        return "\(targetValue)"
+    }
+
+    private func validRPM(_ value: Double?) -> Int? {
+        guard let value, value.isFinite, value >= 0 else { return nil }
+        return Int(value.rounded())
     }
 
     private var thermalStateText: String {
@@ -645,43 +675,174 @@ struct DetailSectionView: View {
         }
     }
 
-    /// 充电时显示"距充满"，使用电池时显示"剩余时间"，AC 已充满时无意义。
-    private func timeLabel(_ battery: BatterySnapshot) -> String {
-        battery.isCharging ? "距充满" : "剩余时间"
+    private func powerSourceText(_ battery: BatterySnapshot) -> String {
+        if battery.isCharging { return "充电中" }
+        if battery.isOnAC, battery.chargePercent >= 100 { return "已充满" }
+        if battery.isOnAC { return "电源接入" }
+        return "使用电池"
     }
 
-    private func timeText(_ battery: BatterySnapshot) -> String {
-        if battery.isCharging {
-            return formatTime(battery.timeToFullMinutes)
-        }
-        if !battery.isOnAC {
-            return formatTime(battery.timeToEmptyMinutes)
-        }
-        return "—"
-    }
-
-    /// 分钟 → 显示文本。nil（含 post-wake 抑制）→ 计算中；-1（Apple 哨兵）→ 计算中；0 → —。
-    private func formatTime(_ minutes: Int?) -> String {
-        guard let m = minutes else { return "计算中" }
-        switch m {
-        case -1: return "计算中"
-        case 0: return "—"
-        case let t where t > 0:
-            let hrs = t / 60
-            let mins = t % 60
-            return hrs > 0 ? "\(hrs)小时\(mins)分" : "\(mins)分钟"
-        default: return "—"
-        }
-    }
-
-    /// "92%（320 次循环）"；健康度缺失 → —；循环数缺失则仅显示百分比。
+    /// "92% · 320 次循环"；健康度缺失 → —；循环数缺失则仅显示百分比。
     private func healthText(_ battery: BatterySnapshot) -> String {
-        guard let h = battery.healthPercent else { return "—" }
+        guard let h = battery.healthPercent, h.isFinite else { return "—" }
         let pct = "\(Int(h.rounded()))%"
         if let cycles = battery.cycleCount {
-            return "\(pct)（\(cycles) 次循环）"
+            return "\(pct) · \(cycles) 次循环"
         }
         return pct
+    }
+}
+
+private struct DetailSectionHeader: View {
+    let systemImage: String
+    let title: String
+    var showsFanColumns = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if showsFanColumns {
+                label.frame(width: StableValueWidth.detailFanLabel, alignment: .leading)
+                columnTitle("当前", width: StableValueWidth.detailFanCurrent)
+                columnTitle("目标", width: StableValueWidth.detailFanTarget)
+                columnTitle("范围", width: StableValueWidth.detailFanRange)
+            } else {
+                label
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.bottom, 6)
+    }
+
+    private var label: some View {
+        HStack(spacing: 7) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .medium))
+                .frame(width: 15)
+            Text(title)
+                .font(.system(size: 11.5, weight: .medium))
+                .lineLimit(1)
+        }
+        .foregroundStyle(Color.metricLabel)
+    }
+
+    private func columnTitle(_ text: String, width: CGFloat) -> some View {
+        Text(text)
+            .font(.caption2)
+            .foregroundStyle(Color.metricLabel)
+            .lineLimit(1)
+            .frame(width: width, alignment: .trailing)
+    }
+}
+
+private struct DetailKeyValueRow: View {
+    let label: String
+    let value: String
+    let valueWidth: CGFloat
+    var color: Color = .primary
+    var probe: LayoutProbeID?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            StableValueText(
+                text: value,
+                width: valueWidth,
+                color: color,
+                fontWeight: .medium
+            )
+            .layoutProbe(probe)
+        }
+        .padding(.vertical, 5)
+    }
+}
+
+private struct DetailTemperaturePairRow: View {
+    let socText: String
+    let gpuText: String
+
+    var body: some View {
+        HStack(spacing: 0) {
+            temperatureCell(label: "SoC", value: socText, probe: .detailSoCTemperature)
+            Rectangle()
+                .fill(Color.hairline)
+                .frame(width: 1, height: 18)
+                .padding(.horizontal, 8)
+            temperatureCell(label: "GPU", value: gpuText, probe: .detailGPUTemperature)
+        }
+        .padding(.vertical, 5)
+    }
+
+    private func temperatureCell(label: String, value: String, probe: LayoutProbeID) -> some View {
+        HStack(spacing: 6) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            StableValueText(
+                text: value,
+                width: StableValueWidth.temperature,
+                color: value == "N/A" ? .secondary : .primary,
+                fontWeight: .medium
+            )
+            .layoutProbe(probe)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct DetailFanTableRow: View {
+    let name: String
+    let current: String
+    let target: String
+    let range: String
+    let probes: (LayoutProbeID?, LayoutProbeID?, LayoutProbeID?)
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(name)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: StableValueWidth.detailFanLabel, alignment: .leading)
+
+            tableValue(current, width: StableValueWidth.detailFanCurrent, probe: probes.0)
+            tableValue(target, width: StableValueWidth.detailFanTarget, probe: probes.1)
+            tableValue(range, width: StableValueWidth.detailFanRange, probe: probes.2)
+        }
+        .padding(.vertical, 5)
+    }
+
+    private func tableValue(_ text: String, width: CGFloat, probe: LayoutProbeID?) -> some View {
+        StableValueText(
+            text: text,
+            width: width,
+            color: text == "N/A" ? .secondary : .primary,
+            fontWeight: .medium
+        )
+        .layoutProbe(probe)
+    }
+}
+
+private struct DetailHairline: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.hairline)
+            .frame(height: 1)
+    }
+}
+
+private struct DetailSectionDivider: View {
+    var body: some View {
+        DetailHairline()
+            .padding(.vertical, 8)
     }
 }
 
