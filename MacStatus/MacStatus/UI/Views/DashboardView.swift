@@ -711,6 +711,8 @@ private struct DetailSectionHeader: View {
             }
         }
         .padding(.bottom, 6)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(accessibilityTitle))
     }
 
     private var label: some View {
@@ -718,6 +720,7 @@ private struct DetailSectionHeader: View {
             Image(systemName: systemImage)
                 .font(.system(size: 12, weight: .medium))
                 .frame(width: 15)
+                .accessibilityHidden(true)
             Text(title)
                 .font(.system(size: 11.5, weight: .medium))
                 .lineLimit(1)
@@ -731,6 +734,10 @@ private struct DetailSectionHeader: View {
             .foregroundStyle(Color.metricLabel)
             .lineLimit(1)
             .frame(width: width, alignment: .trailing)
+    }
+
+    private var accessibilityTitle: String {
+        showsFanColumns ? "风扇，列为当前、目标、范围" : title
     }
 }
 
@@ -759,6 +766,9 @@ private struct DetailKeyValueRow: View {
             .layoutProbe(probe)
         }
         .padding(.vertical, 5)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(value))
     }
 }
 
@@ -773,6 +783,7 @@ private struct DetailTemperaturePairRow: View {
                 .fill(Color.hairline)
                 .frame(width: 1, height: 18)
                 .padding(.horizontal, 8)
+                .accessibilityHidden(true)
             temperatureCell(label: "GPU", value: gpuText, probe: .detailGPUTemperature)
         }
         .padding(.vertical, 5)
@@ -794,6 +805,9 @@ private struct DetailTemperaturePairRow: View {
             .layoutProbe(probe)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(label) 温度"))
+        .accessibilityValue(Text(value))
     }
 }
 
@@ -818,6 +832,9 @@ private struct DetailFanTableRow: View {
             tableValue(range, width: StableValueWidth.detailFanRange, probe: probes.2)
         }
         .padding(.vertical, 5)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(name))
+        .accessibilityValue(Text(accessibilityValue))
     }
 
     private func tableValue(_ text: String, width: CGFloat, probe: LayoutProbeID?) -> some View {
@@ -829,6 +846,16 @@ private struct DetailFanTableRow: View {
         )
         .layoutProbe(probe)
     }
+
+    private var accessibilityValue: String {
+        "当前 \(rpmAccessibilityValue(current))，" +
+            "目标 \(rpmAccessibilityValue(target))，" +
+            "范围 \(range)"
+    }
+
+    private func rpmAccessibilityValue(_ text: String) -> String {
+        text == "N/A" ? text : "\(text) RPM"
+    }
 }
 
 private struct DetailHairline: View {
@@ -836,6 +863,7 @@ private struct DetailHairline: View {
         Rectangle()
             .fill(Color.hairline)
             .frame(height: 1)
+            .accessibilityHidden(true)
     }
 }
 
