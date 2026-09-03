@@ -41,6 +41,10 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         XCTAssertEqual(StableValueWidth.batteryHealthTime, 112)
         XCTAssertEqual(StableValueWidth.processCPU, 52)
         XCTAssertEqual(StableValueWidth.processMemory, 68)
+        XCTAssertEqual(StableValueWidth.detailFanLabel, 110)
+        XCTAssertEqual(StableValueWidth.detailFanCurrent, 52)
+        XCTAssertEqual(StableValueWidth.detailFanTarget, 52)
+        XCTAssertEqual(StableValueWidth.detailFanRange, 84)
     }
 
     func testMetricCardValueStringsFitStableColumns() {
@@ -94,6 +98,34 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         }
     }
 
+    func testDetailTableKeepsStableGeometryAcrossShortAndExtremeFixtures() {
+        let short = detailTableMeasurement(for: .short)
+        let extreme = detailTableMeasurement(for: .extreme)
+
+        XCTAssertEqual(short.size.width, DashboardLayout.popoverWidth, accuracy: 0.5)
+        XCTAssertEqual(extreme.size.width, DashboardLayout.popoverWidth, accuracy: 0.5)
+        XCTAssertEqual(short.size.width, extreme.size.width, accuracy: 0.5)
+        XCTAssertEqual(short.size.height, extreme.size.height, accuracy: 0.5)
+
+        assertStableValueColumnFrames(
+            short.snapshot,
+            extreme.snapshot,
+            ids: [
+                .detailBatteryValue,
+                .detailSoCTemperature,
+                .detailGPUTemperature,
+                .detailFanCurrent,
+                .detailFanTarget,
+                .detailFanRange,
+            ]
+        )
+
+        print(
+            "DetailTableSize short width=\(short.size.width) height=\(short.size.height) " +
+                "extreme width=\(extreme.size.width) height=\(extreme.size.height)"
+        )
+    }
+
     func measuredDashboardSize(for kind: DashboardLayoutFixture.Kind) -> CGSize {
         let state = DashboardLayoutFixture.make(kind)
         let controller = NSHostingController(
@@ -119,6 +151,30 @@ final class DashboardLayoutStabilityTests: XCTestCase {
         controller.view.layoutSubtreeIfNeeded()
 
         return store.snapshot
+    }
+
+    private func detailTableMeasurement(
+        for kind: DashboardLayoutFixture.Kind
+    ) -> (size: CGSize, snapshot: LayoutProbeFrameSnapshot) {
+        let state = DashboardLayoutFixture.make(kind)
+        let store = LayoutProbeFrameStore()
+        let controller = NSHostingController(
+            rootView: DetailSectionView(
+                battery: state.battery,
+                thermal: state.thermal,
+                fan: state.fan,
+                showsTemperature: true,
+                showsFan: true
+            )
+            .padding(.horizontal, 14)
+            .frame(width: DashboardLayout.popoverWidth)
+            .readLayoutProbeFrames(into: store)
+        )
+        controller.sizingOptions = [.preferredContentSize]
+        controller.view.layoutSubtreeIfNeeded()
+        let size = controller.view.fittingSize
+        controller.view.layoutSubtreeIfNeeded()
+        return (size, store.snapshot)
     }
 
     func assertStableValueColumnFrames(

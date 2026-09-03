@@ -7,15 +7,15 @@ import XCTest
 // MARK: - Design Snapshot Renderer
 //
 // 诊断用途：把 DashboardView / MenuBarMetricsView / SettingsView 用与 1a/2b 设计稿
-// 相同的数据离屏渲染成亮/暗 PNG（默认输出到临时目录，可用 TEST_RUNNER_SNAPSHOT_DIR
-// 覆盖），供与 ui/project/_ref/*.png 逐像素对照。不做断言（渲染失败才 fail）。
+// 相同的数据离屏渲染成亮/暗 PNG（默认输出到仓库 build/design-snapshots，
+// 可用 SNAPSHOT_DIR 覆盖），供与 ui/project/_ref/*.png 对照。不做断言（渲染失败才 fail）。
 
 @MainActor
 final class DesignSnapshotTests: XCTestCase {
 
     func testRenderDesignSnapshots() throws {
         let dirPath = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"]
-            ?? NSTemporaryDirectory() + "macstatus-design-snapshots"
+            ?? Self.defaultSnapshotDirectory.path
         let dir = URL(fileURLWithPath: dirPath, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         print("DesignSnapshotDir \(dir.path)")
@@ -104,6 +104,19 @@ final class DesignSnapshotTests: XCTestCase {
                 to: dir.appendingPathComponent("powerstrip_full_\(suffix).png")
             )
 
+            // 展开详情卡：对齐黄框参考值，独立输出便于核对表格结构和列位置。
+            let detail = Self.makeStatusDetailReferenceView()
+                .padding(14)
+                .frame(width: DashboardLayout.popoverWidth)
+                .background(Color(nsColor: glass))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            try Self.writeSnapshot(
+                detail,
+                appearance: appearance,
+                size: nil,
+                to: dir.appendingPathComponent("status_detail_\(suffix).png")
+            )
+
             // 设置窗口（默认"指标与排序"页；衬窗口底色，真实窗口由 NSWindow 提供）
             try Self.writeSnapshot(
                 SettingsView().background(Color(nsColor: .windowBackgroundColor)),
@@ -115,6 +128,14 @@ final class DesignSnapshotTests: XCTestCase {
     }
 
     // MARK: - Mock Data（与设计稿数值一致）
+
+    private static var defaultSnapshotDirectory: URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // MacStatusTests
+            .deletingLastPathComponent() // MacStatus project directory
+            .deletingLastPathComponent() // repository root
+            .appendingPathComponent("build/design-snapshots", isDirectory: true)
+    }
 
     private static func makeMockState() -> DashboardState {
         let state = DashboardState()
@@ -198,6 +219,67 @@ final class DesignSnapshotTests: XCTestCase {
         state.selfMemoryMB = 83
         state.refreshInterval = 2
         return state
+    }
+
+    private static func makeStatusDetailReferenceView() -> DetailSectionView {
+        let battery = BatterySnapshot(
+            chargePercent: 95,
+            isCharging: false,
+            isOnAC: true,
+            timeToEmptyMinutes: nil,
+            timeToFullMinutes: nil,
+            watts: -0.5,
+            healthPercent: 87,
+            cycleCount: 107,
+            systemPowerWatts: 38.5
+        )
+        let thermal = ThermalSnapshot(
+            cpuSocTemperatureCelsius: 62,
+            systemState: .nominal,
+            gpuTemperatureCelsius: 58,
+            batteryTemperatureCelsius: 30,
+            capturedAt: Date(timeIntervalSince1970: 1_782_300_000)
+        )
+        let capabilities = FanCapabilities(
+            rpmReadable: true,
+            boundsReadable: true,
+            targetReadable: true,
+            safeControlAvailable: false
+        )
+        let fans = [
+            FanReading(
+                id: 0,
+                index: 0,
+                displayName: "风扇 1",
+                currentRPM: 1_340,
+                minRPM: 1_350,
+                maxRPM: 5_349,
+                targetRPM: 1_350,
+                capabilities: capabilities
+            ),
+            FanReading(
+                id: 1,
+                index: 1,
+                displayName: "风扇 2",
+                currentRPM: 1_492,
+                minRPM: 1_458,
+                maxRPM: 5_777,
+                targetRPM: 1_458,
+                capabilities: capabilities
+            ),
+        ]
+
+        return DetailSectionView(
+            battery: battery,
+            thermal: thermal,
+            fan: FanSnapshot(
+                supportState: .supported,
+                fans: fans,
+                capturedAt: Date(timeIntervalSince1970: 1_782_300_000)
+            ),
+            showsTemperature: true,
+            showsFan: true
+        )
     }
 
     private static func makeMenuBarItems(isDark: Bool) -> [MenuBarMetricsView.Item] {
